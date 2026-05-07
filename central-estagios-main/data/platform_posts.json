@@ -1,0 +1,17 @@
+[
+    {
+        "id": 1,
+        "title": "Novo Post FSA",
+        "content": "Confira as novidades da Funda\u00e7\u00e3o Santo Andr\u00e9 para o semestre 2026.2",
+        "hashtags": [
+            "FSA",
+            "Est\u00e1gio",
+            "Oportunidades"
+        ],
+        "images": [
+            "https:\/\/images.unsplash.com\/photo-1522071820081-009f0129c71c?w=400"
+        ],
+        "whiteBackground": false,
+        "createdAt": "20\/03\/2026"
+    }
+]
