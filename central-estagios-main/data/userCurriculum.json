@@ -1,0 +1,21 @@
+{
+    "nome": "Lav\u00ednia Carrasco",
+    "email": "lavinia.769029@graduacao.fsa.br",
+    "telefone": "(11) 98765-4321",
+    "cidade": "Santo Andr\u00e9, SP",
+    "objetivo": "Busco oportunidade de est\u00e1gio na \u00e1rea de Ci\u00eancia de Dados e Intelig\u00eancia Artificial para aplicar conhecimentos te\u00f3ricos e desenvolver habilidades pr\u00e1ticas em projetos desafiadores.",
+    "habilidades": [
+        "Python",
+        "JavaScript",
+        "React",
+        "SQL",
+        "Data Analysis"
+    ],
+    "experiencia_cargo": "Estagi\u00e1rio de TI",
+    "experiencia_empresa": "Tech Solutions",
+    "experiencia_periodo": "Jan 2025 - Atual",
+    "experiencia_descricao": "Desenvolvimento de dashboards e an\u00e1lise de dados para tomada de decis\u00f5es estrat\u00e9gicas.",
+    "formacao_curso": "Ci\u00eancia de Dados e IA",
+    "formacao_instituicao": "Funda\u00e7\u00e3o Santo Andr\u00e9",
+    "formacao_periodo": "2026 - Cursando"
+}
