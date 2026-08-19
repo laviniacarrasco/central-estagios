@@ -1,0 +1,19 @@
+[
+    {
+        "id": 1,
+        "userId": 3,
+        "tipo": "contrato_estagio",
+        "area": "fora",
+        "arquivos": [
+            "uploads\/assinaturas\/3\/1_6a84e1ea5c54b.pdf"
+        ],
+        "arquivoAssinado": [
+            "uploads\/assinaturas\/3\/assinado\/1_assinado_6a84e201357b5.pdf"
+        ],
+        "status": "assinado",
+        "mensagemErro": null,
+        "dataSolicitacao": "2026-08-18 22:51:22",
+        "dataAnalise": "2026-08-18 22:51:29",
+        "dataAssinatura": "2026-08-18 22:51:45"
+    }
+]
