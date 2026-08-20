@@ -1,0 +1,45 @@
+{
+    "nome": "Lavínia Carrasco",
+    "email": "",
+    "telefone": "",
+    "cidade": "",
+    "resumo": "",
+    "habilidades": [
+        "Juju",
+        "abc",
+        "Diva",
+        "Amandinha Babilônica"
+    ],
+    "experiencias": [
+        {
+            "cargo": "Estagiário FCSD",
+            "empresa": "Ford Motor Company",
+            "cidade": "Santo André, SP",
+            "inicio": "2025-08-01",
+            "fim": "",
+            "atual": "1",
+            "descricao": "Desenvolvimento de dashboards e análise de dados para tomada de decisões estratégicas."
+        }
+    ],
+    "formacoes": [
+        {
+            "curso": "Ciência de Dados e IA",
+            "instituicao": "Fundação Santo André",
+            "tipo": "Graduacao",
+            "inicio": "2023-02-01",
+            "fim": "2026-12-01",
+            "atual": "1"
+        }
+    ],
+    "idiomas": [
+        {
+            "idioma": "Ingles",
+            "nivel": "Basico"
+        }
+    ],
+    "layout": "moderno",
+    "corTema": "azul-cinza",
+    "idiomaCV": "pt",
+    "exibirFoto": true,
+    "fotoCV": null
+}
