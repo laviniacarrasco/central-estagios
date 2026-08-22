@@ -1,0 +1,142 @@
+{
+    "Administração": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 300,
+        "horasComplementares": 120,
+        "periodo_inicio": 1,
+        "observacao": ""
+    },
+    "Arquitetura e Urbanismo": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 360,
+        "horasComplementares": 150,
+        "periodo_inicio": 3,
+        "observacao": ""
+    },
+    "Biomedicina": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 700,
+        "horasComplementares": 150,
+        "periodo_inicio": 6,
+        "observacao": "Confirmar regra específica com a coordenação (curso sinalizado com * na tabela oficial)."
+    },
+    "Ciências Biológicas": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 360,
+        "horasComplementares": 120,
+        "periodo_inicio": 2,
+        "observacao": ""
+    },
+    "Ciências Contábeis": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 300,
+        "horasComplementares": 120,
+        "periodo_inicio": 1,
+        "observacao": ""
+    },
+    "Direito": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 200,
+        "horasComplementares": 100,
+        "periodo_inicio": 7,
+        "observacao": ""
+    },
+    "Engenharias": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 160,
+        "horasComplementares": 150,
+        "periodo_inicio": 5,
+        "observacao": "Regra geral para os cursos de Engenharia. Duplicado abaixo para cada habilitação específica."
+    },
+    "Engenharia Civil": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 160,
+        "horasComplementares": 150,
+        "periodo_inicio": 5,
+        "observacao": ""
+    },
+    "Engenharia de Produção": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 160,
+        "horasComplementares": 150,
+        "periodo_inicio": 5,
+        "observacao": ""
+    },
+    "Pedagogia": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 400,
+        "horasComplementares": 200,
+        "periodo_inicio": 5,
+        "observacao": "Confirmar regra específica com a coordenação (curso sinalizado com * na tabela oficial)."
+    },
+    "Psicologia": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 620,
+        "horasComplementares": 200,
+        "periodo_inicio": 4,
+        "observacao": "Confirmar regra específica com a coordenação (curso sinalizado com * na tabela oficial)."
+    },
+    "Química": {
+        "estagioObrigatorio": true,
+        "horasEstagio": 160,
+        "horasComplementares": 120,
+        "periodo_inicio": 5,
+        "observacao": ""
+    },
+    "Ciência da Computação": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 120,
+        "periodo_inicio": null,
+        "observacao": ""
+    },
+    "Sistemas de Informação": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 120,
+        "periodo_inicio": null,
+        "observacao": ""
+    },
+    "Análise e Desenvolvimento de Sistemas": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 100,
+        "periodo_inicio": null,
+        "observacao": ""
+    },
+    "Educação Física": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 200,
+        "periodo_inicio": null,
+        "observacao": ""
+    },
+    "Fisioterapia": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 200,
+        "periodo_inicio": null,
+        "observacao": ""
+    },
+    "Jornalismo": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 100,
+        "periodo_inicio": null,
+        "observacao": ""
+    },
+    "Publicidade e Propaganda": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 120,
+        "periodo_inicio": null,
+        "observacao": ""
+    },
+    "Enfermagem": {
+        "estagioObrigatorio": false,
+        "horasEstagio": 0,
+        "horasComplementares": 200,
+        "periodo_inicio": null,
+        "observacao": ""
+    }
+}
