@@ -28,7 +28,7 @@
         "turno": "—",
         "situacao": "—",
         "dataMatricula": null,
-        "ultimoAcesso": "2026-08-21 22:43:18"
+        "ultimoAcesso": "2026-08-24 23:21:59"
     },
     {
         "id": 3,
@@ -36,9 +36,9 @@
         "cpf": "00000000002",
         "senha": "Estagio@123",
         "is_admin": false,
-        "email": "julia.791913@graduacao.fsa.br",
-        "curso": "Ciência de Dados e Inteligência Artificial",
-        "ra": "791913",
+        "email": "julia.761913@graduacao.fsa.br",
+        "curso": "Administração",
+        "ra": "761913",
         "periodo": "4º Período",
         "turno": "Noturno",
         "situacao": "Regular",
@@ -78,7 +78,6 @@
         "dataMatricula": "2025-02-10",
         "statusProfissional": "Estagiando fora da area",
         "ultimoAcesso": null
-       
     },
     {
         "id": 5,
@@ -12660,7 +12659,6 @@
         "statusProfissional": "Empregado na area",
         "ultimoAcesso": "2026-07-21 21:46:25",
         "horasEstagioCumpridas": 200
-
     },
     {
         "id": 764,

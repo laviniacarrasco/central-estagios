@@ -85,7 +85,7 @@ function getUltimaAssinaturaDoAluno($userId, $assinaturas) {
  */
 function statusProfissionalNormalizado($aluno) {
     $status = trim($aluno['statusProfissional'] ?? '');
-    if ($status === '' || $status === 'NÃ£o definido') return 'NÃ£o definido';
+    if ($status === '' || $status === 'Não definido') return 'Não definido';
     if ($status === 'Estagiando') return 'Estagiando na area'; // valor legado
     return $status;
 }
@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
  * na tabela de Estagio Obrigatorio.
  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'enviar_email_estagio') {
-    require_once 'includes/email_config.php';
+    require_once 'includes/email-config.php';
 
     $alunoId = intval($_POST['user_id'] ?? 0);
     $alunoAlvo = null;
@@ -853,7 +853,7 @@ include 'includes/header.php';
     <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
             <h2 class="text-3xl font-bold text-gray-900">Dashboard Administrativo</h2>
-            <p class="text-gray-500">VisÃ£o geral do desempenho e empregabilidade dos alunos</p>
+            <p class="text-gray-500">Visão geral do desempenho e empregabilidade dos alunos</p>
         </div>
         <?php if ($filtrosAtivos): ?>
             <span class="filter-active-pill">
@@ -879,7 +879,7 @@ include 'includes/header.php';
                     <button type="button" class="msel-clear-btn" onclick="clearMsel(this)">Limpar</button>
                 </div>
                 <?php if (empty($cursosDisponiveis)): ?>
-                    <div class="msel-empty">Nenhum curso disponÃ­vel</div>
+                    <div class="msel-empty">Nenhum curso disponí­vel</div>
                 <?php endif; ?>
                 <?php foreach ($cursosDisponiveis as $c): ?>
                     <label class="msel-option">
@@ -1596,7 +1596,7 @@ function atualizarLabelMsel(msel) {
 document.addEventListener('click', function (e) {
     document.querySelectorAll('.msel.open').forEach(msel => {
         if (!msel.contains(e.target)) {
-            msel.classList.remove('open'); // agora sÃ³ fecha; o submit jÃ¡ aconteceu no onMselChange
+            msel.classList.remove('open'); // agora só fecha; o submit já aconteceu no onMselChange
         }
     });
 });

@@ -3,6 +3,20 @@ session_start();
 
 define('DATA_PATH', __DIR__ . '/../data/');
 
+/* =========================================================================
+ * CARREGA VARIÁVEIS DE AMBIENTE DO ARQUIVO .env (SOMENTE PARA TESTE LOCAL)
+ * -------------------------------------------------------------------------
+ * Em produção (Render), as variáveis já vêm configuradas direto no painel
+ * de "Environment", então esse bloco nem é necessário lá — mas não tem
+ * problema deixar, ele só ativa se o arquivo .env existir.
+ * ========================================================================= */
+require_once __DIR__ . '/../vendor/autoload.php';
+
+if (file_exists(__DIR__ . '/../.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+}
+
 /**
  * Bloqueia acesso de quem não está logado
  * e, em seguida, aplica a regra de permissão por perfil (admin x aluno).
@@ -73,7 +87,7 @@ function verificarPermissaoPagina() {
 /**
  * Carrega dados de um JSON.
  * - Dados globais: loadData('platform_jobs')
- * - Dados do usuÃ¡rio logado: loadData('userCurriculum', true)
+ * - Dados do usuário logado: loadData('userCurriculum', true)
  */
 function loadData($name, $perUser = false) {
     $path = getDataPath($name, $perUser);
@@ -88,7 +102,7 @@ function loadData($name, $perUser = false) {
 }
 
 /**
- * Salva dados em um JSON (global ou por usuÃ¡rio)
+ * Salva dados em um JSON (global ou por usuário)
  */
 function saveData($name, $data, $perUser = false) {
     $path = getDataPath($name, $perUser);
@@ -110,9 +124,9 @@ function getDataPath($name, $perUser = false) {
 }
 
 /**
- * Lista oficial de cursos da FSA â€” fonte Ãºnica.
+ * Lista oficial de cursos da FSA — fonte única.
  * Usada em jobs.php (filtro do aluno) e admin-jobs.php (cadastro de vaga).
- * Mudou um curso? SÃ³ precisa editar aqui.
+ * Mudou um curso? Só precisa editar aqui.
  */
 function getFsaCourses() {
     return [

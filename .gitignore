@@ -1,0 +1,61 @@
+# ============================================
+# Credenciais e variáveis de ambiente
+# ============================================
+.env
+.env.*
+!.env.example
+
+# ============================================
+# Certificado CA local (usado só para resolver
+# erro de SSL do cURL no Windows em ambiente local)
+# ============================================
+includes/cacert.pem
+
+# ============================================
+# Dependências (Composer)
+# ============================================
+/vendor/
+composer.phar
+
+# ============================================
+# Uploads de usuários (opcional - avalie se
+# quer versionar ou não os arquivos enviados
+# pelos alunos, ex: PDFs de currículo, fotos)
+# ============================================
+/uploads/*
+!/uploads/.gitkeep
+
+# ============================================
+# Dados sensíveis / gerados dinamicamente
+# ============================================
+/data/*.json
+/data/users/
+!/data/.gitkeep
+
+# ============================================
+# Logs
+# ============================================
+*.log
+error_log
+/logs/
+
+# ============================================
+# Arquivos de IDE / Editor
+# ============================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# Sistema Operacional
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Arquivos temporários de teste
+# ============================================
+teste-email.php
+saida.html
