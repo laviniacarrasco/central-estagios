@@ -1,6 +1,6 @@
 <?php
 require_once 'includes/config.php';
-require_once 'includes/perfil_api.php'; //NOVO: ponte com o app de Perfil por Competencias (Flask)
+require_once 'includes/perfil_api.php'; // NOVO: ponte com o app de Perfil por Competências (Flask)
 checkAuth();
 
 $pageTitle = 'Meu Perfil';
@@ -13,7 +13,43 @@ function getInitials($name) {
     return $first . $last;
 }
 
-//Dados cadastrais (fonte da verdade: usuarios.json)
+/**
+ * Gera uma versão resumida do parecer da IA para exibição na Central de Estágios.
+ * A versão completa continua disponível no PDF (gerado pelo app Flask).
+ *
+ * Estratégia:
+ *  1) Corta o texto antes da primeira seção em markdown (###), que no parecer
+ *     costuma marcar o início dos detalhes "Competência 1, 2, 3...".
+ *  2) Se ainda assim o texto continuar muito longo (ou não tiver "###"),
+ *     aplica um limite de caracteres como proteção extra, cortando em um
+ *     espaço para não quebrar palavras no meio.
+ */
+function resumirParecer($texto, $limite = 700) {
+    $texto = trim((string) $texto);
+    if ($texto === '') return '';
+
+    $resumo = $texto;
+
+    // 1) corta antes da primeira seção markdown, se existir e não for logo no início
+    $posSecao = mb_strpos($texto, '###');
+    if ($posSecao !== false && $posSecao > 50) {
+        $resumo = trim(mb_substr($texto, 0, $posSecao));
+    }
+
+    // 2) limite de segurança por tamanho
+    if (mb_strlen($resumo) > $limite) {
+        $cortado = mb_substr($resumo, 0, $limite);
+        $ultimoEspaco = mb_strrpos($cortado, ' ');
+        if ($ultimoEspaco !== false) {
+            $cortado = mb_substr($cortado, 0, $ultimoEspaco);
+        }
+        $resumo = rtrim($cortado, " \t\n\r.,;:") . '...';
+    }
+
+    return $resumo;
+}
+
+// Dados cadastrais (fonte da verdade: usuarios.json)
 $usuarios = loadData('usuarios');
 $usuarioAtual = null;
 foreach ($usuarios as $u) {
@@ -30,16 +66,16 @@ $periodo    = $usuarioAtual['periodo']  ?? '';
 $turno      = $usuarioAtual['turno']    ?? '';
 $situacao   = $usuarioAtual['situacao'] ?? '';
 
-//Foto de perfil isolada por usuário, criada automaticamente ao salvar
+// Foto de perfil isolada por usuário, criada automaticamente ao salvar
 $userProfile = loadData('userProfile', true);
 
-//Currículo isolado por usuário, mesmo arquivo lido/escrito pelo curriculum.php
+// Currículo isolado por usuário, mesmo arquivo lido/escrito pelo curriculum.php
 $curriculumData = loadData('userCurriculum', true);
 $habilidades = $curriculumData['habilidades'] ?? [];
 $telefone    = $curriculumData['telefone']    ?? '';
 $cidade      = $curriculumData['cidade']      ?? '';
 
-//NOVO: resultado do Perfil por Competencias (busca no servidor Flask via cURL)
+// NOVO: resultado do Perfil por Competências (busca no servidor Flask via cURL)
 $resultadoPerfil = buscarResultadoPerfil($userName);
 $urlFormPerfil   = urlFormularioPerfil($userName);
 
@@ -54,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_perfil'])) {
 
     $extValida = in_array($ext, $allowedExts);
     $tamanhoValido = $file['size'] <= $maxSize;
-    $isImagemReal = $extValida && @getimagesize($file['tmp_name']) !== false; //valida conteúdo real
+    $isImagemReal = $extValida && @getimagesize($file['tmp_name']) !== false; // valida conteúdo real
 
     if ($extValida && $tamanhoValido && $isImagemReal && $file['error'] === 0) {
         if (!empty($userProfile['foto']) && file_exists($userProfile['foto'])) {
@@ -72,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_perfil'])) {
         }
     }
 
-    //Se chegou aqui, algo falhou na validação
+    // Se chegou aqui, algo falhou na validação
     header('Location: profile.php?foto=erro');
     exit;
 }
@@ -244,7 +280,7 @@ include 'includes/header.php';
                     </div>
 
                     <?php if (!$resultadoPerfil): ?>
-                        <!-- Aluno ainda nÃ£o respondeu o formulário -->
+                        <!-- Aluno ainda não respondeu o formulário -->
                         <div class="p-6 bg-blue-50 border border-blue-100 rounded-2xl text-center">
                             <i class="fas fa-clipboard-list text-3xl text-[#4A9FCA] mb-3"></i>
                             <p class="text-gray-700 font-semibold mb-1">Você ainda não respondeu o teste de perfil.</p>
@@ -266,8 +302,20 @@ include 'includes/header.php';
                                 <i class="fas fa-robot text-[#4A9FCA]"></i> Parecer da IA
                             </h4>
                             <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                    <?php echo htmlspecialchars($resultadoPerfil['parecer'] ?? 'Parecer indisponível.'); ?>
+                    <?php
+                        $parecerCompleto = $resultadoPerfil['parecer'] ?? '';
+                        $parecerResumo   = resumirParecer($parecerCompleto);
+                        echo htmlspecialchars($parecerResumo !== '' ? $parecerResumo : 'Parecer indisponível.');
+                    ?>
                             </div>
+                            <?php if ($parecerCompleto !== '' && $parecerResumo !== '' && mb_strlen($parecerResumo) < mb_strlen($parecerCompleto)): ?>
+                            <p class="text-xs text-gray-400 italic mt-3">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Esta é uma versão resumida. Baixe o
+                                <a href="<?php echo htmlspecialchars(urlPdfPerfil($resultadoPerfil)); ?>" target="_blank" class="text-[#4A9FCA] font-semibold hover:underline">relatório completo em PDF</a>
+                                para ver a análise na íntegra.
+                            </p>
+                            <?php endif; ?>
                         </div>
 
                         <div class="flex flex-wrap gap-3">
