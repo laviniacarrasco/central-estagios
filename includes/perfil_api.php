@@ -11,7 +11,7 @@
  * onde o Flask estiver publicado (ex: https://perfil.suaescola.com).
  */
 
-//AJUSTE AQUI antes de subir para produÃ§Ã£o
+//AJUSTE AQUI antes de subir para producao
 define('PERFIL_APP_URL', 'https://perfil-fsa.onrender.com');
 
 /**
@@ -28,14 +28,14 @@ define('PERFIL_APP_URL', 'https://perfil-fsa.onrender.com');
 function slugifyNome($nome) {
     $nome = trim((string) $nome);
 
-    // remove acentos (Ã£ -> a, Ã© -> e, Ã§ -> c, etc.) ANTES de baixar a caixa,
+    // remove acentos (a -> a, e -> e, c -> c, etc.) ANTES de baixar a caixa,
     // porque iconv//TRANSLIT lida melhor com o texto original.
     $semAcento = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $nome);
     if ($semAcento === false || $semAcento === null) {
         // fallback caso a extensao iconv tambem nao esteja disponivel:
         // troca manualmente os acentos mais comuns em portugues.
-        $de   = ['Ã¡','Ã ','Ã¢','Ã£','Ã¤','Ã©','Ã¨','Ãª','Ã«','Ã­','Ã¬','Ã®','Ã¯','Ã³','Ã²','Ã´','Ãµ','Ã¶','Ãº','Ã¹','Ã»','Ã¼','Ã§','Ã±',
-                 'Ã','Ã€','Ã‚','Ãƒ','Ã„','Ã‰','Ãˆ','ÃŠ','Ã‹','Ã','ÃŒ','ÃŽ','Ã','Ã“','Ã’','Ã”','Ã•','Ã–','Ãš','Ã™','Ã›','Ãœ','Ã‡','Ã‘'];
+        $de   = ['á','à','â','ã','ä','é','è','ê','ë','í','ì','î','ï','ó','ò','ô','õ','ö','ú','ù','û','ü','ç','ñ',
+                 'Á','À','Â','Ã','Ä','É','È','Ê','Ë','Í','Ì','Î','Ï','Ó','Ò','Ô','Õ','Ö','Ú','Ù','Û','Ü','Ç','Ñ'];
         $para = ['a','a','a','a','a','e','e','e','e','i','i','i','i','o','o','o','o','o','u','u','u','u','c','n',
                  'A','A','A','A','A','E','E','E','E','I','I','I','I','O','O','O','O','O','U','U','U','U','C','N'];
         $semAcento = str_replace($de, $para, $nome);
@@ -55,6 +55,17 @@ function slugifyNome($nome) {
  * Faz uma requisicao GET simples via cURL para o app Flask.
  * Retorna um array associativo (decodificado do JSON) ou null se der erro
  * (aluno ainda nao respondeu, servidor fora do ar, timeout, etc.).
+ *
+ * NOTA IMPORTANTE (ajuste feito em 25/08/2026):
+ * O Flask roda com apenas 1 worker (sync) no plano free do Render. Quando esse
+ * worker esta ocupado processando um /api/submit (que pode levar 1-2 minutos
+ * esperando a IA do Gemini responder, incluindo retries em caso de erro 503),
+ * qualquer outra requisicao -- inclusive esta consulta de leitura, que em
+ * condicoes normais e quase instantanea -- fica ENFILEIRADA atras dela.
+ * Um timeout de 5s era baixo demais para esse cenario e fazia o profile.php
+ * cair no estado de "aluno ainda nao respondeu" mesmo com o resultado ja
+ * salvo no Flask. Aumentamos a margem para acomodar tanto o cold start do
+ * Render quanto essa fila do worker unico.
  */
 function _perfilApiGet($caminho) {
     if (!function_exists('curl_init')) {
@@ -66,10 +77,10 @@ function _perfilApiGet($caminho) {
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);          // nao trava a pagina do aluno se o Flask estiver lento/fora
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 90);         // era 5s -- agora da tempo do worker unico do Flask ficar livre
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);  // era 3s -- agora da tempo do cold start do Render
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($ch, CURLOPT_CAINFO, __DIR__ . '/cacert.pem'); // âœ… certificados raiz (necessÃ¡rio no Windows/XAMPP)
+    curl_setopt($ch, CURLOPT_CAINFO, __DIR__ . '/cacert.pem'); // certificados raiz (necessario no Windows/XAMPP)
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
     $resposta = curl_exec($ch);
