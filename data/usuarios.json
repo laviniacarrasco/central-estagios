@@ -37,15 +37,14 @@
         "senha": "Estagio@123",
         "is_admin": false,
         "email": "julia.761913@graduacao.fsa.br",
-        "curso": "Administração",
+        "curso": "Ciência de Dados e Inteligência Artificial",
         "ra": "761913",
         "periodo": "4º Período",
         "turno": "Noturno",
         "situacao": "Regular",
         "dataMatricula": "2025-02-10",
         "statusProfissional": "Empregado fora da area",
-        "ultimoAcesso": "2026-06-21 08:37:27",
-        "horasEstagioCumpridas": 60
+        "ultimoAcesso": "2026-06-21 08:37:27"
     },
     {
         "id": 3,
