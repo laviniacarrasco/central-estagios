@@ -209,7 +209,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'envia
     if ($enviado) {
         echo json_encode(['ok' => true]);
     } else {
-        echo json_encode(['ok' => false, 'erro' => 'Falha ao enviar e-mail. Verifique as credenciais SMTP.']);
+        $motivo = getUltimoErroEmail() ?? 'Motivo desconhecido. Verifique os logs do servidor.';
+        echo json_encode(['ok' => false, 'erro' => 'Falha ao enviar e-mail: ' . $motivo]);
     }
     exit;
 }

@@ -27,12 +27,21 @@ $clientSecret = getenv('GMAIL_CLIENT_SECRET');
 $refreshToken = getenv('GMAIL_REFRESH_TOKEN');
 $senderEmail  = getenv('GMAIL_SENDER_EMAIL');
 
+// Guarda a mensagem de erro real da última tentativa de envio,
+// para podermos exibi-la (ou logá-la) de forma mais útil do que
+// um simples "true/false".
+$ultimoErroEmail = null;
+
 // Validação básica - evita erros confusos caso esqueça de configurar no Render
 if (!$clientId || !$clientSecret || !$refreshToken || !$senderEmail) {
-    // Em produção, é melhor logar isso em vez de exibir na tela
-    error_log('ERRO: Variáveis de ambiente do Gmail não configuradas corretamente.');
-    // Você pode optar por lançar uma exceção aqui, dependendo do fluxo do seu app:
-    // throw new Exception('Configuração de e-mail ausente.');
+    $faltando = [];
+    if (!$clientId)     $faltando[] = 'GMAIL_CLIENT_ID';
+    if (!$clientSecret) $faltando[] = 'GMAIL_CLIENT_SECRET';
+    if (!$refreshToken) $faltando[] = 'GMAIL_REFRESH_TOKEN';
+    if (!$senderEmail)  $faltando[] = 'GMAIL_SENDER_EMAIL';
+
+    $ultimoErroEmail = 'Variável(is) de ambiente ausente(s): ' . implode(', ', $faltando);
+    error_log('ERRO: ' . $ultimoErroEmail);
 }
 
 $mailer = new GmailMailer($clientId, $clientSecret, $refreshToken, $senderEmail);
@@ -58,20 +67,32 @@ $mailer = new GmailMailer($clientId, $clientSecret, $refreshToken, $senderEmail)
  */
 function enviarEmail(string $destinatarioEmail, string $destinatarioNome, string $assunto, string $corpoHtml): bool
 {
-    global $mailer;
+    global $mailer, $ultimoErroEmail;
 
     try {
         $mailer->send($destinatarioEmail, $assunto, $corpoHtml, 'Central de Estágios');
+        $ultimoErroEmail = null;
         return true;
     } catch (Exception $e) {
+        $ultimoErroEmail = $e->getMessage();
         error_log('Erro ao enviar e-mail: ' . $e->getMessage());
         return false;
     }
+}
+
+/**
+ * Retorna a mensagem de erro real da última tentativa de envio de e-mail
+ * (ou null, se o último envio deu certo / ainda não houve tentativa).
+ */
+function getUltimoErroEmail(): ?string
+{
+    global $ultimoErroEmail;
+    return $ultimoErroEmail;
 }
 
 // --- Exemplo de teste manual (remova ou comente em produção) ---
 // if (enviarEmail('destinatario_teste@example.com', 'Fulano de Tal', 'Teste Gmail API', '<h1>Funcionou!</h1><p>Este é um teste.</p>')) {
 //     echo "E-mail enviado com sucesso!";
 // } else {
-//     echo "Falha ao enviar e-mail. Verifique os logs.";
+//     echo "Falha ao enviar e-mail: " . getUltimoErroEmail();
 // }
