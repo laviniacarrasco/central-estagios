@@ -3,9 +3,9 @@
         "id": 1,
         "nome": "Lavinia",
         "cpf": "00000000001",
-        "senha": "$2y$10$5FuDExHoJ6KyoNoWLLgO1erxxLlR99Frl24VR4fxFn5vmfWcV..Te",
+        "senha": "$2y$10$bfwDYtQrZhpyBZcFmd5ADuqrjhoE2Vp29C44\/dmR5z4v6\/R1QMuDS",
         "is_admin": false,
-        "email": "lavinia.769029@graduacao.fsa.br",
+        "email": "lavinia.760876@graduacao.fsa.br",
         "curso": "Ciência de Dados e Inteligência Artificial",
         "ra": "760876",
         "periodo": "4º Período",
@@ -13,7 +13,7 @@
         "situacao": "Regular",
         "dataMatricula": "2025-02-10",
         "statusProfissional": "Estagiando na area",
-        "ultimoAcesso": "2026-08-22 18:22:07"
+        "ultimoAcesso": "2026-10-18 21:52:19"
     },
     {
         "id": 2,
@@ -28,7 +28,7 @@
         "turno": "—",
         "situacao": "—",
         "dataMatricula": null,
-        "ultimoAcesso": "2026-08-24 23:21:59"
+        "ultimoAcesso": "2026-10-18 21:26:11"
     },
     {
         "id": 3,

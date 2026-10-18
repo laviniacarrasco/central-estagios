@@ -6,26 +6,26 @@
  *
  * IMPORTANTE:
  * - Nenhuma credencial fica escrita aqui.
- * - Os valores são lidos de variáveis de ambiente (getenv).
+ * - Os valores são lidos de $_ENV (Dotenv) ou de variáveis de ambiente (getenv).
  * - No Render: Dashboard -> seu serviço -> Environment -> Add Environment Variable
  *   Adicione:
  *     GMAIL_CLIENT_ID
  *     GMAIL_CLIENT_SECRET
  *     GMAIL_REFRESH_TOKEN
- *     GMAIL_SENDER_EMAIL   (ex: laviniacarrasco29@gmail.com)
+ *     GMAIL_SENDER_EMAIL   (ex: seu-email@gmail.com)
  *
- * - Em ambiente local (seu próprio computador), você pode usar um arquivo
- *   ".env" (que NÃO deve ir para o Git) + uma lib como vlucas/phpdotenv,
- *   ou simplesmente exportar as variáveis no terminal antes de testar.
+ * - Em ambiente local (seu próprio computador), use um arquivo ".env"
+ *   (que NÃO deve ir para o Git), carregado em includes/config.php
+ *   pelo vlucas/phpdotenv.
  */
 
 require_once __DIR__ . '/GmailMailer.php';
 
 // --- Leitura das credenciais (NUNCA hardcoded) ---
-$clientId     = getenv('GMAIL_CLIENT_ID');
-$clientSecret = getenv('GMAIL_CLIENT_SECRET');
-$refreshToken = getenv('GMAIL_REFRESH_TOKEN');
-$senderEmail  = getenv('GMAIL_SENDER_EMAIL');
+$clientId     = $_ENV['GMAIL_CLIENT_ID']     ?? getenv('GMAIL_CLIENT_ID');
+$clientSecret = $_ENV['GMAIL_CLIENT_SECRET'] ?? getenv('GMAIL_CLIENT_SECRET');
+$refreshToken = $_ENV['GMAIL_REFRESH_TOKEN'] ?? getenv('GMAIL_REFRESH_TOKEN');
+$senderEmail  = $_ENV['GMAIL_SENDER_EMAIL']  ?? getenv('GMAIL_SENDER_EMAIL');
 
 // Guarda a mensagem de erro real da última tentativa de envio,
 // para podermos exibi-la (ou logá-la) de forma mais útil do que
@@ -44,13 +44,17 @@ if (!$clientId || !$clientSecret || !$refreshToken || !$senderEmail) {
     error_log('ERRO: ' . $ultimoErroEmail);
 }
 
-$mailer = new GmailMailer($clientId, $clientSecret, $refreshToken, $senderEmail);
+$mailer = new GmailMailer(
+    (string)$clientId,
+    (string)$clientSecret,
+    (string)$refreshToken,
+    (string)$senderEmail
+);
 
 /**
  * Função utilitária para enviar e-mail em qualquer parte do seu sistema.
  *
- * ATENÇÃO: a assinatura abaixo foi ajustada para bater exatamente com o
- * jeito que o admin-dashboard.php já chama esta função:
+ * A assinatura bate com o jeito que o admin-dashboard.php chama esta função:
  *
  *   enviarEmail($alunoAlvo['email'], $nomeAluno, $assunto, $corpo);
  *
@@ -67,7 +71,13 @@ $mailer = new GmailMailer($clientId, $clientSecret, $refreshToken, $senderEmail)
  */
 function enviarEmail(string $destinatarioEmail, string $destinatarioNome, string $assunto, string $corpoHtml): bool
 {
-    global $mailer, $ultimoErroEmail;
+    global $mailer, $ultimoErroEmail, $clientId, $clientSecret, $refreshToken, $senderEmail;
+
+    // Se faltar alguma credencial, não tenta enviar.
+    // A mensagem explicativa já está em $ultimoErroEmail (definida acima).
+    if (!$clientId || !$clientSecret || !$refreshToken || !$senderEmail) {
+        return false;
+    }
 
     try {
         $mailer->send($destinatarioEmail, $assunto, $corpoHtml, 'Central de Estágios');
