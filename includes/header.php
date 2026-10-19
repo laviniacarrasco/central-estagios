@@ -7,6 +7,10 @@ $userId    = $_SESSION['user_id'] ?? 0;
 $isAdmin   = !empty($_SESSION['is_admin']);
 $isEgresso = !empty($_SESSION['is_egresso']);
 $isAdminEgressos = $isAdmin && !empty($_SESSION['is_admin_egressos']);
+
+// Envio de e-mails em fila/resumo semanal: roda depois que a pagina ja foi entregue
+require_once __DIR__ . '/alertas.php';
+alertasAgendarTick();
 $pageTitle = $pageTitle ?? 'Central de Estágios';
 
 if (!function_exists('getInitials')) {
@@ -227,14 +231,12 @@ if (is_array($usuariosHeaderCheck)) {
                 <i class="fas fa-briefcase"></i>
             </a>
 
-            <!-- Vagas divulgadas por egressos: aluno e admin -->
-            <a href="egressos.php" class="sidebar-link" title="Vagas de Egressos">
-                <i class="fas fa-user-graduate"></i>
-            </a>
-
             <?php if (!$isAdmin): ?>
-                <a href="candidaturas.php" class="sidebar-link" title="Minhas Candidaturas">
+                <a href="minhas-vagas.php" class="sidebar-link" title="Minhas Vagas">
                     <i class="fas fa-clipboard-check"></i>
+                </a>
+                <a href="vagas-para-voce.php" class="sidebar-link" title="Vagas para Você">
+                    <i class="fas fa-star"></i>
                 </a>
             <?php endif; ?>
 
@@ -270,9 +272,15 @@ if (is_array($usuariosHeaderCheck)) {
                 <a href="admin-dashboard.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Dashboard Admin">
                     <i class="fas fa-chart-line"></i>
                 </a>
+                <a href="admin-alertas.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Alertas e E-mails">
+                    <i class="fas fa-envelope"></i>
+                </a>
                 <?php if ($isAdminEgressos): ?>
                     <a href="admin-egressos.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Painel de Egressos">
                         <i class="fas fa-users"></i>
+                    </a>
+                    <a href="admin-relatorios.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Relatórios de Egressos">
+                        <i class="fas fa-file-export"></i>
                     </a>
                 <?php endif; ?>
             <?php endif; ?>
@@ -302,9 +310,19 @@ if (is_array($usuariosHeaderCheck)) {
             <?php echo htmlspecialchars($pageTitle); ?>
         </h1>
 
+        <?php $mostrarEngrenagem = !$isAdmin && !$isEgresso; ?>
+        <?php if ($mostrarEngrenagem): ?>
+        <!-- Engrenagem: abre Meus Alertas dentro do Perfil -->
+        <a href="profile.php?config=alertas"
+           class="ml-auto mr-3 w-10 h-10 flex items-center justify-center rounded-full border-2 border-gray-200 text-gray-500 hover:border-[#4A9FCA] hover:text-[#4A9FCA] hover:bg-gray-50 transition-all flex-shrink-0"
+           title="Configurar alertas por e-mail">
+            <i class="fas fa-cog"></i>
+        </a>
+        <?php endif; ?>
+
         <!-- Avatar / Perfil -->
         <a href="<?php echo $isEgresso ? 'egresso-perfil.php' : 'profile.php'; ?>"
-           class="ml-auto flex items-center gap-3 px-4 py-2 border-2 border-gray-200 rounded-full hover:border-[#4A9FCA] hover:bg-gray-50 transition-all cursor-pointer flex-shrink-0"
+           class="<?php echo $mostrarEngrenagem ? '' : 'ml-auto'; ?> flex items-center gap-3 px-4 py-2 border-2 border-gray-200 rounded-full hover:border-[#4A9FCA] hover:bg-gray-50 transition-all cursor-pointer flex-shrink-0"
            title="Ver Perfil">
 
             <span class="text-sm text-gray-700 font-medium hidden sm:inline">
@@ -329,6 +347,117 @@ if (is_array($usuariosHeaderCheck)) {
 
         </a>
     </header>
+
+    <!-- ================================================================ -->
+    <!-- CAIXA PADRAO DE CONFIRMACAO / AVISO (mesmo visual do "Excluir Vaga?") -->
+    <!-- Substitui o confirm()/alert() do navegador em todas as paginas.        -->
+    <!-- Uso em formularios:  <form data-confirm="Texto" data-confirm-titulo="Titulo"
+         data-confirm-botao="Excluir" data-confirm-tipo="perigo|aviso" data-confirm-icone="fa-trash-alt">
+         Uso em JS:  fsaConfirmar({titulo, texto, botao, tipo, icone}, function(){...});  fsaAviso('texto', 'titulo'); -->
+    <!-- ================================================================ -->
+    <div id="fsaModal" class="fixed inset-0 z-[999] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="fsaModalTitulo">
+        <div id="fsaModalFundo" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 z-10">
+            <div id="fsaModalIconeBox" class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <i id="fsaModalIcone" class="fas fa-trash-alt text-3xl"></i>
+            </div>
+            <h3 id="fsaModalTitulo" class="text-xl font-bold text-gray-900 text-center mb-2"></h3>
+            <p id="fsaModalTexto" class="text-gray-500 text-sm text-center mb-8 leading-relaxed"></p>
+            <div class="flex gap-3">
+                <button type="button" id="fsaModalCancelar"
+                        class="flex-1 py-3 px-4 rounded-2xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-all text-sm">
+                    <i class="fas fa-times mr-1"></i> Cancelar
+                </button>
+                <button type="button" id="fsaModalOk"
+                        class="flex-1 py-3 px-4 rounded-2xl text-white font-semibold transition-all text-sm shadow-lg"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var modal = document.getElementById('fsaModal');
+        if (!modal) return;
+        var $ = function (id) { return document.getElementById(id); };
+        var acaoOk = null;
+        var focoAnterior = null;
+
+        function fechar() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            acaoOk = null;
+            if (focoAnterior && focoAnterior.focus) { try { focoAnterior.focus(); } catch (e) {} }
+        }
+
+        function abrir(o) {
+            var perigo = o.tipo !== 'aviso';
+            var icone  = o.icone || (perigo ? 'fa-trash-alt' : 'fa-question-circle');
+            $('fsaModalTitulo').textContent = o.titulo || 'Confirmar ação?';
+            $('fsaModalTexto').textContent  = o.texto || '';
+            $('fsaModalIcone').className    = 'fas ' + icone + ' text-3xl';
+            $('fsaModalIcone').style.color  = perigo ? '#ef4444' : '#4A9FCA';
+            $('fsaModalIconeBox').style.background = perigo ? '#fee2e2' : '#e8f3fa';
+
+            var ok = $('fsaModalOk');
+            ok.style.background = perigo ? '#ef4444' : '#4A9FCA';
+            ok.style.boxShadow  = perigo ? '0 10px 15px -3px rgba(254,226,226,1)' : '0 10px 15px -3px rgba(214,235,247,1)';
+            ok.textContent = '';
+            var ic = document.createElement('i');
+            ic.className = 'fas ' + (o.soAviso ? 'fa-check' : (o.icone || (perigo ? 'fa-trash-alt' : 'fa-check'))) + ' mr-1';
+            ok.appendChild(ic);
+            ok.appendChild(document.createTextNode(' ' + (o.botao || (o.soAviso ? 'Entendi' : 'Confirmar'))));
+
+            $('fsaModalCancelar').style.display = o.soAviso ? 'none' : '';
+            acaoOk = o.onOk || null;
+            focoAnterior = document.activeElement;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            (o.soAviso ? ok : $('fsaModalCancelar')).focus();
+        }
+
+        $('fsaModalCancelar').addEventListener('click', fechar);
+        $('fsaModalFundo').addEventListener('click', fechar);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) fechar();
+        });
+        $('fsaModalOk').addEventListener('click', function () {
+            var f = acaoOk;
+            fechar();
+            if (f) f();
+        });
+
+        // Formularios com data-confirm abrem a caixa antes de enviar
+        document.addEventListener('submit', function (e) {
+            var form = e.target;
+            if (!form || !form.getAttribute) return;
+            var texto = form.getAttribute('data-confirm');
+            if (!texto || form.__fsaConfirmado) return;
+            e.preventDefault();
+            var quemEnviou = e.submitter || null;
+            abrir({
+                titulo: form.getAttribute('data-confirm-titulo'),
+                texto:  texto,
+                botao:  form.getAttribute('data-confirm-botao'),
+                tipo:   form.getAttribute('data-confirm-tipo'),
+                icone:  form.getAttribute('data-confirm-icone'),
+                onOk: function () {
+                    form.__fsaConfirmado = true;
+                    if (form.requestSubmit) { form.requestSubmit(quemEnviou || undefined); }
+                    else { form.submit(); }
+                }
+            });
+        }, true);
+
+        window.fsaConfirmar = function (opcoes, aoConfirmar) {
+            opcoes = opcoes || {};
+            opcoes.onOk = aoConfirmar;
+            abrir(opcoes);
+        };
+        window.fsaAviso = function (texto, titulo) {
+            abrir({ titulo: titulo || 'Aviso', texto: texto, tipo: 'aviso', icone: 'fa-exclamation-circle', soAviso: true });
+        };
+    })();
+    </script>
 
     <!-- ================================ -->
     <!-- AVISO DE BLOQUEIO POR MA CONDUTA -->

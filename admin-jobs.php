@@ -1,5 +1,8 @@
 <?php
 require_once 'includes/config.php';
+require_once 'includes/vagas.php';
+require_once 'includes/notificacoes.php';
+require_once 'includes/alertas.php';
 checkAdmin(); // ja bloqueia nao-logados e nao-admins (via URL direta inclusive)
 
 header('Content-Type: text/html; charset=UTF-8');
@@ -115,12 +118,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             'courses' => implode(', ', $coursesSelected),
             'applicationLink' => $_POST['applicationLink'] ?? '',
             'featured' => isset($_POST['featured']),
+            'expiresAt' => vagaNormalizarValidade($_POST['expiresAt'] ?? ''),
             'status' => 'Ativa',
             'applicants' => 0,
             'createdAt' => date('d/m/Y')
         ];
         array_unshift($jobs, $newJob);
         saveData('platform_jobs', $jobs);
+        alertasEnfileirarVagaNova($newJob, 'faculdade'); // alunos com "aviso na hora" ativado
         header('Location: admin-jobs.php');
         exit;
     }
@@ -142,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $job['courses']         = implode(', ', $coursesSelected);
                 $job['applicationLink'] = $_POST['applicationLink'] ?? $job['applicationLink'];
                 $job['featured']        = isset($_POST['featured']);
+                $job['expiresAt']       = vagaNormalizarValidade($_POST['expiresAt'] ?? '');
                 break;
             }
         }
@@ -163,8 +169,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     /* ============================= APROVAR SOLICITACAO ============================= */
     if ($_POST['action'] === 'approve_request') {
         $reqId = $_POST['request_id'] ?? 0;
+        $aprovadaNotificar = null;
         foreach ($jobRequests as &$req) {
-            if ($req['id'] == $reqId) {
+            if ($req['id'] == $reqId && ($req['status'] ?? 'pendente') === 'pendente') {
                 $newJob = [
                     'id'              => time(),
                     'title'           => $req['title'],
@@ -179,19 +186,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     'courses'         => $req['courses'],
                     'applicationLink' => $req['applicationLink'],
                     'featured'        => $req['featured'],
+                    'expiresAt'       => vagaValidadePadrao(60), // padrao 60 dias; o admin pode editar a data depois
                     'status'          => 'Ativa',
                     'applicants'      => 0,
                     'createdAt'       => date('d/m/Y'),
                 ];
                 array_unshift($jobs, $newJob);
                 saveData('platform_jobs', $jobs);
+                alertasEnfileirarVagaNova($newJob, 'faculdade');
 
                 $req['status'] = 'aprovada';
+                $aprovadaNotificar = $req;
                 break;
             }
         }
         unset($req);
         saveData('job_requests', $jobRequests);
+        if ($aprovadaNotificar) notificarSolicitacaoAluno($aprovadaNotificar, true);
         header('Location: admin-jobs.php');
         exit;
     }
@@ -202,17 +213,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $motivo = trim($_POST['motivo'] ?? '');
         $bloquearAluno = isset($_POST['bloquear_aluno']);
         $studentIdAfetado = null;
+        $reqRejeitada = null;
 
         foreach ($jobRequests as &$req) {
             if ($req['id'] == $reqId) {
                 $req['status'] = 'rejeitada';
                 $req['motivoRejeicao'] = $motivo !== '' ? $motivo : 'Não especificado pela coordenação.';
                 $studentIdAfetado = $req['studentId'] ?? null;
+                $reqRejeitada = $req;
                 break;
             }
         }
         unset($req);
         saveData('job_requests', $jobRequests);
+        if ($reqRejeitada) notificarSolicitacaoAluno($reqRejeitada, false, (string) ($reqRejeitada['motivoRejeicao'] ?? ''), $bloquearAluno);
 
         // Bloqueio de ma conduta: impede o aluno de enviar novas solicitacoes de vaga
         if ($bloquearAluno && $studentIdAfetado !== null) {
@@ -472,6 +486,13 @@ include 'includes/header.php';
                         </div>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Vaga aberta até
+                            <span class="text-xs text-gray-400 font-normal">(depois dessa data ela sai das vagas sozinha; deixe em branco para não expirar)</span>
+                        </label>
+                        <input type="date" name="expiresAt" min="<?php echo date('Y-m-d'); ?>" value="<?php echo vagaValidadePadrao(60); ?>" class="w-full md:w-60 h-10 px-3 border rounded-lg">
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium mb-1">Cursos Relacionados</label>
                         <select name="courses[]" multiple class="w-full h-32 px-3 py-2 border rounded-lg">
                             <?php foreach ($fsaCourses as $course): ?>
@@ -555,6 +576,13 @@ include 'includes/header.php';
                         </div>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Vaga aberta até
+                            <span class="text-xs text-gray-400 font-normal">(em branco = não expira)</span>
+                        </label>
+                        <input type="date" name="expiresAt" id="editExpiresAt" class="w-full md:w-60 h-10 px-3 border rounded-lg">
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium mb-1">Cursos Relacionados</label>
                         <select name="courses[]" id="editCourses" multiple class="w-full h-32 px-3 py-2 border rounded-lg">
                             <?php foreach ($fsaCourses as $course): ?>
@@ -601,9 +629,13 @@ include 'includes/header.php';
                             <p class="text-gray-700 font-medium"><?php echo htmlspecialchars($job['company']); ?></p>
                             <p class="text-sm text-gray-500"><?php echo htmlspecialchars($job['location']); ?> &bull; <?php echo htmlspecialchars($job['type']); ?></p>
                         </div>
-                        <span class="px-3 py-1 bg-green-500 text-white rounded-full text-sm">
-                            <?php echo $job['status']; ?>
-                        </span>
+                        <?php if (vagaExpirou($job)): ?>
+                            <span class="px-3 py-1 bg-gray-400 text-white rounded-full text-sm">Expirada</span>
+                        <?php else: ?>
+                            <span class="px-3 py-1 bg-green-500 text-white rounded-full text-sm">
+                                <?php echo $job['status']; ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
@@ -618,6 +650,7 @@ include 'includes/header.php';
                         <div>
                             <span class="text-gray-500">Criada em:</span>
                             <p class="font-medium"><?php echo $job['createdAt']; ?></p>
+                            <?php echo vagaValidadeHtml($job); ?>
                         </div>
                         <div>
                             <span class="text-gray-500">Cursos:</span>
@@ -655,6 +688,7 @@ include 'includes/header.php';
                                 "requirements"    => $job["requirements"],
                                 "benefits"        => $job["benefits"],
                                 "featured"        => $job["featured"] ? true : false,
+                                "expiresAt"       => $job["expiresAt"] ?? "",
                             ], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS), ENT_QUOTES, 'UTF-8'); ?>'>
                             <i class="fas fa-edit"></i> Editar
                         </button>
@@ -722,6 +756,7 @@ include 'includes/header.php';
         document.getElementById('editRequirements').value     = job.requirements;
         document.getElementById('editBenefits').value          = job.benefits;
         document.getElementById('editFeatured').checked       = job.featured;
+        document.getElementById('editExpiresAt').value        = job.expiresAt || '';
 
         const coursesSelect = document.getElementById('editCourses');
         for (let opt of coursesSelect.options) {
@@ -746,7 +781,7 @@ include 'includes/header.php';
                 editJob(job);
             } catch (e) {
                 console.error('Erro ao ler dados da vaga:', e);
-                alert('Nao foi possivel abrir a edicao desta vaga.');
+                fsaAviso('Não foi possível abrir a edição desta vaga. Recarregue a página e tente de novo.', 'Não foi possível abrir');
             }
         });
     });

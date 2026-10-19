@@ -16,6 +16,9 @@
  * =============================================================================
  */
 
+require_once __DIR__ . '/vagas.php';
+require_once __DIR__ . '/notificacoes.php';
+
 function isEgresso(): bool {
     return !empty($_SESSION['is_egresso']);
 }
@@ -84,9 +87,16 @@ function egressoVagaStatusInfo($status): array {
     switch ($status) {
         case 'aprovada':  return ['Publicada', 'bg-emerald-50 text-emerald-700 border-emerald-200', 'fa-check-circle'];
         case 'rejeitada': return ['Não aprovada', 'bg-red-50 text-red-700 border-red-200', 'fa-times-circle'];
+        case 'expirada':  return ['Expirada', 'bg-gray-100 text-gray-500 border-gray-200', 'fa-hourglass-end'];
         case 'encerrada': return ['Encerrada', 'bg-gray-100 text-gray-600 border-gray-200', 'fa-lock'];
         default:          return ['Aguardando análise', 'bg-amber-50 text-amber-700 border-amber-200', 'fa-clock'];
     }
+}
+
+/** Status "de verdade": uma vaga aprovada cuja validade passou vira 'expirada' */
+function egressoVagaStatusEfetivo(array $v): string {
+    $s = $v['status'] ?? 'pendente';
+    return ($s === 'aprovada' && vagaExpirou($v)) ? 'expirada' : $s;
 }
 
 function egressoVagas(): array {

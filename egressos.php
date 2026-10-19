@@ -17,7 +17,7 @@ $busca        = trim($_GET['search'] ?? '');
 $categoriaSel = trim($_GET['categoria'] ?? '');
 $cursoSel     = trim($_GET['curso'] ?? '');
 
-$vagas = array_values(array_filter(egressoVagas(), fn($v) => ($v['status'] ?? '') === 'aprovada'));
+$vagas = array_values(array_filter(egressoVagas(), fn($v) => egressoVagaStatusEfetivo($v) === 'aprovada'));
 usort($vagas, fn($a, $b) => ($b['publishedTs'] ?? 0) <=> ($a['publishedTs'] ?? 0));
 $totalPublicadas = count($vagas);
 
@@ -136,7 +136,7 @@ include 'includes/header.php';
                                     <div class="flex items-center gap-2 text-slate-500"><i class="fas fa-map-marker-alt text-[#E35444]"></i><?= egh($v['location'] ?? '—') ?></div>
                                     <div class="flex items-center gap-2 text-slate-500"><i class="fas fa-clock text-[#58A1D4]"></i><?= egh($v['hours'] ?? '—') ?></div>
                                     <div class="flex items-center gap-2 font-bold text-[#27AE60]"><i class="fas fa-dollar-sign"></i><?= egh($v['salary'] ?? 'A combinar') ?></div>
-                                    <div class="text-slate-400"><?= egh($v['publishedAt'] ?? '') ?></div>
+                                    <div class="text-slate-400"><?= egh($v['publishedAt'] ?? '') ?><?= vagaValidadeHtml($v) ?></div>
                                 </div>
 
                                 <p class="text-xs text-slate-500 mb-4">
@@ -164,6 +164,7 @@ include 'includes/header.php';
                                            class="px-6 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-xl text-sm">
                                             <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
                                         </a>
+                                        <?= favoritoBotaoHtml('egresso', (int) $v['id']) ?>
                                         <?php if (!empty($jaCandidatou[(int) $v['id']])): ?>
                                             <a href="candidaturas.php" class="text-sm text-emerald-600 font-semibold">
                                                 <i class="fas fa-check-circle mr-1"></i> Candidatura registrada

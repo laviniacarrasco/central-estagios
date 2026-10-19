@@ -1620,7 +1620,7 @@ function baixarPDF(){
         pdf.save(`Curriculo_${nomeArquivo}.pdf`);
     }).catch(err => {
         console.error('Erro ao gerar PDF:', err);
-        alert('Nao foi possivel gerar o PDF. Tente novamente.');
+        fsaAviso('Não foi possível gerar o PDF. Tente novamente.', 'Não foi possível gerar');
     });
 }
 

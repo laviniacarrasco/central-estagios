@@ -6,7 +6,7 @@
  *
  * O sistema registra o CLIQUE em "Candidatar-se". Como a candidatura em si
  * acontece no site da empresa, o aluno ajusta o andamento (ou remove o
- * registro) em candidaturas.php.
+ * registro) em minhas-vagas.php.
  */
 require_once 'includes/config.php';
 require_once 'includes/egressos.php';
@@ -22,7 +22,7 @@ $origem = $_GET['origem'] ?? 'faculdade';
 $jobId  = (int) ($_GET['job_id'] ?? 0);
 
 if (!in_array($origem, ['faculdade', 'egresso'], true) || $jobId <= 0) {
-    header('Location: candidaturas.php');
+    header('Location: minhas-vagas.php?aba=candidaturas');
     exit;
 }
 
@@ -30,7 +30,7 @@ if (!in_array($origem, ['faculdade', 'egresso'], true) || $jobId <= 0) {
 $vaga = null;
 if ($origem === 'faculdade') {
     foreach (loadData('platform_jobs') as $j) {
-        if (($j['id'] ?? 0) == $jobId && ($j['status'] ?? '') === 'Ativa') {
+        if (($j['id'] ?? 0) == $jobId && vagaVigente($j)) {
             $vaga = $j;
             break;
         }
@@ -39,7 +39,7 @@ if ($origem === 'faculdade') {
     if ($link !== '') $link = egressoNormalizarLink($link);
 } else {
     foreach (egressoVagas() as $j) {
-        if (($j['id'] ?? 0) == $jobId && ($j['status'] ?? '') === 'aprovada') {
+        if (($j['id'] ?? 0) == $jobId && egressoVagaStatusEfetivo($j) === 'aprovada') {
             $vaga = $j;
             break;
         }
@@ -48,7 +48,7 @@ if ($origem === 'faculdade') {
 }
 
 if (!$vaga) {
-    header('Location: candidaturas.php?aviso=vaga_indisponivel');
+    header('Location: minhas-vagas.php?aba=candidaturas&aviso=vaga_indisponivel');
     exit;
 }
 
@@ -103,6 +103,6 @@ if (!$jaExiste) {
 if ($link !== '') {
     header('Location: ' . $link);
 } else {
-    header('Location: candidaturas.php?aviso=sem_link');
+    header('Location: minhas-vagas.php?aba=candidaturas&aviso=sem_link');
 }
 exit;

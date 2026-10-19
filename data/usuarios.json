@@ -13,7 +13,7 @@
         "turno": "—",
         "situacao": "Regular",
         "dataMatricula": null,
-        "ultimoAcesso": "2026-10-19 00:02:57"
+        "ultimoAcesso": "2026-10-18 22:38:29"
     },
     {
         "id": 9002,
@@ -31,7 +31,7 @@
         "dataMatricula": null,
         "anoConclusao": "2023",
         "statusProfissional": "",
-        "ultimoAcesso": "2026-10-19 00:04:00"
+        "ultimoAcesso": "2026-10-18 22:30:59"
     },
     {
         "id": 1,
@@ -47,7 +47,14 @@
         "situacao": "Regular",
         "dataMatricula": "2025-02-10",
         "statusProfissional": "Estagiando na area",
-        "ultimoAcesso": "2026-10-18 21:52:19"
+        "ultimoAcesso": "2026-10-18 22:38:00",
+        "alertas": {
+            "vagaNova": false,
+            "resumoSemanal": true,
+            "cursos": [
+                "Ciência de Dados e Inteligência Artificial"
+            ]
+        }
     },
     {
         "id": 2,
@@ -62,7 +69,7 @@
         "turno": "—",
         "situacao": "—",
         "dataMatricula": null,
-        "ultimoAcesso": "2026-10-18 21:26:11"
+        "ultimoAcesso": "2026-10-18 22:36:23"
     },
     {
         "id": 3,

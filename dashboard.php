@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'includes/vagas.php';
 checkAuth();
 
 $userName = $_SESSION['user_name'] ?? 'Usuário';
@@ -14,7 +15,7 @@ $certificados  = loadData('userCertificates', true);
 $vagas         = loadData('platform_jobs');
 
 // --- Cálculo real: Vagas ativas na plataforma ---
-$vagasAtivas = array_filter($vagas, fn($v) => ($v['status'] ?? '') === 'Ativa');
+$vagasAtivas = array_filter($vagas, fn($v) => vagaVigente($v));
 $totalVagasAtivas = count($vagasAtivas);
 
 // --- Cálculo real: Certificados enviados ---

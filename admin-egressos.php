@@ -5,6 +5,7 @@
  */
 require_once 'includes/config.php';
 require_once 'includes/egressos.php';
+require_once 'includes/alertas.php';
 checkAuth();
 
 if (!isAdminEgressos()) {
@@ -51,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* ---- moderacao de vagas ---- */
     if (in_array($acao, ['aprovar_vaga', 'rejeitar_vaga', 'encerrar_vaga', 'remover_vaga'], true)) {
         $vagas = egressoVagas();
+        $vagaAlvo = null;
 
         if ($acao === 'remover_vaga') {
             $vagas = array_values(array_filter($vagas, fn($v) => ($v['id'] ?? 0) != $id));
@@ -73,10 +75,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $v['status']      = 'encerrada';
                 $v['encerradaEm'] = date('d/m/Y H:i');
             }
+            $vagaAlvo = $v;
             break;
         }
         unset($v);
         egressoSalvarVagas($vagas);
+        if ($vagaAlvo && $acao === 'aprovar_vaga')  { notificarEgressoVaga($vagaAlvo, true); alertasEnfileirarVagaNova($vagaAlvo, 'egresso'); }
+        if ($vagaAlvo && $acao === 'rejeitar_vaga') notificarEgressoVaga($vagaAlvo, false);
         $chaves = ['aprovar_vaga' => 'vaga_aprovada', 'rejeitar_vaga' => 'vaga_rejeitada', 'encerrar_vaga' => 'vaga_encerrada'];
         voltar('vagas', $chaves[$acao]);
     }
@@ -234,14 +239,14 @@ uasort($empresas, fn($a, $b) => $b['qtd'] <=> $a['qtd']);
 $topEmpresas = array_slice(array_values($empresas), 0, 8);
 
 /* vagas */
-$contVagas = ['pendente' => 0, 'aprovada' => 0, 'rejeitada' => 0, 'encerrada' => 0];
+$contVagas = ['pendente' => 0, 'aprovada' => 0, 'rejeitada' => 0, 'encerrada' => 0, 'expirada' => 0];
 $candidatosGerados = 0;
 $divulgadores = [];
 foreach ($vagas as $v) {
-    $s = $v['status'] ?? 'pendente';
+    $s = egressoVagaStatusEfetivo($v);
     if (isset($contVagas[$s])) $contVagas[$s]++;
     $candidatosGerados += (int) ($v['applicants'] ?? 0);
-    if (in_array($s, ['aprovada', 'encerrada'], true)) {
+    if (in_array($s, ['aprovada', 'encerrada', 'expirada'], true)) {
         $k = (int) ($v['egressoId'] ?? 0);
         if (!isset($divulgadores[$k])) $divulgadores[$k] = ['nome' => $v['egressoName'] ?? '—', 'qtd' => 0, 'cands' => 0];
         $divulgadores[$k]['qtd']++;
@@ -520,11 +525,12 @@ include 'includes/header.php';
                     <?php if (empty($vagas)): ?>
                         <tr><td colspan="5" class="p-8 text-center text-gray-400">Nenhuma vaga divulgada ainda.</td></tr>
                     <?php endif; ?>
-                    <?php foreach ($vagas as $v): $info = egressoVagaStatusInfo($v['status'] ?? 'pendente'); ?>
+                    <?php foreach ($vagas as $v): $info = egressoVagaStatusInfo(egressoVagaStatusEfetivo($v)); ?>
                         <tr class="border-b last:border-0">
                             <td class="p-3">
                                 <p class="font-medium text-gray-800"><?= egh($v['title'] ?? '') ?></p>
                                 <p class="text-xs text-gray-500"><?= egh($v['company'] ?? '') ?> &bull; <?= egh($v['createdAt'] ?? '') ?></p>
+                                <?= vagaValidadeHtml($v) ?>
                             </td>
                             <td class="p-3 text-gray-600"><?= egh($v['egressoName'] ?? '') ?></td>
                             <td class="p-3">
@@ -537,12 +543,12 @@ include 'includes/header.php';
                             <td class="p-3">
                                 <div class="flex justify-end gap-2">
                                     <?php if (($v['status'] ?? '') === 'aprovada'): ?>
-                                        <form method="POST" onsubmit="return confirm('Encerrar esta vaga? Ela sai do mural.');">
+                                        <form method="POST" data-confirm="A vaga sai do mural e deixa de aparecer para os alunos." data-confirm-titulo="Encerrar esta vaga?" data-confirm-botao="Encerrar" data-confirm-tipo="aviso" data-confirm-icone="fa-ban">
                                             <input type="hidden" name="action" value="encerrar_vaga"><input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
                                             <button class="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-xs hover:bg-gray-50">Encerrar</button>
                                         </form>
                                     <?php endif; ?>
-                                    <form method="POST" onsubmit="return confirm('Remover esta vaga definitivamente?');">
+                                    <form method="POST" data-confirm="A vaga será removida definitivamente. Esta ação não pode ser desfeita." data-confirm-titulo="Remover esta vaga?" data-confirm-botao="Remover" data-confirm-tipo="perigo" data-confirm-icone="fa-trash-alt">
                                         <input type="hidden" name="action" value="remover_vaga"><input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
                                         <button class="px-3 py-1.5 text-red-500 hover:bg-red-50 rounded-lg text-xs">Remover</button>
                                     </form>
@@ -598,7 +604,7 @@ include 'includes/header.php';
                 <div class="bg-white p-8 rounded-2xl border border-gray-100">
                     <h3 class="text-xl font-bold text-slate-900 mb-1">Converter aluno formado</h3>
                     <p class="text-sm text-slate-500 mb-6">O aluno mantém login e senha e passa a ver só a área de egressos. Ele precisa entrar de novo.</p>
-                    <form method="POST" class="space-y-4" onsubmit="return confirm('Converter este aluno em egresso?');">
+                    <form method="POST" class="space-y-4" data-confirm="Confirme para converter este aluno em egresso." data-confirm-titulo="Converter em egresso?" data-confirm-botao="Converter" data-confirm-tipo="aviso" data-confirm-icone="fa-user-graduate">
                         <input type="hidden" name="action" value="converter_aluno">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">RA do aluno *</label>
@@ -746,7 +752,7 @@ include 'includes/header.php';
                 <td class="p-3 text-gray-500">${esc(e.atualizado)}</td>
                 <td class="p-3 text-right whitespace-nowrap">
                     ${li ? `<a href="${esc(li)}" target="_blank" rel="noopener" class="text-[#4A9FCA] mr-3" title="LinkedIn"><i class="fab fa-linkedin"></i></a>` : ''}
-                    ${e.reverter ? `<form method="POST" class="inline" onsubmit="return confirm('Devolver este egresso para a base de alunos?');">
+                    ${e.reverter ? `<form method="POST" class="inline" data-confirm="Este egresso voltará para a base de alunos." data-confirm-titulo="Devolver para os alunos?" data-confirm-botao="Devolver" data-confirm-tipo="aviso" data-confirm-icone="fa-undo">
                         <input type="hidden" name="action" value="reverter_egresso"><input type="hidden" name="id" value="${e.id}">
                         <button class="text-xs text-gray-400 hover:text-red-500">Voltar p/ aluno</button></form>` : ''}
                 </td></tr>`;

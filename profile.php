@@ -348,6 +348,9 @@ include 'includes/header.php';
 
             </div>
         </div>
+
+        <?php include 'includes/alertas-card.php'; ?>
+
     </div>
 </main>
 

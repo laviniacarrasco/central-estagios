@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'includes/vagas.php';
 checkAuth();
 
 $pageTitle = 'Vagas de Estágio';
@@ -7,7 +8,7 @@ $pageTitle = 'Vagas de Estágio';
 // Carregar vagas ativas (via config.php, mesma lógica do resto do sistema)
 $allJobs = loadData('platform_jobs');
 $allJobs = array_filter($allJobs ?? [], function($job) {
-    return ($job['status'] ?? '') === 'Ativa';
+    return vagaVigente($job); // Ativa e dentro da validade
 });
 
 // Cursos da FSA — fonte única, vinda do config.php
@@ -191,7 +192,7 @@ include 'includes/header.php';
                                             <?php echo htmlspecialchars($job['salary']); ?>
                                         </div>
                                         <div class="text-slate-400">
-                                            <?php echo htmlspecialchars($job['createdAt'] ?? 'Recente'); ?>
+                                            <?php echo htmlspecialchars($job['createdAt'] ?? 'Recente'); ?><?php echo vagaValidadeHtml($job); ?>
                                         </div>
                                     </div>
                                     <div class="flex gap-3">
@@ -207,6 +208,7 @@ include 'includes/header.php';
                                            class="px-6 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-xl transition-all text-sm">
                                             <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
                                         </a>
+                                        <?php echo favoritoBotaoHtml('faculdade', (int) $job['id']); ?>
                                     </div>
                                 </div>
                             </div>
@@ -250,7 +252,7 @@ include 'includes/header.php';
                                         <?php echo htmlspecialchars($job['salary']); ?>
                                     </div>
                                     <div class="text-slate-400">
-                                        <?php echo htmlspecialchars($job['createdAt'] ?? 'Recente'); ?>
+                                        <?php echo htmlspecialchars($job['createdAt'] ?? 'Recente'); ?><?php echo vagaValidadeHtml($job); ?>
                                     </div>
                                 </div>
                                 <div class="flex gap-3">
@@ -266,6 +268,7 @@ include 'includes/header.php';
                                        class="px-4 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-lg transition-all text-sm">
                                         <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
                                     </a>
+                                    <?php echo favoritoBotaoHtml('faculdade', (int) $job['id']); ?>
                                 </div>
                             </div>
                         </div>

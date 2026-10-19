@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('America/Sao_Paulo'); // validade das vagas e datas dos e-mails em horario de Brasilia
 
 define('DATA_PATH', __DIR__ . '/../data/');
 
@@ -83,9 +84,11 @@ function verificarPermissaoPagina() {
         'jobs.php',
         'posts.php',
         'egressos.php',        // mural de egressos: todo admin ve
+        'admin-alertas.php',   // fila de e-mails e resumo semanal
     ];
     if ($isAdminEgressos) {
         $paginasPermitidasAdmin[] = 'admin-egressos.php';
+        $paginasPermitidasAdmin[] = 'admin-relatorios.php';
     }
 
     // Paginas exclusivas de admin (aluno nao pode entrar)
@@ -95,6 +98,8 @@ function verificarPermissaoPagina() {
         'admin-signature.php',
         'posts.php',
         'admin-egressos.php',
+        'admin-alertas.php',
+        'admin-relatorios.php',
     ];
 
     // Paginas so de egresso (aluno nao entra; admin ja e barrado pela lista acima)

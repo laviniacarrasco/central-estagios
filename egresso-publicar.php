@@ -25,7 +25,7 @@ $fsaCourses  = getFsaCourses();
 $tiposVaga   = ['Presencial', 'Híbrido', 'Remoto'];
 $erro        = '';
 $vagas       = egressoVagas();
-$camposTexto = ['title', 'company', 'categoria', 'type', 'location', 'hours', 'salary', 'description', 'requirements', 'benefits', 'applicationLink'];
+$camposTexto = ['title', 'company', 'categoria', 'type', 'location', 'hours', 'salary', 'description', 'requirements', 'benefits', 'applicationLink', 'expiresAt'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['action'] ?? '';
@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $link      = egressoNormalizarLink($_POST['applicationLink'] ?? '');
         $categoria = in_array($_POST['categoria'] ?? '', egressoCategorias(), true) ? $_POST['categoria'] : 'Estágio';
         $tipo      = in_array($_POST['type'] ?? '', $tiposVaga, true) ? $_POST['type'] : 'Presencial';
+
+        $validade  = vagaNormalizarValidade($_POST['expiresAt'] ?? '', 180);
 
         $dados = [
             'title'           => mb_substr(trim($_POST['title'] ?? ''), 0, 150),
@@ -50,10 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'benefits'        => mb_substr(trim($_POST['benefits'] ?? ''), 0, 2000),
             'courses'         => implode(', ', $cursosSel),
             'applicationLink' => $link,
+            'expiresAt'       => $validade,
         ];
 
         if ($dados['title'] === '' || $dados['company'] === '') {
             $erro = 'Preencha o título da vaga e o nome da empresa.';
+        } elseif ($validade === '') {
+            $erro = 'Informe até quando a vaga fica aberta (a partir de hoje, no máximo 180 dias).';
         } elseif ($link === '') {
             $erro = 'Informe um link (https://...) ou um e-mail válido para as candidaturas.';
         } else {
@@ -92,9 +97,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             egressoSalvarVagas($vagas);
+            notificarAdminsVagaEgresso(array_merge($dados, ['egressoName' => $egresso['nome'] ?? '']));
             header('Location: egresso-publicar.php?enviado=1');
             exit;
         }
+    }
+
+    /* ---------- renovar (mais 30 dias) ---------- */
+    if ($acao === 'renovar') {
+        $id = (int) ($_POST['id'] ?? 0);
+        foreach ($vagas as &$v) {
+            if (($v['id'] ?? 0) == $id && ($v['egressoId'] ?? 0) == $userId && ($v['status'] ?? '') === 'aprovada') {
+                $base  = max(date('Y-m-d'), (string) ($v['expiresAt'] ?? ''));
+                $novo  = date('Y-m-d', strtotime($base . ' +30 days'));
+                $limite = date('Y-m-d', strtotime('+180 days'));
+                $v['expiresAt'] = min($novo, $limite);
+                break;
+            }
+        }
+        unset($v);
+        egressoSalvarVagas($vagas);
+        header('Location: egresso-publicar.php?renovada=1');
+        exit;
     }
 
     /* ---------- encerrar (vaga preenchida) ---------- */
@@ -134,7 +158,7 @@ usort($minhas, fn($a, $b) => ($b['createdTs'] ?? 0) <=> ($a['createdTs'] ?? 0));
 $form = [
     'edit_id' => 0, 'title' => '', 'company' => '', 'categoria' => 'Estágio', 'type' => 'Presencial',
     'location' => '', 'hours' => '', 'salary' => '', 'description' => '', 'requirements' => '',
-    'benefits' => '', 'applicationLink' => '', 'courses' => [],
+    'benefits' => '', 'applicationLink' => '', 'courses' => [], 'expiresAt' => vagaValidadePadrao(45),
 ];
 
 if ($erro !== '') {
@@ -157,6 +181,8 @@ if ($erro !== '') {
     }
 }
 
+if ($form['expiresAt'] === '' || $form['expiresAt'] < date('Y-m-d')) $form['expiresAt'] = vagaValidadePadrao(45);
+
 include 'includes/header.php';
 ?>
 
@@ -175,6 +201,9 @@ include 'includes/header.php';
         <?php endif; ?>
         <?php if (isset($_GET['encerrada'])): ?>
             <div class="mb-6 p-4 bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-sm">Vaga encerrada. Ela saiu do mural.</div>
+        <?php endif; ?>
+        <?php if (isset($_GET['renovada'])): ?>
+            <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm">Vaga renovada por mais 30 dias.</div>
         <?php endif; ?>
         <?php if (isset($_GET['excluida'])): ?>
             <div class="mb-6 p-4 bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-sm">Divulgação excluída.</div>
@@ -235,6 +264,13 @@ include 'includes/header.php';
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Vaga aberta até *</label>
+                        <input type="date" name="expiresAt" required min="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d', strtotime('+180 days')) ?>"
+                               value="<?= egh($form['expiresAt']) ?>" class="w-full md:w-60 h-11 px-3 border border-gray-200 rounded-lg">
+                        <p class="text-xs text-gray-400 mt-1">Depois dessa data a vaga sai do mural sozinha (máximo 180 dias). Você pode renovar depois.</p>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
                         <textarea name="description" rows="3" maxlength="3000" class="w-full px-3 py-2 border border-gray-200 rounded-lg"><?= egh($form['description']) ?></textarea>
                     </div>
@@ -289,7 +325,7 @@ include 'includes/header.php';
                 <?php else: ?>
                     <div class="space-y-4">
                         <?php foreach ($minhas as $v):
-                            $st   = $v['status'] ?? 'pendente';
+                            $st   = egressoVagaStatusEfetivo($v);
                             $info = egressoVagaStatusInfo($st);
                         ?>
                             <div class="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
@@ -297,6 +333,7 @@ include 'includes/header.php';
                                     <div class="min-w-0">
                                         <p class="font-semibold text-gray-800 truncate"><?= egh($v['title'] ?? '') ?></p>
                                         <p class="text-sm text-gray-500 truncate"><?= egh($v['company'] ?? '') ?> &bull; <?= egh($v['createdAt'] ?? '') ?></p>
+                                        <?= vagaValidadeHtml($v) ?>
                                     </div>
                                     <span class="shrink-0 px-3 py-1 rounded-full text-xs font-bold border <?= $info[1] ?>">
                                         <i class="fas <?= $info[2] ?> mr-1"></i><?= $info[0] ?>
@@ -320,8 +357,15 @@ include 'includes/header.php';
                                         </a>
                                     <?php endif; ?>
 
-                                    <?php if ($st === 'aprovada'): ?>
-                                        <form method="POST" onsubmit="return confirm('Encerrar esta vaga? Ela sai do mural.');">
+                                    <?php if (in_array($st, ['aprovada', 'expirada'], true)): ?>
+                                        <form method="POST">
+                                            <input type="hidden" name="action" value="renovar">
+                                            <input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
+                                            <button class="px-3 py-1.5 bg-[#4A9FCA] text-white rounded-lg text-sm">
+                                                <i class="fas fa-redo mr-1"></i> Renovar +30 dias
+                                            </button>
+                                        </form>
+                                        <form method="POST" data-confirm="A vaga sai do mural e deixa de aparecer para os alunos." data-confirm-titulo="Encerrar esta vaga?" data-confirm-botao="Encerrar" data-confirm-tipo="aviso" data-confirm-icone="fa-ban">
                                             <input type="hidden" name="action" value="encerrar">
                                             <input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
                                             <button class="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50">
@@ -329,7 +373,7 @@ include 'includes/header.php';
                                             </button>
                                         </form>
                                     <?php else: ?>
-                                        <form method="POST" onsubmit="return confirm('Excluir esta divulgação?');">
+                                        <form method="POST" data-confirm="A divulgação será excluída. Esta ação não pode ser desfeita." data-confirm-titulo="Excluir esta divulgação?" data-confirm-botao="Excluir" data-confirm-tipo="perigo" data-confirm-icone="fa-trash-alt">
                                             <input type="hidden" name="action" value="excluir">
                                             <input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
                                             <button class="px-3 py-1.5 text-red-500 hover:bg-red-50 rounded-lg text-sm">
