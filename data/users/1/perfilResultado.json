@@ -1,0 +1,229 @@
+{
+    "atualizado_em": "2026-10-18T22:25:13-03:00",
+    "historico": [
+        {
+            "data_formatada": "21\/08\/2026 23:13",
+            "nome": "Lavínia",
+            "parecer": "### 1. Resumo do Perfil Predominante\n\nLavínia apresenta um perfil comportamental extremamente dinâmico, assertivo e voltado para a ação interpessoal e operacional. A forte combinação entre **Agressividade** (19,4%), **Sociabilidade** (16,7%) e **Abertura à Inovação** (16,7%) no Foco Relacionamento revela uma profissional expansiva, com grande facilidade para se posicionar, defender pontos de vista com firmeza e construir conexões sociais rapidamente. No Foco Resultado, destaca-se sua elevada **Energia** (14,1%), aliada a um alto **Apego às Normas** e **Dependência de Autoridade** (ambos em 1",
+            "pdf_url": "\/api\/relatorio\/231b3476",
+            "percentuais": {
+                "foco_relacionamento": {
+                    "Abertura à Inovação": 16.7,
+                    "Afetividade": 13.9,
+                    "Agressividade": 19.4,
+                    "Controle Emocional": 2.8,
+                    "Exibicionismo": 11.1,
+                    "Mobilidade Física": 13.9,
+                    "Motivação": 5.6,
+                    "Sociabilidade": 16.7
+                },
+                "foco_resultado": {
+                    "Apego às Normas": 14.1,
+                    "Comunicação": 4.7,
+                    "Controle": 6.2,
+                    "Decisão": 10.9,
+                    "Dependencia de Autoridade": 14.1,
+                    "Detalhismo": 3.1,
+                    "Energia": 14.1,
+                    "Liderança": 12.5,
+                    "Obstinação": 0,
+                    "Organização": 3.1,
+                    "Planejamento": 4.7,
+                    "Ritmo": 12.5
+                }
+            },
+            "pontuacao": {
+                "Abertura à Inovação": 6,
+                "Afetividade": 5,
+                "Agressividade": 7,
+                "Apego às Normas": 9,
+                "Comunicação": 3,
+                "Controle": 4,
+                "Controle Emocional": 1,
+                "Decisão": 7,
+                "Dependencia de Autoridade": 9,
+                "Detalhismo": 2,
+                "Energia": 9,
+                "Exibicionismo": 4,
+                "Liderança": 8,
+                "Mobilidade Física": 5,
+                "Motivação": 2,
+                "Organização": 2,
+                "Planejamento": 3,
+                "Ritmo": 8,
+                "Sociabilidade": 6
+            },
+            "radar_url": "\/api\/radar\/lavinia.png",
+            "result_id": "231b3476",
+            "timestamp": 1787364805.6132796
+        },
+        {
+            "data_formatada": "23\/08\/2026 14:18",
+            "nome": "Lavínia",
+            "parecer": "[Aviso: falha ao consultar a IA apos 4 tentativa(s) (HTTP 404: {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models\/gemini-2.5-flash is no longer available to new users. Please update your code to use models\/gemini-3.6-flash for the latest features and improvements.\",\n    \"status\": \"NOT_FOUND\"\n  }\n}\n). Exibindo resumo automatico.]\n\nResumo automatico do perfil (configure GEMINI_API_KEY para obter o parecer completo gerado por IA):\n\nFoco Resultado - competencias mais fortes: Energia (14.1%), Dependencia de Autoridade (14.1%), Apego às Normas (14.1%)\nFoco Relacionamento - competencias mais fortes: Agressividade (19.4%), Abertura à Inovação (16.7%), Sociabilidade (16.7%)",
+            "pdf_url": "\/api\/relatorio\/11ee5865",
+            "percentuais": {
+                "foco_relacionamento": {
+                    "Abertura à Inovação": 16.7,
+                    "Afetividade": 13.9,
+                    "Agressividade": 19.4,
+                    "Controle Emocional": 2.8,
+                    "Exibicionismo": 11.1,
+                    "Mobilidade Física": 13.9,
+                    "Motivação": 5.6,
+                    "Sociabilidade": 16.7
+                },
+                "foco_resultado": {
+                    "Apego às Normas": 14.1,
+                    "Comunicação": 4.7,
+                    "Controle": 6.2,
+                    "Decisão": 10.9,
+                    "Dependencia de Autoridade": 14.1,
+                    "Detalhismo": 3.1,
+                    "Energia": 14.1,
+                    "Liderança": 12.5,
+                    "Obstinação": 0,
+                    "Organização": 3.1,
+                    "Planejamento": 4.7,
+                    "Ritmo": 12.5
+                }
+            },
+            "pontuacao": {
+                "Abertura à Inovação": 6,
+                "Afetividade": 5,
+                "Agressividade": 7,
+                "Apego às Normas": 9,
+                "Comunicação": 3,
+                "Controle": 4,
+                "Controle Emocional": 1,
+                "Decisão": 7,
+                "Dependencia de Autoridade": 9,
+                "Detalhismo": 2,
+                "Energia": 9,
+                "Exibicionismo": 4,
+                "Liderança": 8,
+                "Mobilidade Física": 5,
+                "Motivação": 2,
+                "Organização": 2,
+                "Planejamento": 3,
+                "Ritmo": 8,
+                "Sociabilidade": 6
+            },
+            "radar_url": "\/api\/radar\/lavinia.png",
+            "result_id": "11ee5865",
+            "timestamp": 1787505538.7651627
+        },
+        {
+            "data_formatada": "23\/08\/2026 14:23",
+            "nome": "lavinia",
+            "parecer": "[Aviso: falha ao consultar a IA apos 4 tentativa(s) (HTTP 400: {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"Request contains an invalid argument.\",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n). Exibindo resumo automatico.]\n\nResumo automatico do perfil (configure GEMINI_API_KEY para obter o parecer completo gerado por IA):\n\nFoco Resultado - competencias mais fortes: Energia (14.1%), Dependencia de Autoridade (14.1%), Apego às Normas (14.1%)\nFoco Relacionamento - competencias mais fortes: Agressividade (19.4%), Abertura à Inovação (16.7%), Sociabilidade (16.7%)",
+            "pdf_url": "\/api\/relatorio\/36966710",
+            "percentuais": {
+                "foco_relacionamento": {
+                    "Abertura à Inovação": 16.7,
+                    "Afetividade": 13.9,
+                    "Agressividade": 19.4,
+                    "Controle Emocional": 2.8,
+                    "Exibicionismo": 11.1,
+                    "Mobilidade Física": 13.9,
+                    "Motivação": 5.6,
+                    "Sociabilidade": 16.7
+                },
+                "foco_resultado": {
+                    "Apego às Normas": 14.1,
+                    "Comunicação": 4.7,
+                    "Controle": 6.2,
+                    "Decisão": 10.9,
+                    "Dependencia de Autoridade": 14.1,
+                    "Detalhismo": 4.7,
+                    "Energia": 14.1,
+                    "Liderança": 12.5,
+                    "Obstinação": 0,
+                    "Organização": 3.1,
+                    "Planejamento": 3.1,
+                    "Ritmo": 12.5
+                }
+            },
+            "pontuacao": {
+                "Abertura à Inovação": 6,
+                "Afetividade": 5,
+                "Agressividade": 7,
+                "Apego às Normas": 9,
+                "Comunicação": 3,
+                "Controle": 4,
+                "Controle Emocional": 1,
+                "Decisão": 7,
+                "Dependencia de Autoridade": 9,
+                "Detalhismo": 3,
+                "Energia": 9,
+                "Exibicionismo": 4,
+                "Liderança": 8,
+                "Mobilidade Física": 5,
+                "Motivação": 2,
+                "Organização": 2,
+                "Planejamento": 2,
+                "Ritmo": 8,
+                "Sociabilidade": 6
+            },
+            "radar_url": "\/api\/radar\/lavinia.png",
+            "result_id": "36966710",
+            "timestamp": 1787505782.491918
+        },
+        {
+            "data_formatada": "23\/08\/2026 14:29",
+            "nome": "lavinia",
+            "parecer": "### 1. Resumo do Perfil Predominante\nLavinia demonstra um perfil comportamental marcado pelo alto dinamismo, expressividade e orientação para a ação rápida, aliado a uma relevante busca por respaldo institucional. No Foco Relacionamento, chamam a atenção os percentuais expressivos em Agressividade (19,4%), Sociabilidade (16,7%) e Abertura à Inovação (16,7%), o que a caracteriza como uma profissional extremamente incisiva, comunicativa e receptiva a novidades. Ao correlacionar esses traços relacionais com o Foco Resultado, nota-se que a sua alta Energia (14,1%), alinhada ao elevado Apego às Normas (14,1%) e à Dependência de Autoridade (14,1%), indica uma colaboradora que imprime forte ritmo de trabalho quando possui diretrizes claras emanadas de seus superiores. No entanto, os percentuais reduzidos em Controle Emocional (2,8%), Obstinação (0,0%), Detalhismo (3,1%) e Organização (3,1%) sugerem que a sua atuação ocorre por picos de entusiasmo e velocidade, enfrentando oscilações diante de rotinas burocráticas ou cenários de longa resistência. Na relação com a equipe, Lavinia tende a ser uma figura vocal e impulsionadora, exigindo da liderança um acompanhamento de perto para canalizar sua força de ação sem gerar atritos ou lacunas no acabamento das tarefas.\n\n### 2. As 3 Competências Mais Fortes e Como Aproveitá-las no Ambiente de Trabalho\n\n#### Competência 1: Agressividade (19,4% - Foco Relacionamento)\n- **Por que essa competência se destaca:** Este percentual elevado reflete uma postura de combate e forte impulso de superação de barreiras, indicando uma tendência natural para ser assertiva, expressar opiniões de forma direta e confrontar desvios com firmeza.\n- **Como aproveitar no dia a dia profissional:** Lavinia pode ser designada para liderar a repactuação de prazos com fornecedores críticos ou atuar no resgate de projetos que estejam estagnados por falta de posicionamento firme. Além disso, ela se destacará na linha de frente de negociações operacionais desafiadoras, onde seja necessário defender os interesses da empresa com energia e poder de persuasão.\n- **Ponto de atenção:** Se esse ímpeto não for bem dosado, a colaboradora pode ser percebida pela equipe como excessivamente incisiva ou rígida, correndo o risco de inibir a participação de pares mais reservados e gerar indisposições no clima interno.\n\n#### Competência 2: Sociabilidade (16,7% - Foco Relacionamento)\n- **Por que essa competência se destaca:** A pontuação demonstra facilidade em estabelecer conexões interpessoais, extroversão e habilidade para criar redes de contato no ambiente profissional com naturalidade.\n- **Como aproveitar no dia a dia profissional:** A profissional pode atuar como ponto focal na recepção e integração (*onboarding*) de novos colaboradores da equipe, ajudando no engajamento inicial do time. Outra aplicação prática é envolvê-la na facilitação de reuniões de alinhamento entre diferentes departamentos que demandem articulação contínua e boa circulação de informações.\n- **Ponto de atenção:** A busca constante pela interação social pode acabar desviando a atenção do foco operacional e do cumprimento rigoroso de entregas individuais dentro dos prazos estipulados.\n\n#### Competência 3: Energia (14,1% - Foco Resultado)\n- **Por que essa competência se destaca:** O percentual reflete vitalidade, ritmo de trabalho acelerado e prontidão para colocar ideias em prática imediatamente, evitando a procrastinação no arranque de tarefas.\n- **Como aproveitar no dia a dia profissional:** Lavinia deve ser acionada para conduzir *sprints* de trabalho de alta intensidade ou para atuar na resposta rápida a incidentes pontuais que exijam pronta mobilização. Sua capacidade de iniciativa pode ser utilizada para dar o pontapé inicial em novos projetos da área, contagiando a equipe com sua velocidade.\n- **Ponto de atenção:** O excesso de velocidade pode levá-la a atropelar processos de validação vitais para o projeto, gerando impaciência ao ter de aguardar análises mais lentas de outros colegas.\n\n### 3. Competências em Desenvolvimento e Sugestões Práticas\n\n#### Competência 1: Obstinação (0,0% - Foco Resultado)\n- **Diagnóstico atual:** A ausência de pontuação nesta competência pode indicar uma tendência a desengajar-se diante de obstáculos prolongados ou ao lidar com projetos de longo prazo que exijam perseverança contínua sem retornos imediatos.\n- **Possível causa ou contexto:** É plausível que seu perfil focado em ação rápida e novidade prefira resultados de curto prazo (*quick wins*), sentindo-se desmotivada quando precisa manter o esforço em rotinas altamente repetitivas.\n- **Sugestão prática de desenvolvimento:** O gestor deve fracionar entregas longas em etapas curtas com prazos semanais bem estabelecidos, permitindo que a colaboradora visualize o progresso com frequência. Recomenda-se realizar reuniões de checagem ao final de cada ciclo para validar os avanços e reforçar o compromisso com a conclusão da demanda.\n\n#### Competência 2: Controle Emocional (2,8% - Foco Relacionamento)\n- **Diagnóstico atual:** A baixa pontuação sugere uma sensibilidade acentuada a pressões, contrariedades ou críticas, podendo reagir de forma reativa ou demonstrar oscilações de humor diante de frustrações.\n- **Possível causa ou contexto:** A combinação entre alta Agressividade e reduzido Controle Emocional pode gerar reações impulsivas quando suas propostas são questionadas ou quando os resultados não saem como o planejado.\n- **Sugestão prática de desenvolvimento:** Implementar sessões quinzenais de feedback individualizado (1:1), utilizando casos práticos recentes para analisar como certas situações poderiam ter sido geridas com maior distanciamento emocional. O RH pode apoiar recomendando treinamentos focados em Inteligência Emocional e comunicação assertiva, acompanhando a evolução da sua autorregulação por meio de avaliações 360° simplificadas a cada três meses.\n\n#### Competência 3: Detalhismo (3,1% - Foco Resultado)\n- **Diagnóstico atual:** O valor baixo aponta para uma propensão a focar na execução macro e no ritmo de entrega, deixando de lado a revisão minuciosa de dados, relatórios ou especificações técnicas.\n- **Possível causa ou contexto:** O desejo de agir rapidamente e a alta Energia costumam fazer com que a etapa de conferência detalhada seja vista como um entrave ou uma perda de tempo pela profissional.\n- **Sugestão prática de desenvolvimento:** Estabelecer a utilização obrigatória de *checklists* estruturados antes do envio de qualquer documento finalizado ou entrega de projeto. Adicionalmente, o gestor pode pareá-la com um par analítico na fase de validação, estipulando que a redução de erros de revisão seja uma meta pontual acompanhada mensalmente no seu Plano de Desenvolvimento Individual (PDI).\n\n### 4. Recomendações de Gestão e Desenvolvimento\nPara maximizar o desempenho de Lavinia, a gestão deve posicioná-la em funções que demandem dinamismo, articulação interpessoal, agilidade e aplicação prática de diretrizes estabelecidas. A colaboradora tende a performar melhor em ambientes operacionais ou de projetos que exijam pronta resposta, devendo-se evitar o seu isolamento em papéis puramente burocráticos, analíticos ou repetitivos. Na dinâmica do time, ela funciona muito bem como uma força de impulso e mobilização social, devendo ser pareada com profissionais de perfil mais organizado e detalhista, garantindo a qualidade técnica do produto final sem frear o seu ritmo. Considerando os seus elevados índices de Apego às Normas (14,1%) e Dependência de Autoridade (14,1%), a liderança deve prover balizas muito claras, regras bem delimitadas e autorizações formais, o que dará a Lavinia a segurança necessária para agir com sua alta Energia. O acompanhamento deve ser próximo, com alinhamentos individuais (1:1) semanais ou quinzenais, mantendo um tom objetivo, transparente e focado em orientação comportamental. Esse monitoramento contínuo deve focar em calibrar o uso de sua assertividade no relacionamento com a equipe e em garantir o cumprimento dos marcos intermediários de seus projetos, assegurando consistência nas suas entregas.",
+            "pdf_url": "\/api\/relatorio\/744e48e7",
+            "percentuais": {
+                "foco_relacionamento": {
+                    "Abertura à Inovação": 16.7,
+                    "Afetividade": 13.9,
+                    "Agressividade": 19.4,
+                    "Controle Emocional": 2.8,
+                    "Exibicionismo": 11.1,
+                    "Mobilidade Física": 13.9,
+                    "Motivação": 5.6,
+                    "Sociabilidade": 16.7
+                },
+                "foco_resultado": {
+                    "Apego às Normas": 14.1,
+                    "Comunicação": 4.7,
+                    "Controle": 6.2,
+                    "Decisão": 10.9,
+                    "Dependencia de Autoridade": 14.1,
+                    "Detalhismo": 3.1,
+                    "Energia": 14.1,
+                    "Liderança": 12.5,
+                    "Obstinação": 0,
+                    "Organização": 3.1,
+                    "Planejamento": 4.7,
+                    "Ritmo": 12.5
+                }
+            },
+            "pontuacao": {
+                "Abertura à Inovação": 6,
+                "Afetividade": 5,
+                "Agressividade": 7,
+                "Apego às Normas": 9,
+                "Comunicação": 3,
+                "Controle": 4,
+                "Controle Emocional": 1,
+                "Decisão": 7,
+                "Dependencia de Autoridade": 9,
+                "Detalhismo": 2,
+                "Energia": 9,
+                "Exibicionismo": 4,
+                "Liderança": 8,
+                "Mobilidade Física": 5,
+                "Motivação": 2,
+                "Organização": 2,
+                "Planejamento": 3,
+                "Ritmo": 8,
+                "Sociabilidade": 6
+            },
+            "radar_url": "\/api\/radar\/lavinia.png",
+            "result_id": "744e48e7",
+            "timestamp": 1787506162.338163
+        }
+    ]
+}

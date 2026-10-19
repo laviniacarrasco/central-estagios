@@ -26,11 +26,13 @@ composer.phar
 !/uploads/.gitkeep
 
 # ============================================
-# Dados sensíveis / gerados dinamicamente
+# Dados da aplicacao (JSON) - AGORA VAO PARA O GIT
+# --------------------------------------------
+# O repositorio e PRIVADO e o sistema guarda tudo em data/*.json.
+# Versionar a pasta data/ faz o Render subir com os mesmos dados do seu PC.
+# Somente o log de acessos fica de fora (muda a cada login).
 # ============================================
-/data/*.json
-/data/users/
-!/data/.gitkeep
+/data/acessos_log.json
 
 # ============================================
 # Logs
