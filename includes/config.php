@@ -86,7 +86,6 @@ function verificarPermissaoPagina() {
         'posts.php',
         'egressos.php',        // mural de egressos: todo admin ve
         'admin-alertas.php',   // fila de e-mails e resumo semanal
-        'admin-empresas.php',  // empresas parceiras
     ];
     if ($isAdminEgressos) {
         $paginasPermitidasAdmin[] = 'admin-egressos.php';
@@ -104,7 +103,6 @@ function verificarPermissaoPagina() {
         'admin-alertas.php',
         'admin-relatorios.php',
         'admin-mentoria.php',
-        'admin-empresas.php',
     ];
 
     // Paginas so de egresso (aluno nao entra; admin ja e barrado pela lista acima)

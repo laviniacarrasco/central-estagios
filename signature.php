@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'includes/avisos.php';
 checkAuth();
 
 $pageTitle = 'Assinaturas';
@@ -32,6 +33,7 @@ if (!is_array($assinaturas)) $assinaturas = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'reenviar') {
     $id = intval($_POST['id'] ?? 0);
+    $reenviadas = [];
 
     if (empty($_FILES['arquivo_reenvio']['name'])) {
         header('Location: signature.php?erro=arquivo');
@@ -62,12 +64,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'reenvia
             $sol['status']          = 'solicitado';
             $sol['mensagemErro']    = null;
             $sol['dataSolicitacao'] = date('Y-m-d H:i:s');
+            $sol['avisoAluno']      = false;
+            $reenviadas[]           = $sol;
         }
         break;
     }
     unset($sol);
 
     saveData('assinaturas', $assinaturas);
+    if (!empty($reenviadas)) {
+        $alunoAtual = [];
+        foreach (loadData('usuarios') as $uAv) {
+            if (($uAv['id'] ?? null) == $userId) { $alunoAtual = $uAv; break; }
+        }
+        avisosNotificarAdminsAssinatura($reenviadas, $alunoAtual, true);
+    }
     header('Location: signature.php?reenvio=1');
     exit;
 }
@@ -92,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nova_solicitacao'])) 
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
     $criadas = 0;
+    $novasParaAviso = [];
 
     foreach ($nomes as $i => $nomeOriginal) {
         $tipo = $classificacoes[$i]['tipo'] ?? '';
@@ -123,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nova_solicitacao'])) 
             'dataAnalise' => null,
             'dataAssinatura' => null,
         ];
+        $novasParaAviso[] = end($assinaturas);
         $criadas++;
     }
 
@@ -132,12 +145,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nova_solicitacao'])) 
     }
 
     saveData('assinaturas', $assinaturas);
+
+    // Avisa a coordenacao por e-mail (a bolinha do menu do admin aparece sozinha)
+    $alunoAtual = [];
+    foreach (loadData('usuarios') as $uAv) {
+        if (($uAv['id'] ?? null) == $userId) { $alunoAtual = $uAv; break; }
+    }
+    avisosNotificarAdminsAssinatura($novasParaAviso, $alunoAtual, false);
+
     header('Location: signature.php?ok=1');
     exit;
 }
 
 $minhasSolicitacoes = array_values(array_filter($assinaturas, fn($a) => $a['userId'] == $userId));
 usort($minhasSolicitacoes, fn($a, $b) => ($b['id'] ?? 0) <=> ($a['id'] ?? 0));
+
+/* Novidades devolvidas pela coordenacao (assinado ou erro) que o aluno ainda nao viu:
+   aparecem num aviso no topo e a bolinha do menu some. */
+$novidadesSig = array_values(array_filter($minhasSolicitacoes, fn($s) => !empty($s['avisoAluno'])));
+if (!empty($novidadesSig)) {
+    $idsVistos = array_column($novidadesSig, 'id');
+    foreach ($assinaturas as &$sigItem) {
+        if (in_array($sigItem['id'] ?? 0, $idsVistos)) $sigItem['avisoAluno'] = false;
+    }
+    unset($sigItem);
+    saveData('assinaturas', $assinaturas);
+}
 
 /* Apenas as ativas (solicitado/em_analise) ficam na tela principal.
    Assinado/erro saem da tela e vao para a caixinha "Ver todas". */
@@ -401,6 +434,36 @@ include 'includes/header.php';
     <?php elseif (isset($_GET['erro'])): ?>
         <div class="mb-6 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl p-4 flex items-center gap-2">
             <i class="fas fa-exclamation-triangle"></i> Não foi possível enviar. Verifique os arquivos e tente novamente.
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($novidadesSig)): ?>
+        <div class="mb-8 space-y-3">
+            <?php foreach ($novidadesSig as $nv):
+                $nvErro = ($nv['status'] ?? '') === 'erro';
+            ?>
+                <div class="rounded-2xl p-5 border <?php echo $nvErro ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'; ?>">
+                    <p class="font-bold <?php echo $nvErro ? 'text-red-700' : 'text-green-700'; ?>">
+                        <i class="fas <?php echo $nvErro ? 'fa-exclamation-triangle' : 'fa-check-circle'; ?> mr-1"></i>
+                        <?php echo $nvErro ? 'Precisa de ajuste: ' : 'Documento assinado: '; ?><?php echo htmlspecialchars(getLabelTipo($nv['tipo'], $nv['area'] ?? null)); ?>
+                    </p>
+                    <?php if ($nvErro): ?>
+                        <p class="text-sm text-red-700 mt-1"><?php echo htmlspecialchars($nv['mensagemErro'] ?? ''); ?></p>
+                        <button type="button" onclick="abrirModalTodasAssinaturas()" class="mt-3 text-sm font-semibold text-red-700 underline">
+                            Abrir o histórico para reenviar o arquivo
+                        </button>
+                    <?php else: ?>
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <?php foreach (($nv['arquivoAssinado'] ?? []) as $ai => $arqAss): ?>
+                                <a href="<?php echo htmlspecialchars($arqAss); ?>" target="_blank"
+                                   class="px-3 py-1.5 bg-white text-green-700 border border-green-200 rounded-lg text-sm font-semibold hover:bg-green-100">
+                                    <i class="fas fa-download mr-1"></i> Baixar documento assinado <?php echo count($nv['arquivoAssinado']) > 1 ? ($ai + 1) : ''; ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
         </div>
     <?php endif; ?>
 

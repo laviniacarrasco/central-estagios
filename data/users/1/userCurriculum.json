@@ -1,14 +1,17 @@
 {
     "nome": "Lavínia Carrasco",
-    "email": "",
-    "telefone": "",
-    "cidade": "",
+    "email": "laviniacarrasco29@gmail.com",
+    "telefone": "(11) 97057-4757",
+    "cidade": "Santo André, SP",
     "resumo": "",
     "habilidades": [
-        "Juju",
-        "abc",
-        "Diva",
-        "Amandinha Babilônica"
+        "Proatividade",
+        "Trabalho em Equipe",
+        "Salesforce",
+        "Power BI",
+        "Pyhton",
+        "SQL",
+        "PHP"
     ],
     "experiencias": [
         {
@@ -33,8 +36,16 @@
     ],
     "idiomas": [
         {
-            "idioma": "Ingles",
-            "nivel": "Basico"
+            "idioma": "Inglês",
+            "nivel": "Avancado"
+        },
+        {
+            "idioma": "Alemão",
+            "nivel": "Intermediario"
+        },
+        {
+            "idioma": "Espanhol",
+            "nivel": "Avancado"
         }
     ],
     "layout": "moderno",

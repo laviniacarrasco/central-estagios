@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'includes/avisos.php';
 checkAuth();
 
 $usuarios = loadData('usuarios');
@@ -51,6 +52,7 @@ if (!is_array($assinaturas)) $assinaturas = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['id'] ?? 0);
     $acao = $_POST['acao'] ?? '';
+    $avisoAluno = null;
 
     foreach ($assinaturas as &$sol) {
         if (($sol['id'] ?? 0) != $id) continue;
@@ -63,6 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($acao === 'marcar_erro') {
             $sol['status'] = 'erro';
             $sol['mensagemErro'] = trim($_POST['mensagem'] ?? '') ?: 'Houve um problema com os arquivos enviados.';
+            $sol['avisoAluno'] = true;   // bolinha no menu do aluno
+            $avisoAluno = ['sol' => $sol, 'tipo' => 'erro'];
         }
 
         if ($acao === 'enviar_assinado') {
@@ -89,6 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $sol['status'] = 'assinado';
                 $sol['mensagemErro'] = null;
                 $sol['dataAssinatura'] = date('Y-m-d H:i:s');
+                $sol['avisoAluno'] = true;   // bolinha no menu do aluno
+                $avisoAluno = ['sol' => $sol, 'tipo' => 'assinado'];
             }
         }
 
@@ -97,6 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     unset($sol);
 
     saveData('assinaturas', $assinaturas);
+
+    // E-mail para o aluno (a bolinha do menu dele aparece sozinha)
+    if (!empty($avisoAluno)) {
+        $alunoDoc = $mapaUsuarios[$avisoAluno['sol']['userId'] ?? 0] ?? [];
+        avisosNotificarAlunoAssinatura($avisoAluno['sol'], $alunoDoc, $avisoAluno['tipo']);
+    }
+
     header('Location: admin-signature.php');
     exit;
 }

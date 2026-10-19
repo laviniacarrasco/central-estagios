@@ -12,14 +12,15 @@ $isAdminEgressos = $isAdmin && !empty($_SESSION['is_admin_egressos']);
 require_once __DIR__ . '/alertas.php';
 alertasAgendarTick();
 
-// Bolinha vermelha do menu de Mentoria (pedidos para o egresso / mentores para o admin aprovar).
+// Bolinhas vermelhas do menu (mentoria, vagas, assinaturas, egressos).
 // Protegido: se algo falhar aqui, o resto do site continua funcionando.
-$mentoriaBadge = 0;
 try {
-    require_once __DIR__ . '/mentoria.php';
-    $mentoriaBadge = mentoriaPendentesParaMim();
-} catch (Throwable $mentoriaErro) {
-    error_log('mentoria badge: ' . $mentoriaErro->getMessage());
+    require_once __DIR__ . '/avisos.php';
+} catch (Throwable $avisosErro) {
+    error_log('avisos: ' . $avisosErro->getMessage());
+}
+if (!function_exists('avisosBadge')) {
+    function avisosBadge(string $chave): string { return ''; }
 }
 $pageTitle = $pageTitle ?? 'Central de Estágios';
 
@@ -235,7 +236,7 @@ if (is_array($usuariosHeaderCheck)) {
                 </a>
                 <a href="mentoria.php" class="sidebar-link" title="Mentoria">
                     <i class="fas fa-hands-helping"></i>
-                    <?php if (!empty($mentoriaBadge)): ?><span class="sidebar-badge"><?php echo (int) $mentoriaBadge; ?></span><?php endif; ?>
+                    <?php echo avisosBadge('mentoria'); ?>
                 </a>
             <?php else: ?>
 
@@ -274,15 +275,13 @@ if (is_array($usuariosHeaderCheck)) {
             <?php if (!$isAdmin): ?>
                 <a href="signature.php" class="sidebar-link" title="Assinaturas">
                     <i class="fas fa-file-signature"></i>
+                    <?php echo avisosBadge('aluno_assinaturas'); ?>
                 </a>
                 <a href="career-tips.php" class="sidebar-link" title="Dicas de Carreira">
                     <i class="fas fa-lightbulb"></i>
                 </a>
                 <a href="mentoria.php" class="sidebar-link" title="Mentoria">
                     <i class="fas fa-hands-helping"></i>
-                </a>
-                <a href="empresas.php" class="sidebar-link" title="Empresas Parceiras">
-                    <i class="fas fa-handshake"></i>
                 </a>
 
                 <!-- Icone de Solicitar Vaga: escondido para alunos bloqueados por ma conduta -->
@@ -299,9 +298,11 @@ if (is_array($usuariosHeaderCheck)) {
                 <!-- ===== ÁREA ADMIN (ordem coesa: gestão -> conteúdo -> visão geral) ===== -->
                 <a href="admin-jobs.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Admin Vagas">
                     <i class="fas fa-cog"></i>
+                    <?php echo avisosBadge('admin_jobs'); ?>
                 </a>
                 <a href="admin-signature.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Admin Assinaturas">
                     <i class="fas fa-file-signature"></i>
+                    <?php echo avisosBadge('admin_assinaturas'); ?>
                 </a>
                 <a href="posts.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Admin Posts">
                     <i class="fas fa-newspaper"></i>
@@ -312,16 +313,14 @@ if (is_array($usuariosHeaderCheck)) {
                 <a href="admin-alertas.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Alertas e E-mails">
                     <i class="fas fa-envelope"></i>
                 </a>
-                <a href="admin-empresas.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Empresas Parceiras">
-                    <i class="fas fa-handshake"></i>
-                </a>
                 <?php if ($isAdminEgressos): ?>
                     <a href="admin-egressos.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Painel de Egressos">
                         <i class="fas fa-users"></i>
+                        <?php echo avisosBadge('admin_egressos'); ?>
                     </a>
                     <a href="admin-mentoria.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Mentoria (Admin)">
                         <i class="fas fa-hands-helping"></i>
-                        <?php if (!empty($mentoriaBadge)): ?><span class="sidebar-badge"><?php echo (int) $mentoriaBadge; ?></span><?php endif; ?>
+                        <?php echo avisosBadge('mentoria'); ?>
                     </a>
                     <a href="admin-relatorios.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Relatórios de Egressos">
                         <i class="fas fa-file-export"></i>

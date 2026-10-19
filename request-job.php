@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'includes/avisos.php';
 checkAuth();
 
 header('Content-Type: text/html; charset=UTF-8');
@@ -56,6 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'solic
     ];
 
     $editouExistente = false;
+    $reqParaAviso    = null;
+    $avisoReenvio    = false;
 
     if ($editId > 0) {
         foreach ($jobRequests as &$reqExistente) {
@@ -69,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'solic
                     'createdAt'      => date('d/m/Y H:i'),
                 ]);
                 $editouExistente = true;
+                $reqParaAviso    = $reqExistente;
+                $avisoReenvio    = true;
                 break;
             }
         }
@@ -86,9 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'solic
             'createdAt'       => date('d/m/Y H:i'),
         ]);
         array_unshift($jobRequests, $novaSolicitacao);
+        $reqParaAviso = $novaSolicitacao;
     }
 
     saveData('job_requests', $jobRequests);
+
+    // Avisa a coordenacao por e-mail (a bolinha do menu do admin aparece sozinha)
+    if (!empty($reqParaAviso)) {
+        avisosNotificarAdminsSolicitacaoVaga($reqParaAviso, $avisoReenvio);
+    }
 
     $mensagemSucesso = true;
 }
