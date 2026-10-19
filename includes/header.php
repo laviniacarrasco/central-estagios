@@ -5,6 +5,8 @@ checkAuth();
 $userName  = $_SESSION['user_name'] ?? 'Visitante';
 $userId    = $_SESSION['user_id'] ?? 0;
 $isAdmin   = !empty($_SESSION['is_admin']);
+$isEgresso = !empty($_SESSION['is_egresso']);
+$isAdminEgressos = $isAdmin && !empty($_SESSION['is_admin_egressos']);
 $pageTitle = $pageTitle ?? 'Central de Estágios';
 
 if (!function_exists('getInitials')) {
@@ -189,6 +191,19 @@ if (is_array($usuariosHeaderCheck)) {
         <!-- Navegação -->
         <nav class="sidebar-nav">
 
+            <?php if ($isEgresso): ?>
+                <!-- ===== ÁREA DO EGRESSO (só enxerga o que é de egressos) ===== -->
+                <a href="egressos.php" class="sidebar-link" title="Vagas de Egressos">
+                    <i class="fas fa-briefcase"></i>
+                </a>
+                <a href="egresso-publicar.php" class="sidebar-link" title="Divulgar Vaga">
+                    <i class="fas fa-plus-circle"></i>
+                </a>
+                <a href="egresso-perfil.php" class="sidebar-link" title="Meu Perfil de Egresso">
+                    <i class="fas fa-user-graduate"></i>
+                </a>
+            <?php else: ?>
+
             <!-- Início: visível para todos -->
             <a href="dashboard.php"  class="sidebar-link" title="Início">
                 <i class="fas fa-home"></i>
@@ -211,6 +226,17 @@ if (is_array($usuariosHeaderCheck)) {
             <a href="jobs.php" class="sidebar-link" title="Vagas">
                 <i class="fas fa-briefcase"></i>
             </a>
+
+            <!-- Vagas divulgadas por egressos: aluno e admin -->
+            <a href="egressos.php" class="sidebar-link" title="Vagas de Egressos">
+                <i class="fas fa-user-graduate"></i>
+            </a>
+
+            <?php if (!$isAdmin): ?>
+                <a href="candidaturas.php" class="sidebar-link" title="Minhas Candidaturas">
+                    <i class="fas fa-clipboard-check"></i>
+                </a>
+            <?php endif; ?>
 
             <?php if (!$isAdmin): ?>
                 <a href="signature.php" class="sidebar-link" title="Assinaturas">
@@ -244,7 +270,13 @@ if (is_array($usuariosHeaderCheck)) {
                 <a href="admin-dashboard.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Dashboard Admin">
                     <i class="fas fa-chart-line"></i>
                 </a>
+                <?php if ($isAdminEgressos): ?>
+                    <a href="admin-egressos.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Painel de Egressos">
+                        <i class="fas fa-users"></i>
+                    </a>
+                <?php endif; ?>
             <?php endif; ?>
+            <?php endif; /* fim: nao egresso */ ?>
         </nav>
         <!-- Espaçador flexível: é ESTE elemento que absorve o espaço
              sobrando entre a navegação e o botão de logout, mantendo
@@ -271,7 +303,7 @@ if (is_array($usuariosHeaderCheck)) {
         </h1>
 
         <!-- Avatar / Perfil -->
-        <a href="profile.php"
+        <a href="<?php echo $isEgresso ? 'egresso-perfil.php' : 'profile.php'; ?>"
            class="ml-auto flex items-center gap-3 px-4 py-2 border-2 border-gray-200 rounded-full hover:border-[#4A9FCA] hover:bg-gray-50 transition-all cursor-pointer flex-shrink-0"
            title="Ver Perfil">
 

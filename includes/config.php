@@ -42,16 +42,37 @@ function checkAdmin() {
 
 /**
  * Controle de acesso por perfil.
- * - Admin só pode acessar as páginas "administrativas" da lista abaixo.
- * - Aluno não pode acessar as páginas exclusivas de admin.
- * Chamada automaticamente dentro de checkAuth(), então não precisa
- * adicionar nada de novo nas páginas — só manter o checkAuth()/checkAdmin() que já existe.
+ *  - ALUNO:           nao entra nas paginas de admin nem nas de egresso.
+ *  - ADMIN:           so entra nas paginas administrativas + mural de egressos.
+ *  - ADMIN-EGRESSOS:  tudo que o admin ve + admin-egressos.php.
+ *  - EGRESSO:         so entra na area de egressos (nada de vagas, paineis ou
+ *                     assinaturas da FSA).
+ * Chamada automaticamente dentro de checkAuth(), entao nao precisa
+ * adicionar nada de novo nas paginas - so manter o checkAuth()/checkAdmin() que ja existe.
  */
 function verificarPermissaoPagina() {
-    $paginaAtual = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
-    $isAdmin = !empty($_SESSION['is_admin']);
+    $paginaAtual     = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+    $isAdmin         = !empty($_SESSION['is_admin']);
+    $isEgresso       = !empty($_SESSION['is_egresso']);
+    $isAdminEgressos = $isAdmin && !empty($_SESSION['is_admin_egressos']);
 
-    // Páginas que o ADMIN pode acessar
+    // ---- EGRESSO: lista fechada de paginas ----
+    if ($isEgresso) {
+        $paginasEgresso = [
+            'egressos.php',          // mural de vagas de egressos
+            'egresso-perfil.php',    // perfil do egresso
+            'egresso-publicar.php',  // divulgar vagas
+            'forgot-password.php',
+            'index.php',
+        ];
+        if (!in_array($paginaAtual, $paginasEgresso, true)) {
+            header('Location: egressos.php');
+            exit;
+        }
+        return;
+    }
+
+    // Paginas que o ADMIN pode acessar
     $paginasPermitidasAdmin = [
         'admin-dashboard.php', // ajuste aqui se o nome real for admin_dashboard.php
         'admin-jobs.php',
@@ -61,23 +82,31 @@ function verificarPermissaoPagina() {
         'index.php',
         'jobs.php',
         'posts.php',
+        'egressos.php',        // mural de egressos: todo admin ve
     ];
+    if ($isAdminEgressos) {
+        $paginasPermitidasAdmin[] = 'admin-egressos.php';
+    }
 
-    // Páginas exclusivas de admin (aluno não pode entrar)
+    // Paginas exclusivas de admin (aluno nao pode entrar)
     $paginasExclusivasAdmin = [
         'admin-dashboard.php', // ajuste aqui se o nome real for admin_dashboard.php
         'admin-jobs.php',
         'admin-signature.php',
-        'posts.php'
+        'posts.php',
+        'admin-egressos.php',
     ];
+
+    // Paginas so de egresso (aluno nao entra; admin ja e barrado pela lista acima)
+    $paginasSoEgresso = ['egresso-perfil.php', 'egresso-publicar.php'];
 
     if ($isAdmin) {
         if (!in_array($paginaAtual, $paginasPermitidasAdmin, true)) {
-            header('Location: admin-dashboard.php'); // ajuste aqui se necessário
+            header('Location: admin-dashboard.php'); // ajuste aqui se necessario
             exit;
         }
     } else {
-        if (in_array($paginaAtual, $paginasExclusivasAdmin, true)) {
+        if (in_array($paginaAtual, $paginasExclusivasAdmin, true) || in_array($paginaAtual, $paginasSoEgresso, true)) {
             header('Location: dashboard.php');
             exit;
         }

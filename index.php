@@ -13,7 +13,7 @@ $error = '';
 
 // Se já estiver logado, vai direto pro dashboard
 if (!empty($_SESSION['user_id'])) {
-    header('Location: dashboard.php');
+    header('Location: ' . (!empty($_SESSION['is_egresso']) ? 'egressos.php' : 'dashboard.php'));
     exit;
 }
 
@@ -69,6 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_cpf']   = $usuarioEncontrado['cpf'];
             $_SESSION['is_admin']   = !empty($usuarioEncontrado['is_admin']);
 
+            // Egressos: tipo "egresso" (area propria) e "admin_egressos" (admin que cuida deles)
+            $tipoUsuario = $usuarioEncontrado['tipo'] ?? '';
+            $_SESSION['is_egresso']        = ($tipoUsuario === 'egresso') && empty($usuarioEncontrado['is_admin']);
+            $_SESSION['is_admin_egressos'] = ($tipoUsuario === 'admin_egressos') && !empty($usuarioEncontrado['is_admin']);
+
             /* =================================================================
              * REGISTRO DE ACESSO (NOVO)
              * -----------------------------------------------------------------
@@ -90,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             registrarAcesso($usuarioEncontrado['id']);
 
-            header('Location: dashboard.php');
+            header('Location: ' . (!empty($_SESSION['is_egresso']) ? 'egressos.php' : 'dashboard.php'));
             exit;
         } else {
             $error = 'CPF ou senha inválidos!';

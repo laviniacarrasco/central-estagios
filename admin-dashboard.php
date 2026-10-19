@@ -237,7 +237,8 @@ const STATUS_EMPREGABILIDADE = [
  * dashboard trata apenas de metricas relacionadas aos alunos.
  * ========================================================================= */
 $todosAlunos = array_values(array_filter($usuarios, function ($u) {
-    return ($u['is_admin'] ?? false) !== true;
+    // egressos tem painel proprio (admin-egressos.php) e nao entram nas metricas dos alunos
+    return ($u['is_admin'] ?? false) !== true && ($u['tipo'] ?? '') !== 'egresso';
 }));
 
 $assinaturas = loadData('assinaturas');

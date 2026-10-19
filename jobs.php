@@ -202,7 +202,7 @@ include 'includes/header.php';
                                             <i class="fas fa-eye mr-1"></i> Ver Detalhes
                                         </button>
                                         <!-- Candidatar-se: leva ao link cadastrado pelo admin -->
-                                        <a href="<?php echo htmlspecialchars($job['applicationLink'] ?? '#'); ?>"
+                                        <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=faculdade&amp;job_id=' . (int) $job['id']; ?>"
                                            target="_blank"
                                            class="px-6 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-xl transition-all text-sm">
                                             <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
@@ -261,7 +261,7 @@ include 'includes/header.php';
                                         <i class="fas fa-eye mr-1"></i> Ver Detalhes
                                     </button>
                                     <!-- Candidatar-se: leva ao link cadastrado pelo admin -->
-                                    <a href="<?php echo htmlspecialchars($job['applicationLink'] ?? '#'); ?>"
+                                    <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=faculdade&amp;job_id=' . (int) $job['id']; ?>"
                                        target="_blank"
                                        class="px-4 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-lg transition-all text-sm">
                                         <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
@@ -358,6 +358,7 @@ include 'includes/header.php';
 
 <script>
     const allJobsData = <?php echo json_encode(array_values($allJobs)); ?>;
+    const souAdmin = <?php echo !empty($_SESSION['is_admin']) ? 'true' : 'false'; ?>;
 
     function toggleFilters() {
         document.getElementById('filtersSection').classList.toggle('hidden');
@@ -382,11 +383,18 @@ include 'includes/header.php';
 
         // Botão candidatar — usa o link de candidatura cadastrado pelo admin
         const applyBtn = document.getElementById('modalApplyBtn');
-        if (job.applicationLink) {
-            applyBtn.href = job.applicationLink;
-            applyBtn.classList.remove('hidden');
+        // Aluno: passa por candidatar.php (registra em "Minhas Candidaturas" e abre o link).
+        // Admin: abre o link direto, como antes.
+        if (souAdmin) {
+            if (job.applicationLink) {
+                applyBtn.href = job.applicationLink;
+                applyBtn.classList.remove('hidden');
+            } else {
+                applyBtn.classList.add('hidden');
+            }
         } else {
-            applyBtn.classList.add('hidden');
+            applyBtn.href = 'candidatar.php?origem=faculdade&job_id=' + encodeURIComponent(job.id);
+            applyBtn.classList.remove('hidden');
         }
 
         const modal = document.getElementById('detailsModal');
