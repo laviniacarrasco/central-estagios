@@ -13,7 +13,7 @@
         "turno": "—",
         "situacao": "Regular",
         "dataMatricula": null,
-        "ultimoAcesso": "2026-10-18 22:38:29"
+        "ultimoAcesso": "2026-10-18 22:55:34"
     },
     {
         "id": 9002,
@@ -31,7 +31,7 @@
         "dataMatricula": null,
         "anoConclusao": "2023",
         "statusProfissional": "",
-        "ultimoAcesso": "2026-10-18 22:30:59"
+        "ultimoAcesso": "2026-10-18 22:53:50"
     },
     {
         "id": 1,
@@ -47,7 +47,7 @@
         "situacao": "Regular",
         "dataMatricula": "2025-02-10",
         "statusProfissional": "Estagiando na area",
-        "ultimoAcesso": "2026-10-18 22:38:00",
+        "ultimoAcesso": "2026-10-18 23:18:49",
         "alertas": {
             "vagaNova": false,
             "resumoSemanal": true,

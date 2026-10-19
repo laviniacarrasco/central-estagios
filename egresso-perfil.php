@@ -262,7 +262,7 @@ include 'includes/header.php';
 
                     <label class="flex items-start gap-2 text-sm text-gray-700">
                         <input type="checkbox" name="aceitaMentoria" class="mt-1" <?= !empty($egresso['aceitaMentoria']) ? 'checked' : '' ?>>
-                        <span>Aceito conversar com alunos atuais sobre carreira (mentoria)</span>
+                        <span>Aceito conversar com alunos atuais sobre carreira (mentoria). Para aparecer para os alunos, faça o cadastro em <a href="mentoria.php?aba=config" class="text-[#4A9FCA] underline">Mentoria</a>.</span>
                     </label>
 
                     <div>

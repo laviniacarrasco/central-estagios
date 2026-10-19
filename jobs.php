@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/vagas.php';
+require_once 'includes/egressos.php';
 checkAuth();
 
 $pageTitle = 'Vagas de Estágio';
@@ -10,6 +11,33 @@ $allJobs = loadData('platform_jobs');
 $allJobs = array_filter($allJobs ?? [], function($job) {
     return vagaVigente($job); // Ativa e dentro da validade
 });
+
+// Identificador unico de cada vaga (origem + id), porque vaga da FSA e vaga de egresso
+// podem ter o mesmo numero de id.
+foreach ($allJobs as $k => $job) {
+    $allJobs[$k]['origem'] = 'faculdade';
+    $allJobs[$k]['uid']    = 'faculdade-' . ($job['id'] ?? 0);
+}
+
+// Vagas de EGRESSOS aprovadas pelo admin e ainda dentro da validade:
+// entram aqui automaticamente como "Vaga em Destaque", com a etiqueta "Egresso".
+$vagasEgressos = [];
+foreach (egressoVagas() as $v) {
+    if (egressoVagaStatusEfetivo($v) !== 'aprovada') continue;
+    $vagasEgressos[] = array_merge([
+        'title' => '', 'company' => '', 'type' => '', 'location' => '', 'hours' => '',
+        'salary' => 'A combinar', 'description' => '', 'requirements' => '', 'benefits' => '', 'courses' => '',
+    ], $v, [
+        'origem'          => 'egresso',
+        'uid'             => 'egresso-' . (int) ($v['id'] ?? 0),
+        'featured'        => true,
+        'createdAt'       => $v['publishedAt'] ?? ($v['createdAt'] ?? ''),
+        'applicationLink' => egressoNormalizarLink($v['applicationLink'] ?? ''),
+    ]);
+}
+usort($vagasEgressos, fn($a, $b) => ($b['publishedTs'] ?? 0) <=> ($a['publishedTs'] ?? 0));
+// Egressos primeiro (mais recentes no topo), depois as vagas da FSA
+$allJobs = array_merge($vagasEgressos, array_values($allJobs));
 
 // Cursos da FSA — fonte única, vinda do config.php
 $fsaCourses = getFsaCourses();
@@ -63,6 +91,7 @@ $regularJobs = array_filter($filteredJobs, function($job) {
 
 // Cálculo real de "Novas Esta Semana", baseado em createdAt
 $novasEstaSemana = array_filter($allJobs, function($job) {
+    if (!empty($job['publishedTs'])) return $job['publishedTs'] >= strtotime('-7 days'); // vagas de egressos
     if (empty($job['createdAt'])) return false;
     $data = strtotime($job['createdAt']);
     if (!$data) return false;
@@ -160,7 +189,8 @@ include 'includes/header.php';
                 </h3>
                 <div class="space-y-4">
                     <?php foreach ($featuredJobs as $job): ?>
-                        <div class="p-6 border-2 border-yellow-200 bg-yellow-50/30 rounded-2xl shadow-sm">
+                        <?php $ehEgresso = ($job['origem'] ?? '') === 'egresso'; ?>
+                        <div class="p-6 border-2 <?php echo $ehEgresso ? 'border-purple-200 bg-purple-50/30' : 'border-yellow-200 bg-yellow-50/30'; ?> rounded-2xl shadow-sm">
                             <div class="flex items-start gap-6">
                                 <div class="w-16 h-16 bg-[#58A1D4] rounded-xl flex items-center justify-center flex-shrink-0">
                                     <i class="fas fa-building text-2xl text-white"></i>
@@ -171,8 +201,17 @@ include 'includes/header.php';
                                             <h3 class="text-xl font-bold text-slate-900">
                                                 <?php echo htmlspecialchars($job['title']); ?>
                                                 <i class="fas fa-star text-yellow-400 text-base ml-1"></i>
+                                                <?php if ($ehEgresso): ?>
+                                                    <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 align-middle"><i class="fas fa-user-graduate mr-1"></i>Egresso</span>
+                                                <?php endif; ?>
                                             </h3>
                                             <p class="text-slate-600 font-semibold text-lg"><?php echo htmlspecialchars($job['company']); ?></p>
+                                            <?php if ($ehEgresso && !empty($job['egressoName'])): ?>
+                                                <p class="text-xs text-purple-700 mt-1">
+                                                    Divulgada por <strong><?php echo htmlspecialchars($job['egressoName']); ?></strong>
+                                                    <?php if (!empty($job['egressoCurso'])): ?>&bull; egresso(a) de <?php echo htmlspecialchars($job['egressoCurso']); ?><?php endif; ?>
+                                                </p>
+                                            <?php endif; ?>
                                         </div>
                                         <span class="px-3 py-1 bg-[#58A1D4] text-white rounded-full font-bold">
                                             <?php echo htmlspecialchars($job['type']); ?>
@@ -198,17 +237,17 @@ include 'includes/header.php';
                                     <div class="flex gap-3">
                                         <!-- Ver Detalhes -->
                                         <button
-                                            onclick="showDetails(<?php echo $job['id']; ?>)"
+                                            onclick="showDetails('<?php echo htmlspecialchars($job['uid'] ?? ('faculdade-' . $job['id']), ENT_QUOTES); ?>')"
                                             class="px-6 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-all text-sm">
                                             <i class="fas fa-eye mr-1"></i> Ver Detalhes
                                         </button>
                                         <!-- Candidatar-se: leva ao link cadastrado pelo admin -->
-                                        <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=faculdade&amp;job_id=' . (int) $job['id']; ?>"
+                                        <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=' . ($job['origem'] ?? 'faculdade') . '&amp;job_id=' . (int) $job['id']; ?>"
                                            target="_blank"
                                            class="px-6 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-xl transition-all text-sm">
                                             <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
                                         </a>
-                                        <?php echo favoritoBotaoHtml('faculdade', (int) $job['id']); ?>
+                                        <?php echo favoritoBotaoHtml($job['origem'] ?? 'faculdade', (int) $job['id']); ?>
                                     </div>
                                 </div>
                             </div>
@@ -258,17 +297,17 @@ include 'includes/header.php';
                                 <div class="flex gap-3">
                                     <!-- Ver Detalhes -->
                                     <button
-                                        onclick="showDetails(<?php echo $job['id']; ?>)"
+                                        onclick="showDetails('<?php echo htmlspecialchars($job['uid'] ?? ('faculdade-' . $job['id']), ENT_QUOTES); ?>')"
                                         class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-all text-sm">
                                         <i class="fas fa-eye mr-1"></i> Ver Detalhes
                                     </button>
                                     <!-- Candidatar-se: leva ao link cadastrado pelo admin -->
-                                    <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=faculdade&amp;job_id=' . (int) $job['id']; ?>"
+                                    <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=' . ($job['origem'] ?? 'faculdade') . '&amp;job_id=' . (int) $job['id']; ?>"
                                        target="_blank"
                                        class="px-4 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-lg transition-all text-sm">
                                         <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
                                     </a>
-                                    <?php echo favoritoBotaoHtml('faculdade', (int) $job['id']); ?>
+                                    <?php echo favoritoBotaoHtml($job['origem'] ?? 'faculdade', (int) $job['id']); ?>
                                 </div>
                             </div>
                         </div>
@@ -299,6 +338,7 @@ include 'includes/header.php';
             <div>
                 <h3 id="modalTitle" class="text-xl font-bold text-gray-900 mb-1"></h3>
                 <p id="modalCompany" class="text-[#58A1D4] font-medium"></p>
+                <p id="modalEgresso" class="hidden mt-2 text-xs font-semibold text-purple-700"></p>
             </div>
             <button onclick="closeDetails()" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fas fa-times text-xl"></i>
@@ -371,11 +411,19 @@ include 'includes/header.php';
     // Modal Detalhes
     // =============================
     function showDetails(jobId) {
-        const job = allJobsData.find(j => j.id == jobId);
+        const job = allJobsData.find(j => j.uid == jobId);
         if (!job) return;
 
         document.getElementById('modalTitle').textContent        = job.title;
         document.getElementById('modalCompany').textContent      = job.company;
+
+        const selo = document.getElementById('modalEgresso');
+        if (job.origem === 'egresso') {
+            selo.textContent = 'Vaga de egresso' + (job.egressoName ? ' · divulgada por ' + job.egressoName : '');
+            selo.classList.remove('hidden');
+        } else {
+            selo.classList.add('hidden');
+        }
         document.getElementById('modalLocation').textContent     = job.location;
         document.getElementById('modalType').textContent         = job.type;
         document.getElementById('modalHours').textContent        = job.hours;
@@ -396,7 +444,7 @@ include 'includes/header.php';
                 applyBtn.classList.add('hidden');
             }
         } else {
-            applyBtn.href = 'candidatar.php?origem=faculdade&job_id=' + encodeURIComponent(job.id);
+            applyBtn.href = 'candidatar.php?origem=' + encodeURIComponent(job.origem || 'faculdade') + '&job_id=' + encodeURIComponent(job.id);
             applyBtn.classList.remove('hidden');
         }
 

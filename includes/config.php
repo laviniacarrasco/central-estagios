@@ -63,6 +63,7 @@ function verificarPermissaoPagina() {
             'egressos.php',          // mural de vagas de egressos
             'egresso-perfil.php',    // perfil do egresso
             'egresso-publicar.php',  // divulgar vagas
+            'mentoria.php',          // mentoria (egresso e mentor)
             'forgot-password.php',
             'index.php',
         ];
@@ -85,10 +86,12 @@ function verificarPermissaoPagina() {
         'posts.php',
         'egressos.php',        // mural de egressos: todo admin ve
         'admin-alertas.php',   // fila de e-mails e resumo semanal
+        'admin-empresas.php',  // empresas parceiras
     ];
     if ($isAdminEgressos) {
         $paginasPermitidasAdmin[] = 'admin-egressos.php';
         $paginasPermitidasAdmin[] = 'admin-relatorios.php';
+        $paginasPermitidasAdmin[] = 'admin-mentoria.php';
     }
 
     // Paginas exclusivas de admin (aluno nao pode entrar)
@@ -100,6 +103,8 @@ function verificarPermissaoPagina() {
         'admin-egressos.php',
         'admin-alertas.php',
         'admin-relatorios.php',
+        'admin-mentoria.php',
+        'admin-empresas.php',
     ];
 
     // Paginas so de egresso (aluno nao entra; admin ja e barrado pela lista acima)

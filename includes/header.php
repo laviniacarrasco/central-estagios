@@ -11,6 +11,16 @@ $isAdminEgressos = $isAdmin && !empty($_SESSION['is_admin_egressos']);
 // Envio de e-mails em fila/resumo semanal: roda depois que a pagina ja foi entregue
 require_once __DIR__ . '/alertas.php';
 alertasAgendarTick();
+
+// Bolinha vermelha do menu de Mentoria (pedidos para o egresso / mentores para o admin aprovar).
+// Protegido: se algo falhar aqui, o resto do site continua funcionando.
+$mentoriaBadge = 0;
+try {
+    require_once __DIR__ . '/mentoria.php';
+    $mentoriaBadge = mentoriaPendentesParaMim();
+} catch (Throwable $mentoriaErro) {
+    error_log('mentoria badge: ' . $mentoriaErro->getMessage());
+}
 $pageTitle = $pageTitle ?? 'Central de Estágios';
 
 if (!function_exists('getInitials')) {
@@ -138,6 +148,23 @@ if (is_array($usuariosHeaderCheck)) {
             align-items: center;
             justify-content: center;
         }
+        .sidebar-link{ position: relative; }
+        .sidebar-badge{
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 16px;
+            text-align: center;
+            box-sizing: border-box;
+        }
         .sidebar-link:hover{ background: rgba(255,255,255,.2); }
         .sidebar-link i{ font-size: 17px; line-height: 1; }
         .sidebar-link.sidebar-link-sm i{ font-size: 14px; }
@@ -206,6 +233,10 @@ if (is_array($usuariosHeaderCheck)) {
                 <a href="egresso-perfil.php" class="sidebar-link" title="Meu Perfil de Egresso">
                     <i class="fas fa-user-graduate"></i>
                 </a>
+                <a href="mentoria.php" class="sidebar-link" title="Mentoria">
+                    <i class="fas fa-hands-helping"></i>
+                    <?php if (!empty($mentoriaBadge)): ?><span class="sidebar-badge"><?php echo (int) $mentoriaBadge; ?></span><?php endif; ?>
+                </a>
             <?php else: ?>
 
             <!-- Início: visível para todos -->
@@ -247,6 +278,12 @@ if (is_array($usuariosHeaderCheck)) {
                 <a href="career-tips.php" class="sidebar-link" title="Dicas de Carreira">
                     <i class="fas fa-lightbulb"></i>
                 </a>
+                <a href="mentoria.php" class="sidebar-link" title="Mentoria">
+                    <i class="fas fa-hands-helping"></i>
+                </a>
+                <a href="empresas.php" class="sidebar-link" title="Empresas Parceiras">
+                    <i class="fas fa-handshake"></i>
+                </a>
 
                 <!-- Icone de Solicitar Vaga: escondido para alunos bloqueados por ma conduta -->
                 <?php if (!$isBloqueado): ?>
@@ -275,9 +312,16 @@ if (is_array($usuariosHeaderCheck)) {
                 <a href="admin-alertas.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Alertas e E-mails">
                     <i class="fas fa-envelope"></i>
                 </a>
+                <a href="admin-empresas.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Empresas Parceiras">
+                    <i class="fas fa-handshake"></i>
+                </a>
                 <?php if ($isAdminEgressos): ?>
                     <a href="admin-egressos.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Painel de Egressos">
                         <i class="fas fa-users"></i>
+                    </a>
+                    <a href="admin-mentoria.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Mentoria (Admin)">
+                        <i class="fas fa-hands-helping"></i>
+                        <?php if (!empty($mentoriaBadge)): ?><span class="sidebar-badge"><?php echo (int) $mentoriaBadge; ?></span><?php endif; ?>
                     </a>
                     <a href="admin-relatorios.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Relatórios de Egressos">
                         <i class="fas fa-file-export"></i>
