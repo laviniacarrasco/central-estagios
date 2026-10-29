@@ -210,7 +210,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     /* ============================= REJEITAR SOLICITACAO (+ opcao de bloquear aluno) ============================= */
     if ($_POST['action'] === 'reject_request') {
         $reqId = $_POST['request_id'] ?? 0;
-        $motivo = trim($_POST['motivo'] ?? '');
+        // Justificativa obrigatória (o aluno vê o texto; vale também para o bloqueio)
+        $motivo = (string) justificativaPost('motivo', 500);
+        if ($motivo === '') {
+            header('Location: admin-jobs.php?erro=justificativa');
+            exit;
+        }
         $bloquearAluno = isset($_POST['bloquear_aluno']);
         $studentIdAfetado = null;
         $reqRejeitada = null;
@@ -283,6 +288,11 @@ include 'includes/header.php';
 
 <main class="ml-16 pt-16">
     <div class="p-8 max-w-7xl mx-auto">
+        <?php if (($_GET['erro'] ?? '') === 'justificativa'): ?>
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+                <i class="fas fa-exclamation-circle mr-1"></i> A justificativa é obrigatória (pelo menos 10 caracteres). Nada foi alterado.
+            </div>
+        <?php endif; ?>
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
@@ -417,11 +427,11 @@ include 'includes/header.php';
         <div id="rejeitarModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl p-6 max-w-md w-full">
                 <h3 class="text-lg font-bold text-gray-900 mb-3">Rejeitar Solicitação</h3>
-                <p class="text-sm text-gray-500 mb-4">Explique brevemente o motivo (o aluno verá essa mensagem).</p>
+                <p class="text-sm text-gray-500 mb-4">A justificativa é <strong>obrigatória</strong> (pelo menos 10 caracteres). O aluno verá essa mensagem.</p>
                 <form method="POST" action="admin-jobs.php">
                     <input type="hidden" name="action" value="reject_request">
                     <input type="hidden" name="request_id" id="rejeitarRequestId">
-                    <textarea name="motivo" rows="3" class="w-full px-3 py-2 border rounded-lg mb-4" placeholder="Ex: Dados incompletos, empresa não confere, etc."></textarea>
+                    <textarea name="motivo" rows="3" required minlength="10" maxlength="500" class="w-full px-3 py-2 border rounded-lg mb-4" placeholder="Ex: Dados incompletos, empresa não confere, etc."></textarea>
 
                     <label class="flex items-start gap-2.5 mb-5 p-3 bg-red-50 border border-red-100 rounded-xl cursor-pointer">
                         <input type="checkbox" name="bloquear_aluno" class="mt-0.5 w-4 h-4 accent-red-600">

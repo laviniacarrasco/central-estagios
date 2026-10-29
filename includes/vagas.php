@@ -79,7 +79,7 @@ function favoritoExiste(string $origem, int $id): bool {
 
 /** Botao "Salvar" (coracao). Nao mostra nada para admin e egresso. */
 function favoritoBotaoHtml(string $origem, int $id): string {
-    if (!empty($_SESSION['is_admin']) || !empty($_SESSION['is_egresso'])) return '';
+    if (function_exists('perfilPode') ? !perfilPode('favoritar') : (!empty($_SESSION['is_admin']) || !empty($_SESSION['is_egresso']))) return '';
     $salvo = favoritoExiste($origem, $id);
     $volta = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'jobs.php', ENT_QUOTES, 'UTF-8');
     return '<form method="POST" action="favoritar.php" class="inline">'

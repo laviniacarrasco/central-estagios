@@ -1,5 +1,26 @@
-{
-    "1": {
+[
+    {
+        "id": 3,
+        "title": "Estágio em Supply Chain (Transportes) - Vaga Afirmativa p\/pessoas pretas, pardas e\/ou indígenas",
+        "company": "BAT Brasil",
+        "location": "São Paulo, SP",
+        "type": "Híbrido",
+        "hours": "A combinar",
+        "salary": "A combinar",
+        "description": "A BAT é um grupo global em plena transformação. Com uma trajetória consolidada pela liderança no mercado de tabaco, o grupo amplia sua atuação para outras frentes de negócio, guiado pelo propósito de construir Um Amanhã Melhor (A Better Tomorrow).Responsabilidades e atribuiçõesApoiar as rotinas e projetos da área de Transportes.Acompanhar indicadores, performance de transportadoras e ocorrências operacionais.Apoiar análises de custos, eficiência, capacidade e oportunidades de melhoria.Suportar a transformação Latam South, com padronização de processos, dados e controles.Contribuir com iniciati...\n\nFonte: Gupy (portal.gupy.io).",
+        "requirements": "",
+        "benefits": "",
+        "courses": "Ciência de Dados e Inteligência Artificial, Análise e Desenvolvimento de Sistemas, Ciência da Computação, Engenharia Elétrica, Engenharia de Produção",
+        "applicationLink": "https:\/\/bat.gupy.io\/job\/eyJqb2JJZCI6MTI3NzYyNTIsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+        "featured": false,
+        "expiresAt": "2026-11-27",
+        "status": "Ativa",
+        "applicants": 0,
+        "createdAt": "28\/10\/2026",
+        "externa": true,
+        "fonte": "Gupy"
+    },
+    {
         "id": 1,
         "title": "Programa de Estágio 2026.2",
         "company": "Ford Motor Company",
@@ -17,7 +38,7 @@
         "benefits": "Plano de saúde, VR, VT.",
         "courses": "Engenharia Mecânica"
     },
-    "2": {
+    {
         "id": 2,
         "title": "Estágio em Desenvolvimento Front-End",
         "company": "Tech Makers Company",
@@ -35,4 +56,4 @@
         "benefits": "Auxílio Home Office, Mentoria.",
         "courses": "Análise e Desenvolvimento de Sistemas, Ciência da Computação"
     }
-}
+]

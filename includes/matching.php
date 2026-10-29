@@ -19,10 +19,8 @@
 
 function usuarioLerDados(int $id, string $nome): array {
     $nome = preg_replace('/[^A-Za-z0-9_\-]/', '', $nome);
-    $path = DATA_PATH . "users/{$id}/{$nome}.json";
-    if ($id <= 0 || !is_file($path)) return [];
-    $d = json_decode((string) @file_get_contents($path), true);
-    return is_array($d) ? $d : [];
+    if ($id <= 0) return [];
+    return dadosLer("users/{$id}/{$nome}");   // JSON ou banco
 }
 
 function matchNormalizar($s): string {

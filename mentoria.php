@@ -4,6 +4,9 @@
  *  - ALUNO:   encontra mentores aprovados, envia pedidos e acompanha as respostas.
  *  - EGRESSO: se cadastra como mentor e responde os pedidos que recebe.
  * Os contatos so sao liberados depois que o mentor aceita o pedido.
+ * Depois do aceite, aluno e mentor conversam pelo chat (mentoria-chat.php).
+ * Aba "Denúncias" (aluno e mentor): denunciar uma conversa e acompanhar as denúncias.
+ * No chat, cada mensagem da outra pessoa tem "Denunciar".
  */
 require_once 'includes/config.php';
 require_once 'includes/mentoria.php';
@@ -26,6 +29,7 @@ $pageTitle = 'Mentoria';
 
 $mensagens = [
     'pedido_enviado'      => 'Pedido enviado! Você será avisado por e-mail quando o mentor responder.',
+    'denuncia_enviada'    => 'Denúncia enviada. A coordenação foi avisada e vai analisar. A outra pessoa não sabe quem denunciou.',
     'pedido_cancelado'    => 'Pedido cancelado.',
     'mentoria_encerrada'  => 'Mentoria encerrada. Obrigado por participar!',
     'respondido_aceito'   => 'Pedido aceito. Seus contatos já foram liberados para o aluno.',
@@ -47,6 +51,13 @@ $erros = [
     'areas'               => 'Informe pelo menos uma área em que você pode ajudar.',
     'perfil_incompleto'   => 'Antes de se cadastrar, preencha o campo "Sobre você" no seu perfil de egresso.',
     'falha'               => 'Não foi possível concluir agora. Tente novamente.',
+    'den_nao_encontrado'  => mentoriaDenunciaErro('nao_encontrado'),
+    'den_descricao'       => mentoriaDenunciaErro('descricao'),
+    'den_mensagem'        => mentoriaDenunciaErro('mensagem'),
+    'den_duplicada'       => mentoriaDenunciaErro('duplicada'),
+    'den_limite'          => mentoriaDenunciaErro('limite'),
+    'den_falha'           => mentoriaDenunciaErro('falha'),
+    'justificativa'       => 'Para recusar, escreva para o aluno o motivo (pelo menos 10 caracteres).',
 ];
 
 function mentoriaIrPara(string $aba, string $chave, bool $erro = false): void {
@@ -96,10 +107,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /* ---- egresso: aceitar ou recusar ---- */
+    /* ---- aluno ou mentor: denunciar uma conversa ---- */
+    if ($acao === 'denunciar') {
+        $r = mentoriaCriarDenuncia($userId, (int) ($_POST['pedido'] ?? 0), (string) ($_POST['categoria'] ?? 'outro'),
+                                   (string) ($_POST['descricao'] ?? ''));
+        if (empty($r['ok'])) mentoriaIrPara('denuncias', 'den_' . ($r['erro'] ?? 'falha'), true);
+        mentoriaIrPara('denuncias', 'denuncia_enviada');
+    }
+
     if ($souEgresso && $acao === 'responder') {
         $decisao  = (string) ($_POST['decisao'] ?? '');
         $resposta = mb_substr(trim((string) ($_POST['resposta'] ?? '')), 0, 300);
         if (!in_array($decisao, ['aceitar', 'recusar'], true)) mentoriaIrPara('pedidos', 'status', true);
+        if ($decisao === 'recusar') {                       // recusar exige justificativa
+            $resposta = (string) justificativaPost('resposta', 300);
+            if ($resposta === '') mentoriaIrPara('pedidos', 'justificativa', true);
+        }
         if (($eu['mentoriaStatus'] ?? '') !== 'aprovado') mentoriaIrPara('pedidos', 'mentor_indisponivel', true);
 
         $r = mentoriaResponderPedido($id, $userId, $decisao === 'aceitar', $resposta, $eu);
@@ -149,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* =========================================================================
  * DADOS DA TELA
  * ========================================================================= */
-$abasValidas = $souEgresso ? ['pedidos', 'config'] : ['mentores', 'pedidos'];
+$abasValidas = $souEgresso ? ['pedidos', 'config', 'denuncias'] : ['mentores', 'pedidos', 'denuncias'];
 $abaPadrao   = $souEgresso ? ((($eu['mentoriaStatus'] ?? '') === 'aprovado') ? 'pedidos' : 'config') : 'mentores';
 $aba = in_array($_GET['aba'] ?? '', $abasValidas, true) ? $_GET['aba'] : $abaPadrao;
 
@@ -261,6 +284,9 @@ include 'includes/header.php';
                     <?php endif; ?>
                 </a>
             <?php endif; ?>
+            <a href="mentoria.php?aba=denuncias" class="px-5 py-2.5 rounded-xl text-sm font-semibold <?= $aba === 'denuncias' ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
+                <i class="fas fa-flag mr-1"></i> Denúncias
+            </a>
         </div>
 
 <?php /* ===================== ALUNO: ENCONTRAR MENTORES ===================== */ ?>
@@ -322,7 +348,7 @@ include 'includes/header.php';
                                 <h3 class="text-lg font-bold text-slate-900"><?= egh($m['nome'] ?? '') ?></h3>
                                 <p class="text-sm text-slate-600"><?= egh($m['curso'] ?? '') ?><?= !empty($m['anoConclusao']) ? ' &bull; turma de ' . egh($m['anoConclusao']) : '' ?></p>
                                 <?php if ($cargo !== ''): ?>
-                                    <p class="text-sm text-purple-700 font-semibold mt-1"><i class="fas fa-briefcase mr-1"></i><?= egh($cargo) ?></p>
+                                    <p class="text-sm text-[#2B7FA6] font-semibold mt-1"><i class="fas fa-briefcase mr-1"></i><?= egh($cargo) ?></p>
                                 <?php endif; ?>
                                 <?php if (!empty($m['cidade'])): ?>
                                     <p class="text-xs text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i><?= egh($m['cidade']) ?></p>
@@ -483,25 +509,19 @@ include 'includes/header.php';
                             </p>
                         <?php endif; ?>
 
-                        <?php if ($st === 'aceito'): ?>
-                            <div class="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                <p class="text-sm font-bold text-emerald-800 mb-2"><i class="fas fa-handshake mr-1"></i> Contato liberado</p>
-                                <div class="flex flex-wrap gap-4 text-sm">
-                                    <?php if ($contato['email'] !== ''): ?>
-                                        <a href="mailto:<?= egh($contato['email']) ?>" class="text-[#2B7FA6] font-semibold hover:underline">
-                                            <i class="fas fa-envelope mr-1"></i><?= egh($contato['email']) ?>
-                                        </a>
-                                    <?php endif; ?>
-                                    <?php if ($linkLk !== ''): ?>
-                                        <a href="<?= egh($linkLk) ?>" target="_blank" rel="noopener" class="text-[#2B7FA6] font-semibold hover:underline">
-                                            <i class="fab fa-linkedin mr-1"></i>LinkedIn
-                                        </a>
-                                    <?php endif; ?>
-                                </div>
-                                <p class="text-xs text-emerald-700 mt-2">Chame o mentor e combine o melhor horário. Seja objetivo e respeite o tempo dele.</p>
-                            </div>
-                        <?php endif; ?>
 
+
+                        <?php if (mentoriaChatVisivel($p)): $naoLidas = mentoriaNaoLidasPedido($p, $userId); ?>
+                            <button type="button" onclick="abrirChat(this)"
+                                    data-pedido="<?= (int) $p['id'] ?>"
+                                    data-nome="<?= egh($p['mentorNome'] ?? 'Mentor') ?>"
+                                    class="mt-4 mr-2 px-4 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2">
+                                <i class="fas fa-comments"></i> <?= ($p['status'] ?? '') === 'aceito' ? 'Abrir conversa' : 'Ver conversa' ?>
+                                <?php if ($naoLidas > 0): ?>
+                                    <span class="chat-badge min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"><?= $naoLidas ?></span>
+                                <?php endif; ?>
+                            </button>
+                        <?php endif; ?>
                         <?php if ($st === 'pendente'): ?>
                             <form method="POST" action="mentoria.php" class="mt-4"
                                   data-confirm="O mentor não será mais avisado deste pedido e você libera uma vaga na sua lista."
@@ -591,7 +611,7 @@ include 'includes/header.php';
                             <input type="hidden" name="acao" value="responder">
                             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
                             <input type="hidden" name="decisao" value="">
-                            <textarea name="resposta" rows="2" maxlength="300" placeholder="Mensagem para o aluno (opcional)"
+                            <textarea name="resposta" rows="2" maxlength="300" placeholder="Mensagem para o aluno (opcional ao aceitar, obrigatória ao recusar)"
                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"></textarea>
                             <div class="flex flex-wrap gap-3 mt-3">
                                 <button type="button" onclick="responderPedido(this, 'aceitar')"
@@ -626,6 +646,17 @@ include 'includes/header.php';
                             <?php endif; ?>
                         </div>
                         <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded-xl whitespace-pre-line"><?= egh($p['mensagem'] ?? '') ?></p>
+                        <?php if (mentoriaChatVisivel($p)): $naoLidas = mentoriaNaoLidasPedido($p, $userId); ?>
+                            <button type="button" onclick="abrirChat(this)"
+                                    data-pedido="<?= (int) $p['id'] ?>"
+                                    data-nome="<?= egh($p['alunoNome'] ?? 'Aluno') ?>"
+                                    class="mt-4 mr-2 px-4 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2">
+                                <i class="fas fa-comments"></i> <?= ($p['status'] ?? '') === 'aceito' ? 'Abrir conversa' : 'Ver conversa' ?>
+                                <?php if ($naoLidas > 0): ?>
+                                    <span class="chat-badge min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"><?= $naoLidas ?></span>
+                                <?php endif; ?>
+                            </button>
+                        <?php endif; ?>
                         <form method="POST" action="mentoria.php" class="mt-4"
                               data-confirm="Use isto quando a conversa terminar. Você libera uma vaga para outro aluno."
                               data-confirm-titulo="Encerrar esta mentoria?" data-confirm-botao="Encerrar"
@@ -652,9 +683,17 @@ include 'includes/header.php';
                             <p class="font-semibold text-slate-800"><?= egh($p['alunoNome'] ?? '') ?></p>
                             <p class="text-xs text-gray-400"><?= egh($p['assunto'] ?? '') ?> &bull; <?= egh($p['criadoEm'] ?? '') ?></p>
                         </div>
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border <?= egh($sCls) ?>">
-                            <i class="fas <?= egh($sIco) ?>"></i> <?= egh($sTxt) ?>
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <?php if (mentoriaChatVisivel($p) && !empty($p['mensagens'])): ?>
+                                <button type="button" onclick="abrirChat(this)" data-pedido="<?= (int) $p['id'] ?>" data-nome="<?= egh($p['alunoNome'] ?? 'Aluno') ?>"
+                                        class="px-3 py-1 border border-gray-200 text-gray-600 rounded-full text-xs font-semibold hover:bg-gray-50">
+                                    <i class="fas fa-comments mr-1"></i> Ver conversa
+                                </button>
+                            <?php endif; ?>
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border <?= egh($sCls) ?>">
+                                <i class="fas <?= egh($sIco) ?>"></i> <?= egh($sTxt) ?>
+                            </span>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -668,12 +707,17 @@ include 'includes/header.php';
                 titulo: aceitar ? 'Aceitar este pedido?' : 'Recusar este pedido?',
                 texto: aceitar
                     ? 'Seu e-mail e/ou LinkedIn será compartilhado com o aluno para vocês combinarem a conversa.'
-                    : 'O aluno será avisado da sua decisão.',
+                    : 'O aluno será avisado e verá a sua justificativa.',
                 botao: aceitar ? 'Aceitar' : 'Recusar',
                 tipo: aceitar ? 'aviso' : 'perigo',
-                icone: aceitar ? 'fa-handshake' : 'fa-times'
-            }, function () {
+                icone: aceitar ? 'fa-handshake' : 'fa-times',
+                justificativa: !aceitar,                     // recusar exige justificativa
+                justificativaValor: f.querySelector('[name=resposta]').value,
+                justificativaDica: 'Ex.: no momento não tenho experiência nesse assunto; sugiro procurar outro mentor.',
+                justificativaMax: 300
+            }, function (texto) {
                 f.querySelector('[name=decisao]').value = decisao;
+                if (!aceitar) f.querySelector('[name=resposta]').value = texto;
                 f.submit();
             });
         }
@@ -790,9 +834,323 @@ include 'includes/header.php';
             </div>
         </div>
 
+<?php /* ===================== ALUNO E MENTOR: DENÚNCIAS ===================== */ ?>
+<?php elseif ($aba === 'denuncias'):
+    $minhasDen = array_values(array_filter(mentoriaDenuncias(), fn($d) => (int) ($d['denuncianteId'] ?? 0) === $userId));
+    usort($minhasDen, fn($a, $b) => ($b['criadoTs'] ?? 0) <=> ($a['criadoTs'] ?? 0));
+    $catsDen = mentoriaDenunciaCategorias();
+?>
+
+        <div class="mb-6 p-4 bg-red-50 border border-red-100 text-slate-700 rounded-xl text-sm flex items-start gap-3">
+            <i class="fas fa-shield-alt text-red-500 mt-0.5"></i>
+            <div>
+                Algo na mentoria te deixou desconfortável? Assédio, ofensa, pedido de dinheiro ou de dados pessoais: <strong>denuncie</strong>.
+                A Coordenação de Egressos recebe na hora e analisa com sigilo. <strong>A outra pessoa não fica sabendo quem denunciou.</strong>
+                Para denunciar uma mensagem específica, abra a conversa e clique em <i class="fas fa-flag"></i> <strong>Denunciar</strong> embaixo dela.
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-fit">
+                <h3 class="text-lg font-bold text-slate-900 mb-4"><i class="fas fa-flag text-red-500 mr-2"></i>Fazer uma denúncia</h3>
+                <?php if (empty($meusPedidos)): ?>
+                    <p class="text-sm text-gray-500">Você ainda não tem nenhuma conversa de mentoria para denunciar.</p>
+                <?php else: ?>
+                    <form method="POST" action="mentoria.php" class="space-y-4"
+                          data-confirm="A Coordenação de Egressos vai receber a denúncia por e-mail. A outra pessoa não será avisada."
+                          data-confirm-titulo="Enviar a denúncia?" data-confirm-botao="Enviar denúncia" data-confirm-tipo="perigo" data-confirm-icone="fa-flag">
+                        <input type="hidden" name="acao" value="denunciar">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Conversa</label>
+                            <select name="pedido" required class="w-full h-11 px-3 border border-gray-200 rounded-xl text-sm bg-white">
+                                <?php foreach ($meusPedidos as $p):
+                                    [$pTxt] = mentoriaPedidoStatusInfo($p['status'] ?? '');
+                                    $outro = $souEgresso ? ($p['alunoNome'] ?? 'Aluno') : ($p['mentorNome'] ?? 'Mentor');
+                                ?>
+                                    <option value="<?= (int) $p['id'] ?>"><?= egh($outro . ' — ' . ($p['assunto'] ?? '') . ' (' . $pTxt . ')') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Motivo</label>
+                            <select name="categoria" required class="w-full h-11 px-3 border border-gray-200 rounded-xl text-sm bg-white">
+                                <?php foreach ($catsDen as $k => $rot): ?>
+                                    <option value="<?= egh($k) ?>"><?= egh($rot) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">O que aconteceu? (obrigatório)</label>
+                            <textarea name="descricao" rows="5" required minlength="10" maxlength="1000"
+                                      placeholder="Conte com suas palavras. Se puder, diga quando aconteceu."
+                                      class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm"></textarea>
+                        </div>
+                        <button type="submit" class="w-full h-11 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold">
+                            <i class="fas fa-paper-plane mr-1"></i> Enviar denúncia
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+
+            <div class="lg:col-span-3">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Minhas denúncias</h3>
+                <?php if (empty($minhasDen)): ?>
+                    <div class="p-10 text-center border-2 border-dashed border-gray-200 rounded-2xl bg-white text-sm text-gray-400">Você não fez nenhuma denúncia.</div>
+                <?php else: ?>
+                    <div class="space-y-3">
+                        <?php foreach ($minhasDen as $d):
+                            [$dTxt, $dCls, $dIco] = mentoriaDenunciaStatusInfo($d['status'] ?? '');
+                        ?>
+                            <div class="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                                <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                                    <div>
+                                        <p class="font-semibold text-slate-800"><?= egh($catsDen[$d['categoria'] ?? 'outro'] ?? 'Outro motivo') ?></p>
+                                        <p class="text-xs text-gray-400">Contra <?= egh($d['denunciadoNome'] ?? '') ?> &bull; <?= egh($d['assunto'] ?? '') ?> &bull; <?= egh($d['criadoEm'] ?? '') ?></p>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border <?= egh($dCls) ?>"><i class="fas <?= egh($dIco) ?>"></i> <?= egh($dTxt) ?></span>
+                                </div>
+                                <?php if (!empty($d['mensagemTexto'])): ?>
+                                    <p class="text-xs text-gray-500 mb-1">Mensagem denunciada:</p>
+                                    <p class="text-sm text-gray-700 bg-red-50 p-3 rounded-xl mb-2 whitespace-pre-line"><?= egh($d['mensagemTexto']) ?></p>
+                                <?php endif; ?>
+                                <p class="text-sm text-gray-600 whitespace-pre-line"><?= egh($d['descricao'] ?? '') ?></p>
+                                <?php if (!empty($d['resposta']) && in_array($d['status'] ?? '', ['resolvida', 'arquivada'], true)): ?>
+                                    <p class="text-sm text-slate-700 bg-[#eaf4fa] p-3 rounded-xl mt-3"><strong>Resposta da coordenação:</strong> <?= egh($d['resposta']) ?></p>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
 <?php endif; ?>
 
     </div>
 </main>
+
+<?php /* ===================== CHAT (aluno e mentor) ===================== */ ?>
+<div id="modalChat" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden" style="height: 80vh;">
+
+        <!-- Topo: com quem é a conversa -->
+        <div class="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-full bg-[#4A9FCA]/10 text-[#2B7FA6] flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="min-w-0">
+                    <p id="chatNome" class="font-bold text-slate-900 truncate"></p>
+                    <p id="chatAssunto" class="text-xs text-gray-400 truncate"></p>
+                </div>
+            </div>
+            <button type="button" onclick="denunciarMensagem('')" class="h-9 px-3 rounded-full hover:bg-red-50 text-red-500 text-xs font-semibold flex-shrink-0" title="Denunciar esta conversa">
+                <i class="fas fa-flag mr-1"></i>Denunciar
+            </button>
+            <button type="button" onclick="fecharChat()" class="w-9 h-9 rounded-full hover:bg-gray-100 text-gray-500" title="Fechar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <p class="px-5 py-2 text-[11px] text-gray-400 border-b border-gray-100">
+            <i class="fas fa-shield-alt mr-1"></i> Para a segurança de todos, a Coordenação de Egressos pode consultar esta conversa.
+        </p>
+
+        <!-- Mensagens -->
+        <div id="chatLista" class="flex-1 overflow-y-auto px-4 py-4 space-y-2 bg-gray-50"></div>
+
+        <!-- Escrever -->
+        <form id="chatForm" class="flex items-end gap-2 p-3 border-t border-gray-100">
+            <textarea id="chatTexto" rows="1" maxlength="1000" placeholder="Escreva uma mensagem (Enter envia, Shift+Enter pula linha)"
+                      class="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-[#4A9FCA]" style="max-height: 120px;"></textarea>
+            <button type="submit" class="h-10 px-4 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold" title="Enviar">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+        <p id="chatFechado" class="hidden p-3 border-t border-gray-100 text-center text-xs text-gray-500">
+            <i class="fas fa-lock mr-1"></i> Mentoria encerrada: a conversa ficou só para leitura.
+        </p>
+    </div>
+</div>
+
+<script>
+/* Chat da mentoria: busca as mensagens a cada 4 segundos enquanto a janela está aberta. */
+(function () {
+    var pedidoAtual = 0, timer = null, ultimoTs = -1, enviando = false;
+    var lista = document.getElementById('chatLista');
+    var form  = document.getElementById('chatForm');
+    var caixa = document.getElementById('chatTexto');
+    var cab   = { 'X-Requested-With': 'fetch' };
+
+    // Desenha as mensagens (texto com textContent: nada de HTML vindo do usuário)
+    function desenhar(d) {
+        lista.innerHTML = '';
+        if (!d.mensagens.length) {
+            var vazio = document.createElement('p');
+            vazio.className = 'text-center text-sm text-gray-400 py-10';
+            vazio.textContent = d.aberto ? 'Nenhuma mensagem ainda. Que tal se apresentar?' : 'Esta conversa não tem mensagens.';
+            lista.appendChild(vazio);
+            return;
+        }
+        d.mensagens.forEach(function (m) {
+            var linha = document.createElement('div');
+            linha.className = 'flex ' + (m.minha ? 'justify-end' : 'justify-start');
+            var balao = document.createElement('div');
+            balao.className = 'max-w-[80%] px-3 py-2 rounded-2xl text-sm shadow-sm whitespace-pre-line break-words ' +
+                (m.minha ? 'bg-[#4A9FCA] text-white rounded-br-md' : 'bg-white text-slate-800 border border-gray-100 rounded-bl-md');
+            balao.textContent = m.texto;
+            var hora = document.createElement('span');
+            hora.className = 'block text-[10px] mt-1 ' + (m.minha ? 'text-white/70 text-right' : 'text-gray-400');
+            hora.textContent = m.hora;
+            balao.appendChild(hora);
+            if (!m.minha && m.id) {                     // denunciar mensagem da outra pessoa
+                var den = document.createElement('button');
+                den.type = 'button';
+                den.className = 'block text-[10px] mt-1 text-gray-400 hover:text-red-500';
+                den.innerHTML = '<i class="fas fa-flag mr-1"></i>Denunciar';
+                den.onclick = function () { denunciarMensagem(m.id, m.texto); };
+                balao.appendChild(den);
+            }
+            linha.appendChild(balao);
+            lista.appendChild(linha);
+        });
+        lista.scrollTop = lista.scrollHeight;   // rola para a última mensagem
+    }
+
+    function mostrar(d) {
+        document.getElementById('chatAssunto').textContent = d.assunto ? 'Assunto: ' + d.assunto : '';
+        form.classList.toggle('hidden', !d.aberto);
+        document.getElementById('chatFechado').classList.toggle('hidden', d.aberto);
+        if (d.ultimoTs !== ultimoTs) { ultimoTs = d.ultimoTs; desenhar(d); }   // só redesenha se mudou
+    }
+
+    function carregar() {
+        if (!pedidoAtual) return;
+        fetch('mentoria-chat.php?pedido=' + encodeURIComponent(pedidoAtual), { headers: cab, cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (d.ok) mostrar(d); })
+            .catch(function () { /* sem internet: tenta de novo no próximo ciclo */ });
+    }
+
+    window.abrirChat = function (btn) {
+        pedidoAtual = btn.getAttribute('data-pedido');
+        ultimoTs = -1;
+        document.getElementById('chatNome').textContent = btn.getAttribute('data-nome') || '';
+        lista.innerHTML = '<p class="text-center text-sm text-gray-400 py-10">Carregando...</p>';
+        var modal = document.getElementById('modalChat');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        var b = btn.querySelector('.chat-badge');       // leu: some a bolinha do botão
+        if (b) b.remove();
+        carregar();
+        clearInterval(timer);
+        timer = setInterval(carregar, 4000);
+        setTimeout(function () { caixa.focus(); }, 50);
+    };
+
+    window.fecharChat = function () {
+        var modal = document.getElementById('modalChat');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        clearInterval(timer);
+        pedidoAtual = 0;
+        if (window.fsaAtualizarBolinhaMentoria) window.fsaAtualizarBolinhaMentoria();
+    };
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var texto = caixa.value.trim();
+        if (!texto || enviando) return;
+        enviando = true;
+        var dados = new FormData();
+        dados.append('pedido', pedidoAtual);
+        dados.append('texto', texto);
+        fetch('mentoria-chat.php', { method: 'POST', headers: cab, body: dados })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.ok) { if (window.fsaAviso) fsaAviso(d.erro || 'Não foi possível enviar.', 'Ops'); return; }
+                caixa.value = '';
+                ultimoTs = -1;
+                mostrar(d);
+            })
+            .catch(function () { if (window.fsaAviso) fsaAviso('Sem conexão. Tente de novo.', 'Ops'); })
+            .then(function () { enviando = false; caixa.focus(); });
+    });
+
+    // Enter envia; Shift+Enter pula linha
+    caixa.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (!document.getElementById('modalDenuncia').classList.contains('hidden')) { fecharDenuncia(); return; }
+        if (pedidoAtual) fecharChat();
+    });
+
+    /* ---------- Denúncia (mensagem ou conversa inteira) ---------- */
+    var denMensagem = '';
+    window.denunciarMensagem = function (idMensagem, texto) {
+        denMensagem = idMensagem || '';
+        document.getElementById('denTitulo').textContent = denMensagem ? 'Denunciar mensagem' : 'Denunciar esta conversa';
+        var cit = document.getElementById('denCitacao');
+        cit.classList.toggle('hidden', !denMensagem);
+        cit.textContent = texto || '';
+        document.getElementById('denDescricao').value = '';
+        document.getElementById('denErro').classList.add('hidden');
+        var m = document.getElementById('modalDenuncia'); m.classList.remove('hidden'); m.classList.add('flex');
+        setTimeout(function () { document.getElementById('denDescricao').focus(); }, 50);
+    };
+    window.fecharDenuncia = function () {
+        var m = document.getElementById('modalDenuncia'); m.classList.add('hidden'); m.classList.remove('flex');
+    };
+    window.enviarDenuncia = function () {
+        var desc = document.getElementById('denDescricao').value.trim();
+        var erro = document.getElementById('denErro');
+        if (desc.length < 10) { erro.textContent = 'Conte o que aconteceu (pelo menos 10 caracteres).'; erro.classList.remove('hidden'); return; }
+        var dados = new FormData();
+        dados.append('acao', 'denunciar');
+        dados.append('pedido', pedidoAtual);
+        dados.append('mensagem', denMensagem);
+        dados.append('categoria', document.getElementById('denCategoria').value);
+        dados.append('descricao', desc);
+        fetch('mentoria-chat.php', { method: 'POST', headers: cab, body: dados })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.ok) { erro.textContent = d.erro || 'Não foi possível enviar.'; erro.classList.remove('hidden'); return; }
+                fecharDenuncia();
+                if (window.fsaAviso) fsaAviso('A coordenação foi avisada e vai analisar. A outra pessoa não sabe quem denunciou. Acompanhe na aba Denúncias.', 'Denúncia enviada');
+            })
+            .catch(function () { erro.textContent = 'Sem conexão. Tente de novo.'; erro.classList.remove('hidden'); });
+    };
+})();
+</script>
+
+<?php /* ===================== DENÚNCIA (aberta pelo chat) ===================== */ ?>
+<div id="modalDenuncia" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/40 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-7">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="denTitulo" class="text-lg font-bold text-slate-900"><i class="fas fa-flag text-red-500 mr-2"></i>Denunciar</h3>
+            <button type="button" onclick="fecharDenuncia()" class="w-9 h-9 rounded-full hover:bg-gray-100 text-gray-500"><i class="fas fa-times"></i></button>
+        </div>
+        <p id="denCitacao" class="hidden text-sm text-gray-700 bg-red-50 p-3 rounded-xl mb-4 whitespace-pre-line max-h-32 overflow-y-auto"></p>
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Motivo</label>
+        <select id="denCategoria" class="w-full h-11 px-3 border border-gray-200 rounded-xl text-sm bg-white mb-4">
+            <?php foreach (mentoriaDenunciaCategorias() as $k => $rot): ?>
+                <option value="<?= egh($k) ?>"><?= egh($rot) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">O que aconteceu? (obrigatório)</label>
+        <textarea id="denDescricao" rows="4" maxlength="1000" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm"
+                  placeholder="Conte com suas palavras. A outra pessoa não fica sabendo quem denunciou."></textarea>
+        <p id="denErro" class="hidden text-xs text-red-600 mt-1"></p>
+        <div class="flex gap-3 mt-5">
+            <button type="button" onclick="fecharDenuncia()" class="flex-1 h-11 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>
+            <button type="button" onclick="enviarDenuncia()" class="flex-1 h-11 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold"><i class="fas fa-flag mr-1"></i>Enviar denúncia</button>
+        </div>
+    </div>
+</div>
 
 <?php include 'includes/footer.php'; ?>

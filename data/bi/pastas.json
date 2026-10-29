@@ -1,0 +1,23 @@
+[
+    {
+        "id": "alunos",
+        "nome": "Alunos",
+        "acesso": "todos",
+        "fixa": true,
+        "criadoEm": "2026-10-28 19:46"
+    },
+    {
+        "id": "vagas",
+        "nome": "Vagas e Funil",
+        "acesso": "todos",
+        "fixa": true,
+        "criadoEm": "2026-10-28 19:46"
+    },
+    {
+        "id": "egressos",
+        "nome": "Egressos",
+        "acesso": "egressos",
+        "fixa": true,
+        "criadoEm": "2026-10-28 19:46"
+    }
+]

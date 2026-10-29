@@ -1,0 +1,5 @@
+# Dados da Central: nada aqui pode ser baixado direto (exceto fotos do currículo).
+Require all denied
+<FilesMatch "\.(jpe?g|png|webp|gif)$">
+    Require all granted
+</FilesMatch>

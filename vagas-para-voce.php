@@ -13,7 +13,8 @@ $candidatas = [];
 foreach (array_values(loadData('platform_jobs')) as $j) {
     if (vagaVigente($j)) $candidatas[] = ['origem' => 'faculdade', 'vaga' => $j];
 }
-foreach (egressoVagas() as $j) {
+// Aluno restrito nao ve vagas de egressos
+foreach ((perfilPode('vagas_egresso') ? egressoVagas() : []) as $j) {
     if (egressoVagaStatusEfetivo($j) === 'aprovada') $candidatas[] = ['origem' => 'egresso', 'vaga' => $j];
 }
 
@@ -68,7 +69,7 @@ include 'includes/header.php';
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap mb-1">
                                     <h3 class="text-lg font-bold text-slate-900"><?= egh($v['title'] ?? '') ?></h3>
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold <?= $origem === 'egresso' ? 'bg-purple-50 text-purple-700' : 'bg-sky-50 text-sky-700' ?>">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold <?= $origem === 'egresso' ? 'bg-[#4A9FCA] text-white' : 'bg-gray-100 text-gray-700' ?>">
                                         <?= $origem === 'egresso' ? 'Vaga de egresso' : 'Vaga FSA' ?>
                                     </span>
                                 </div>

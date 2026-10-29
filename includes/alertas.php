@@ -105,30 +105,16 @@ function alertasContextoVagas(): array {
 /* ------------------------------------------------------------------ */
 
 function alertasFilaOperar(callable $fn) {
-    $path = DATA_PATH . 'fila_emails.json';
-    $dir  = dirname($path);
-    if (!is_dir($dir)) @mkdir($dir, 0777, true);
-    $fp = @fopen($path, 'c+');
-    if (!$fp) return null;
-    flock($fp, LOCK_EX);
-    $raw  = stream_get_contents($fp);
-    $fila = json_decode($raw !== false && $raw !== '' ? $raw : '[]', true);
-    if (!is_array($fila)) $fila = [];
-    $res = $fn($fila);
-    ftruncate($fp, 0);
-    rewind($fp);
-    fwrite($fp, json_encode(array_values($fila), JSON_UNESCAPED_UNICODE));
-    fflush($fp);
-    flock($fp, LOCK_UN);
-    fclose($fp);
-    return $res;
+    // Leitura e gravação com trava (arquivo ou banco: includes/armazenamento.php)
+    return dadosOperar('fila_emails', function (array &$fila) use ($fn) {
+        $resultado = $fn($fila);
+        $fila = array_values($fila);
+        return $resultado;
+    });
 }
 
 function alertasFilaTamanho(): int {
-    $path = DATA_PATH . 'fila_emails.json';
-    if (!is_file($path) || filesize($path) < 3) return 0;
-    $d = json_decode((string) @file_get_contents($path), true);
-    return is_array($d) ? count($d) : 0;
+    return count(dadosLer('fila_emails'));
 }
 
 function alertasEnfileirarLote(array $itens): int {

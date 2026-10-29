@@ -129,7 +129,7 @@ include 'includes/header.php';
         <?php endif; ?>
 
         <!-- Stats Grid - dados reais, sem candidaturas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div class="grid grid-cols-1 <?php echo perfilPode('area_aluno') ? 'md:grid-cols-3' : 'md:grid-cols-1'; ?> gap-8 mb-12">
 
             <!-- Vagas Ativas -->
             <div class="bg-white p-8 rounded-[24px] shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -143,6 +143,7 @@ include 'includes/header.php';
                 </div>
             </div>
 
+            <?php if (perfilPode('area_aluno')): /* cards so de aluno */ ?>
             <!-- Certificados -->
             <div class="bg-white p-8 rounded-[24px] shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between mb-4">
@@ -166,10 +167,11 @@ include 'includes/header.php';
                     <div class="h-full bg-[#9B59B6] rounded-full" style="width: <?php echo $percentualPerfil; ?>%"></div>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- Quick Actions Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 <?php echo perfilPode('area_aluno') ? 'md:grid-cols-3' : 'md:grid-cols-1'; ?> gap-8">
          
             <a href="jobs.php" class="bg-gradient-to-br from-[#F39C12] to-[#E67E22] text-white p-8 rounded-[24px] hover:shadow-xl transition-all hover:-translate-y-1">
                 <i class="fas fa-briefcase text-2xl mb-4 block"></i>
@@ -178,6 +180,7 @@ include 'includes/header.php';
                 <span class="inline-block w-full bg-white/20 border border-white/30 py-3 rounded-xl text-center font-semibold hover:bg-white/30 transition-all">Ver Oportunidades</span>
             </a>
 
+            <?php if (perfilPode('area_aluno')): ?>
             <a href="documents.php" class="bg-gradient-to-br from-[#27AE60] to-[#229954] text-white p-8 rounded-[24px] hover:shadow-xl transition-all hover:-translate-y-1">
                 <i class="fas fa-award text-2xl mb-4 block"></i>
                 <h3 class="text-xl font-bold mb-2">Certificados</h3>
@@ -191,6 +194,7 @@ include 'includes/header.php';
                 <p class="text-white/90 text-sm mb-6">Mantenha seus dados prontos</p>
                 <span class="inline-block w-full bg-white/20 border border-white/30 py-3 rounded-xl text-center font-semibold hover:bg-white/30 transition-all">Atualizar Perfil</span>
             </a>
+            <?php endif; ?>
         </div>
     </div>
 </main>

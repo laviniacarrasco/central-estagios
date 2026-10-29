@@ -67,6 +67,7 @@ include 'includes/header.php';
     <div class="p-8 max-w-6xl mx-auto">
 
         <div class="mb-8 animate-fade-in">
+            <a href="admin-paineis.php?aba=relatorios" class="text-sm text-gray-400 hover:text-[#4A9FCA]"><i class="fas fa-arrow-left mr-1"></i>Painéis &gt; Relatórios</a>
             <h2 class="text-3xl font-bold text-slate-900 mb-2">Relatórios de Egressos</h2>
             <p class="text-slate-500 font-medium">Empregabilidade por curso e período, para exportar em Excel ou PDF.</p>
         </div>
@@ -106,7 +107,7 @@ include 'includes/header.php';
                 <div class="p-5 bg-[#58A1D4] text-white rounded-2xl"><p class="text-white/90 text-xs">Egressos</p><p class="text-3xl font-bold"><?= $g['total'] ?></p></div>
                 <div class="p-5 bg-[#27AE60] text-white rounded-2xl"><p class="text-white/90 text-xs">Empregab. (total)</p><p class="text-3xl font-bold"><?= relFmt($g['empreg_total'], '%') ?></p></div>
                 <div class="p-5 bg-emerald-600 text-white rounded-2xl"><p class="text-white/90 text-xs">Empregab. (quem informou)</p><p class="text-3xl font-bold"><?= relFmt($g['empreg_resp'], '%') ?></p></div>
-                <div class="p-5 bg-purple-500 text-white rounded-2xl"><p class="text-white/90 text-xs">Na área (ocupados)</p><p class="text-3xl font-bold"><?= relFmt($g['na_area_pct'], '%') ?></p></div>
+                <div class="p-5 bg-[#4A9FCA] text-white rounded-2xl"><p class="text-white/90 text-xs">Na área (ocupados)</p><p class="text-3xl font-bold"><?= relFmt($g['na_area_pct'], '%') ?></p></div>
                 <div class="p-5 bg-[#E35444] text-white rounded-2xl"><p class="text-white/90 text-xs">Meses até 1ª colocação</p><p class="text-3xl font-bold"><?= relFmt($g['meses_media']) ?></p></div>
             </div>
 

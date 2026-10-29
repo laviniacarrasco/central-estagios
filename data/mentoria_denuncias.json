@@ -1,0 +1,44 @@
+[
+    {
+        "pedidoId": 1792416701046,
+        "assunto": "Entrevistas e processo seletivo",
+        "denuncianteId": 1,
+        "denuncianteNome": "Lavinia",
+        "denunciantePapel": "Aluno",
+        "denunciadoId": 9002,
+        "denunciadoNome": "Egresso Teste",
+        "denunciadoPapel": "Mentor",
+        "categoria": "assedio",
+        "descricao": "TESTE TESTE TESTE TESTE",
+        "mensagemId": "",
+        "mensagemTexto": "",
+        "mensagemTs": 0,
+        "status": "resolvida",
+        "resposta": "conversamos e vimos que foi para teste",
+        "criadoEm": "28\/10\/2026 20:16",
+        "criadoTs": 1793229393,
+        "historico": [
+            {
+                "ts": 1793229509,
+                "por": "Admin Egressos Teste",
+                "status": "resolvida",
+                "texto": "conversamos e vimos que foi para teste"
+            },
+            {
+                "ts": 1793229510,
+                "por": "Admin Egressos Teste",
+                "status": "resolvida",
+                "texto": "conversamos e vimos que foi para teste"
+            },
+            {
+                "ts": 1793229510,
+                "por": "Admin Egressos Teste",
+                "status": "resolvida",
+                "texto": "conversamos e vimos que foi para teste"
+            }
+        ],
+        "id": 1,
+        "atualizadoPor": "Admin Egressos Teste",
+        "atualizadoTs": 1793229510
+    }
+]

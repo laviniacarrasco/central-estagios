@@ -13,7 +13,7 @@ $error = '';
 
 // Se já estiver logado, vai direto pro dashboard
 if (!empty($_SESSION['user_id'])) {
-    header('Location: ' . (!empty($_SESSION['is_egresso']) ? 'egressos.php' : 'dashboard.php'));
+    header('Location: ' . perfilHome());
     exit;
 }
 
@@ -73,6 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tipoUsuario = $usuarioEncontrado['tipo'] ?? '';
             $_SESSION['is_egresso']        = ($tipoUsuario === 'egresso') && empty($usuarioEncontrado['is_admin']);
             $_SESSION['is_admin_egressos'] = ($tipoUsuario === 'admin_egressos') && !empty($usuarioEncontrado['is_admin']);
+            // Aluno restrito: so inicio, vagas (sem egressos), perfil/curriculo e dicas (sem IA)
+            $_SESSION['is_restrito']       = ($tipoUsuario === 'aluno_restrito') && empty($usuarioEncontrado['is_admin']);
+
+            // Perfil central (includes/perfis.php): define menu, paginas e recursos
+            $_SESSION['perfil'] = perfilDoUsuario($usuarioEncontrado);
+            perfilSincronizarSessao();
 
             /* =================================================================
              * REGISTRO DE ACESSO (NOVO)
@@ -95,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             registrarAcesso($usuarioEncontrado['id']);
 
-            header('Location: ' . (!empty($_SESSION['is_egresso']) ? 'egressos.php' : 'dashboard.php'));
+            header('Location: ' . perfilHome());
             exit;
         } else {
             $error = 'CPF ou senha inválidos!';

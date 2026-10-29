@@ -182,7 +182,7 @@ include 'includes/header.php';
                                 <div class="flex items-center gap-2 flex-wrap mb-1">
                                     <h3 class="text-lg font-bold text-slate-900"><?= egh($c['title'] ?? '') ?></h3>
                                     <?php if (($c['origem'] ?? '') === 'egresso'): ?>
-                                        <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700"><i class="fas fa-user-graduate mr-1"></i>Egresso</span>
+                                        <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-[#4A9FCA] text-white"><i class="fas fa-user-graduate mr-1"></i>Egresso</span>
                                     <?php endif; ?>
                                 </div>
                                 <p class="text-slate-500 font-semibold"><?= egh($c['company'] ?? '') ?></p>
@@ -261,7 +261,7 @@ include 'includes/header.php';
                                 <div class="flex items-center gap-2 flex-wrap mb-1">
                                     <h3 class="text-lg font-bold text-slate-900"><?= egh($titulo) ?></h3>
                                     <?php if ($it['origem'] === 'egresso'): ?>
-                                        <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700"><i class="fas fa-user-graduate mr-1"></i>Egresso</span>
+                                        <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-[#4A9FCA] text-white"><i class="fas fa-user-graduate mr-1"></i>Egresso</span>
                                     <?php endif; ?>
                                 </div>
                                 <p class="text-slate-500 font-semibold"><?= egh($empresa) ?></p>

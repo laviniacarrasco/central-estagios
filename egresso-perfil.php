@@ -156,7 +156,7 @@ include 'includes/header.php';
                     <?php endif; ?>
                     <h2 class="text-xl font-bold text-slate-900"><?= egh($nome) ?></h2>
                     <p class="text-sm text-gray-500 mb-3"><?= egh($egresso['email'] ?? '') ?></p>
-                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-bold">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-[#4A9FCA]/10 text-[#2B7FA6] rounded-full text-xs font-bold">
                         <i class="fas fa-user-graduate"></i> Egresso(a) FSA
                     </span>
                     <?php if (!empty($egresso['curso'])): ?>

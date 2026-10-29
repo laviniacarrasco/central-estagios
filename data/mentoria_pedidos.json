@@ -14,6 +14,29 @@
         "resposta": "Oi teste",
         "criadoEm": "19\/10\/2026 10:31",
         "criadoTs": 1792416701,
-        "respondidoTs": 1792416735
+        "respondidoTs": 1792416735,
+        "mensagens": [
+            {
+                "id": "m6ae2721cc04140.63297154",
+                "de": 1,
+                "texto": "Oiiii",
+                "ts": 1793225244.787474
+            },
+            {
+                "id": "m6ae2722422d8a3.29380928",
+                "de": 1,
+                "texto": "Amo o badaroth",
+                "ts": 1793225252.142728
+            },
+            {
+                "id": "m6ae27253ce8af1.06072644",
+                "de": 9002,
+                "texto": "Oiii eu tbm",
+                "ts": 1793225299.845998
+            }
+        ],
+        "lidoAluno": 1793226595.64163,
+        "ultimaMensagemTs": 1793225299.845998,
+        "lidoMentor": 1793225299.845998
     }
 ]

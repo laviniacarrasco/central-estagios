@@ -1,0 +1,1166 @@
+[
+    {
+        "criadoPor": 0,
+        "criadoPorNome": "Central de Estágios",
+        "criadoEm": "2026-10-28 19:46",
+        "modificadoEm": "2026-10-28 19:46",
+        "modificadoPorNome": "Central de Estágios",
+        "id": "alunos",
+        "nome": "Visão geral dos alunos",
+        "descricao": "Os indicadores do antigo Dashboard Admin.",
+        "pasta": "alunos",
+        "modelo": "alunos",
+        "visuais": [
+            {
+                "id": "p1",
+                "titulo": "Total de alunos",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p2",
+                "titulo": "Com currículo preenchido",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "temCurriculo",
+                        "valor": "Sim"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#D4A24C"
+            },
+            {
+                "id": "p3",
+                "titulo": "Taxa de empregabilidade",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "pct",
+                "campo": "empregabilidade",
+                "valor": "Na área, Fora da área",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#22A06B"
+            },
+            {
+                "id": "p4",
+                "titulo": "Buscando oportunidade",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "empregabilidade",
+                        "valor": "Buscando"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#98A2B3"
+            },
+            {
+                "id": "p5",
+                "titulo": "Empregado dentro da área",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "empregabilidade",
+                        "valor": "Na área"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#2F855A"
+            },
+            {
+                "id": "p6",
+                "titulo": "Empregado fora da área",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "empregabilidade",
+                        "valor": "Fora da área"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#8A4B6B"
+            },
+            {
+                "id": "p7",
+                "titulo": "Contratos assinados",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "tipo",
+                        "valor": "Contrato de estágio"
+                    },
+                    {
+                        "campo": "status",
+                        "valor": "Assinado"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#2B6EA6"
+            },
+            {
+                "id": "p8",
+                "titulo": "Assinaturas pendentes",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "status",
+                        "valor": "Solicitado, Em análise"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#D4A24C"
+            },
+            {
+                "id": "p9",
+                "titulo": "Alunos por curso",
+                "fonte": "alunos",
+                "tipo": "barras",
+                "eixo": "curso",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p10",
+                "titulo": "Status profissional",
+                "fonte": "alunos",
+                "tipo": "rosca",
+                "eixo": "status",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p11",
+                "titulo": "Taxa de conclusão das assinaturas",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "pct",
+                "campo": "status",
+                "valor": "Assinado",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#22A06B"
+            },
+            {
+                "id": "p12",
+                "titulo": "Tempo médio até assinar (dias)",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "media",
+                "campo": "dias",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#6B3FA0"
+            },
+            {
+                "id": "p13",
+                "titulo": "Média de certificados por aluno",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "media",
+                "campo": "certificados",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#E67E22"
+            },
+            {
+                "id": "p14",
+                "titulo": "Fim de estágio assinados",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "tipo",
+                        "valor": "Fim de estágio"
+                    },
+                    {
+                        "campo": "status",
+                        "valor": "Assinado"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#6B3FA0"
+            },
+            {
+                "id": "p15",
+                "titulo": "Top 5 certificados",
+                "fonte": "certificados",
+                "tipo": "barras",
+                "eixo": "titulo",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 5,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p16",
+                "titulo": "Acessos por dia (pessoas)",
+                "fonte": "acessos",
+                "tipo": "linha",
+                "eixo": "dia",
+                "agg": "distinto",
+                "campo": "usuario",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "rotulo",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p17",
+                "titulo": "Candidaturas por andamento",
+                "fonte": "candidaturas",
+                "tipo": "colunas",
+                "eixo": "status",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#E35444"
+            },
+            {
+                "id": "p18",
+                "titulo": "Vagas por origem",
+                "fonte": "vagas",
+                "tipo": "pizza",
+                "eixo": "origem",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            }
+        ],
+        "pagina": "admin-dashboard.php"
+    },
+    {
+        "criadoPor": 0,
+        "criadoPorNome": "Central de Estágios",
+        "criadoEm": "2026-10-28 19:46",
+        "modificadoEm": "2026-10-28 19:46",
+        "modificadoPorNome": "Central de Estágios",
+        "id": "funil",
+        "nome": "Funil de candidaturas",
+        "descricao": "Do anúncio da vaga à contratação.",
+        "pasta": "vagas",
+        "modelo": "funil",
+        "visuais": [
+            {
+                "id": "f1",
+                "titulo": "Vagas publicadas",
+                "fonte": "vagas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#58A1D4"
+            },
+            {
+                "id": "f2",
+                "titulo": "Candidaturas",
+                "fonte": "candidaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "f3",
+                "titulo": "Entrevistas",
+                "fonte": "candidaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "etapa",
+                        "valor": "3. Entrevista, 4. Contratação"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#E35444"
+            },
+            {
+                "id": "f4",
+                "titulo": "Conversão em contratação",
+                "fonte": "candidaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "pct",
+                "campo": "etapa",
+                "valor": "4. Contratação",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#27AE60"
+            },
+            {
+                "id": "f5",
+                "titulo": "Funil de candidaturas",
+                "fonte": "candidaturas",
+                "tipo": "funil",
+                "eixo": "etapa",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 4,
+                "ordem": "rotulo",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "f6",
+                "titulo": "Candidaturas por mês",
+                "fonte": "candidaturas",
+                "tipo": "linha",
+                "eixo": "mes",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "rotulo",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "f7",
+                "titulo": "Candidaturas por curso",
+                "fonte": "candidaturas",
+                "tipo": "barras",
+                "eixo": "curso",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 15,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "f8",
+                "titulo": "Empresas que mais contratam",
+                "fonte": "candidaturas",
+                "tipo": "barras",
+                "eixo": "empresa",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "etapa",
+                        "valor": "4. Contratação"
+                    }
+                ],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 8,
+                "cor": "#27AE60"
+            },
+            {
+                "id": "f9",
+                "titulo": "Empresas sem retorno (14+ dias)",
+                "fonte": "candidaturas",
+                "tipo": "barras",
+                "eixo": "empresa",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "semRetorno",
+                        "valor": "Sim"
+                    }
+                ],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 8,
+                "cor": "#E35444"
+            },
+            {
+                "id": "f10",
+                "titulo": "Taxa de colocação por curso (%)",
+                "fonte": "alunos",
+                "tipo": "tabela",
+                "eixo": "curso",
+                "agg": "pct",
+                "campo": "empregabilidade",
+                "valor": "Na área, Fora da área",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "f11",
+                "titulo": "Ações dos funcionários por mês",
+                "fonte": "acoes_admin",
+                "tipo": "colunas",
+                "eixo": "mes",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "rotulo",
+                "limite": 0,
+                "cor": "#7F8C8D"
+            }
+        ]
+    },
+    {
+        "criadoPor": 0,
+        "criadoPorNome": "Central de Estágios",
+        "criadoEm": "2026-10-28 19:46",
+        "modificadoEm": "2026-10-28 19:46",
+        "modificadoPorNome": "Central de Estágios",
+        "id": "egressos",
+        "nome": "Empregabilidade dos egressos",
+        "descricao": "Situação profissional, cursos, empresas e vagas dos egressos.",
+        "pasta": "egressos",
+        "modelo": "egressos",
+        "visuais": [
+            {
+                "id": "e1",
+                "titulo": "Egressos cadastrados",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#58A1D4"
+            },
+            {
+                "id": "e2",
+                "titulo": "Taxa de empregabilidade",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "pct",
+                "campo": "ocupado",
+                "valor": "Sim",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#27AE60"
+            },
+            {
+                "id": "e3",
+                "titulo": "Atuando na área (dos ocupados)",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "pct",
+                "campo": "grupo",
+                "valor": "Na área",
+                "filtros": [
+                    {
+                        "campo": "ocupado",
+                        "valor": "Sim"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "e4",
+                "titulo": "Buscando oportunidade",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "grupo",
+                        "valor": "Buscando"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#E35444"
+            },
+            {
+                "id": "e5",
+                "titulo": "Vagas no mural",
+                "fonte": "vagas_egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "situacao",
+                        "valor": "Publicada"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#2B7FA6"
+            },
+            {
+                "id": "e6",
+                "titulo": "Aguardando moderação",
+                "fonte": "vagas_egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "situacao",
+                        "valor": "Aguardando moderação"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#D4A24C"
+            },
+            {
+                "id": "e7",
+                "titulo": "Candidaturas de alunos geradas",
+                "fonte": "vagas_egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "soma",
+                "campo": "candidaturas",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#6B3FA0"
+            },
+            {
+                "id": "e8",
+                "titulo": "Tempo médio até a 1ª colocação (meses)",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "media",
+                "campo": "meses",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#E67E22"
+            },
+            {
+                "id": "e9",
+                "titulo": "Situação profissional",
+                "fonte": "egressos",
+                "tipo": "rosca",
+                "eixo": "grupo",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "e10",
+                "titulo": "Egressos por curso",
+                "fonte": "egressos",
+                "tipo": "colunas",
+                "eixo": "curso",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "e11",
+                "titulo": "Egressos por ano de conclusão",
+                "fonte": "egressos",
+                "tipo": "colunas",
+                "eixo": "ano",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "rotulo",
+                "limite": 0,
+                "cor": "#6B3FA0"
+            },
+            {
+                "id": "e12",
+                "titulo": "Empregabilidade por curso (%)",
+                "fonte": "egressos",
+                "tipo": "tabela",
+                "eixo": "curso",
+                "agg": "pct",
+                "campo": "ocupado",
+                "valor": "Sim",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "e13",
+                "titulo": "Onde nossos egressos trabalham",
+                "fonte": "egressos",
+                "tipo": "barras",
+                "eixo": "empresa",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "temEmpresa",
+                        "valor": "Sim"
+                    }
+                ],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 8,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "e14",
+                "titulo": "Egressos que mais divulgam vagas",
+                "fonte": "vagas_egressos",
+                "tipo": "barras",
+                "eixo": "divulgador",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "situacao",
+                        "valor": "Publicada, Encerrada, Expirada"
+                    }
+                ],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 5,
+                "cor": "#27AE60"
+            },
+            {
+                "id": "e15",
+                "titulo": "Aceitam mentoria",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "mentoria",
+                        "valor": "Sim"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#3A8FB0"
+            },
+            {
+                "id": "e16",
+                "titulo": "Perfil desatualizado (+12 meses)",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "desatualizado",
+                        "valor": "Sim"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#D4A24C"
+            },
+            {
+                "id": "e17",
+                "titulo": "Situação não informada",
+                "fonte": "egressos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "grupo",
+                        "valor": "Não informado"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#98A2B3"
+            }
+        ]
+    },
+    {
+        "id": "p6ae27b52c6b69",
+        "nome": "Meu painel (versão anterior)",
+        "descricao": "O painel que você tinha montado nos Painéis BI.",
+        "pasta": "particular",
+        "modelo": "alunos",
+        "visuais": [
+            {
+                "id": "p1",
+                "titulo": "Total de alunos",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p2",
+                "titulo": "Com currículo preenchido",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "temCurriculo",
+                        "valor": "Sim"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#D4A24C"
+            },
+            {
+                "id": "p3",
+                "titulo": "Taxa de empregabilidade",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "pct",
+                "campo": "empregabilidade",
+                "valor": "Na área, Fora da área",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#22A06B"
+            },
+            {
+                "id": "p4",
+                "titulo": "Buscando oportunidade",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "empregabilidade",
+                        "valor": "Buscando"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#98A2B3"
+            },
+            {
+                "id": "p5",
+                "titulo": "Empregado dentro da área",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "empregabilidade",
+                        "valor": "Na área"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#2F855A"
+            },
+            {
+                "id": "p6",
+                "titulo": "Empregado fora da área",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "empregabilidade",
+                        "valor": "Fora da área"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#8A4B6B"
+            },
+            {
+                "id": "p7",
+                "titulo": "Contratos assinados",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "tipo",
+                        "valor": "Contrato de estágio"
+                    },
+                    {
+                        "campo": "status",
+                        "valor": "Assinado"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#2B6EA6"
+            },
+            {
+                "id": "p8",
+                "titulo": "Assinaturas pendentes",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "status",
+                        "valor": "Solicitado, Em análise"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#D4A24C"
+            },
+            {
+                "id": "p9",
+                "titulo": "Alunos por curso",
+                "fonte": "alunos",
+                "tipo": "barras",
+                "eixo": "curso",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p10",
+                "titulo": "Status profissional",
+                "fonte": "alunos",
+                "tipo": "rosca",
+                "eixo": "status",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p11",
+                "titulo": "Taxa de conclusão das assinaturas",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "pct",
+                "campo": "status",
+                "valor": "Assinado",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#22A06B"
+            },
+            {
+                "id": "p12",
+                "titulo": "Tempo médio até assinar (dias)",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "media",
+                "campo": "dias",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#6B3FA0"
+            },
+            {
+                "id": "p13",
+                "titulo": "Média de certificados por aluno",
+                "fonte": "alunos",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "media",
+                "campo": "certificados",
+                "valor": "",
+                "filtros": [],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#E67E22"
+            },
+            {
+                "id": "p14",
+                "titulo": "Fim de estágio assinados",
+                "fonte": "assinaturas",
+                "tipo": "cartao",
+                "eixo": "",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [
+                    {
+                        "campo": "tipo",
+                        "valor": "Fim de estágio"
+                    },
+                    {
+                        "campo": "status",
+                        "valor": "Assinado"
+                    }
+                ],
+                "largura": 1,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#6B3FA0"
+            },
+            {
+                "id": "p15",
+                "titulo": "Top 5 certificados",
+                "fonte": "certificados",
+                "tipo": "barras",
+                "eixo": "titulo",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 5,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p16",
+                "titulo": "Acessos por dia (pessoas)",
+                "fonte": "acessos",
+                "tipo": "linha",
+                "eixo": "dia",
+                "agg": "distinto",
+                "campo": "usuario",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "rotulo",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            },
+            {
+                "id": "p17",
+                "titulo": "Candidaturas por andamento",
+                "fonte": "candidaturas",
+                "tipo": "colunas",
+                "eixo": "status",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#E35444"
+            },
+            {
+                "id": "p18",
+                "titulo": "Vagas por origem",
+                "fonte": "vagas",
+                "tipo": "pizza",
+                "eixo": "origem",
+                "agg": "contagem",
+                "campo": "",
+                "valor": "",
+                "filtros": [],
+                "largura": 2,
+                "ordem": "valor",
+                "limite": 0,
+                "cor": "#4A9FCA"
+            }
+        ],
+        "migradoDe": "bi\/painel_9001",
+        "criadoPor": 9001,
+        "criadoPorNome": "Admin Egressos Teste",
+        "criadoEm": "2026-10-28 19:46",
+        "modificadoEm": "2026-10-28 19:48",
+        "modificadoPorNome": "Admin Egressos Teste"
+    }
+]

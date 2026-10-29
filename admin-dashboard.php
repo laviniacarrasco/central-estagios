@@ -32,7 +32,7 @@ if (!$isAdmin) {
 }
 
 header('Content-Type: text/html; charset=UTF-8');
-$pageTitle = 'Dashboard Administrativo';
+$pageTitle = 'Visão geral dos alunos';   // painel da pasta Alunos (tela Painéis)
 
 /* =========================================================================
  * FUNCOES AUXILIARES DE LEITURA DE DADOS DO ALUNO
@@ -43,21 +43,13 @@ $pageTitle = 'Dashboard Administrativo';
  * o arquivo nao exista ou esteja corrompido).
  * ========================================================================= */
 function getCurriculumDoAluno($userId) {
-    $caminho = DATA_PATH . "users/{$userId}/userCurriculum.json";
-    if (file_exists($caminho)) {
-        $conteudo = json_decode(file_get_contents($caminho), true);
-        if (is_array($conteudo)) return $conteudo;
-    }
-    return null;
+    // dadosLer funciona com arquivos JSON e com banco (includes/armazenamento.php)
+    $conteudo = dadosLer('users/' . (int) $userId . '/userCurriculum');
+    return $conteudo ?: null;
 }
 
 function getCertificadosDoAluno($userId) {
-    $caminho = DATA_PATH . "users/{$userId}/userCertificates.json";
-    if (file_exists($caminho)) {
-        $conteudo = json_decode(file_get_contents($caminho), true);
-        if (is_array($conteudo)) return $conteudo;
-    }
-    return [];
+    return dadosLer('users/' . (int) $userId . '/userCertificates');
 }
 
 /**
@@ -854,8 +846,13 @@ include 'includes/header.php';
     <!-- ===================== CABECALHO ===================== -->
     <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
-            <h2 class="text-3xl font-bold text-gray-900">Dashboard Administrativo</h2>
+            <p class="text-sm text-gray-400 mb-1">
+                <a href="admin-paineis.php" class="hover:text-[#4A9FCA]">Painéis</a>
+                <i class="fas fa-chevron-right text-[10px] mx-1"></i><a href="admin-paineis.php?pasta=alunos" class="hover:text-[#4A9FCA]">Alunos</a>
+            </p>
+            <h2 class="text-3xl font-bold text-gray-900">Visão geral dos alunos</h2>
             <p class="text-gray-500">Visão geral do desempenho e empregabilidade dos alunos</p>
+            <p class="text-xs text-gray-400 mt-1"><i class="fas fa-mouse-pointer mr-1"></i>Clique com o botão direito em qualquer bloco para exportar os dados para o Excel. Use "Editar painel" para arrumar os blocos e adicionar visuais.</p>
         </div>
         <?php if ($filtrosAtivos): ?>
             <span class="filter-active-pill">
@@ -1694,4 +1691,6 @@ function exportarUltimosMatriculados() {
 }
 </script>
 
+<?php include 'includes/exportar-excel.php'; ?>
+<?php $painelEditavelId = 'alunos'; include 'includes/painel-editavel.php'; ?>
 <?php include 'includes/footer.php'; ?>

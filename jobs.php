@@ -1,103 +1,233 @@
 <?php
+/**
+ * =============================================================================
+ * VAGAS (aba única)
+ * -----------------------------------------------------------------------------
+ * Junta numa tela só, no mesmo layout do antigo mural de egressos:
+ *   - vagas da FSA (Admin Vagas)               -> cartão branco (amarelo se for destaque)
+ *   - vagas externas aprovadas (Adzuna)        -> cartão branco + selo "Vaga externa"
+ *   - vagas divulgadas por egressos, aprovadas -> cartão azul + selo "Egresso"
+ *
+ * Classificação: primeiro "Vagas em Destaque" (destaques da FSA e vagas de
+ * egressos), depois "Mais vagas". Dentro de cada bloco vale a ordem escolhida.
+ *
+ * O antigo egressos.php só redireciona para cá (?origem=egresso).
+ * Quem não tem o recurso "vagas_egresso" (aluno restrito) não vê as de egressos.
+ * =============================================================================
+ */
 require_once 'includes/config.php';
 require_once 'includes/vagas.php';
 require_once 'includes/egressos.php';
+require_once 'includes/melhorias.php';
 checkAuth();
 
-$pageTitle = 'Vagas de Estágio';
+$pageTitle      = 'Vagas';
+$podeVerEgresso = perfilPode('vagas_egresso');
+$podeCandidatar = perfilPode('candidatar');   // aluno registra a candidatura; os outros vão direto ao link
+$fsaCourses     = getFsaCourses();
 
-// Carregar vagas ativas (via config.php, mesma lógica do resto do sistema)
-$allJobs = loadData('platform_jobs');
-$allJobs = array_filter($allJobs ?? [], function($job) {
-    return vagaVigente($job); // Ativa e dentro da validade
-});
-
-// Identificador unico de cada vaga (origem + id), porque vaga da FSA e vaga de egresso
-// podem ter o mesmo numero de id.
-foreach ($allJobs as $k => $job) {
-    $allJobs[$k]['origem'] = 'faculdade';
-    $allJobs[$k]['uid']    = 'faculdade-' . ($job['id'] ?? 0);
+/* -----------------------------------------------------------------------------
+ * 1) Junta todas as vagas abertas num formato só
+ *    origem: 'faculdade' ou 'egresso' (usado em candidatar.php e favoritos)
+ *    classe: 'fsa', 'externa' ou 'egresso' (usada nas cores e no filtro)
+ * -------------------------------------------------------------------------- */
+$vagas = [];
+foreach (loadData('platform_jobs') as $j) {
+    if (!is_array($j) || !vagaVigente($j)) continue;
+    $j['origem'] = 'faculdade';
+    $j['classe'] = !empty($j['externa']) ? 'externa' : 'fsa';
+    $vagas[] = $j;
 }
-
-// Vagas de EGRESSOS aprovadas pelo admin e ainda dentro da validade:
-// entram aqui automaticamente como "Vaga em Destaque", com a etiqueta "Egresso".
-$vagasEgressos = [];
-foreach (egressoVagas() as $v) {
-    if (egressoVagaStatusEfetivo($v) !== 'aprovada') continue;
-    $vagasEgressos[] = array_merge([
-        'title' => '', 'company' => '', 'type' => '', 'location' => '', 'hours' => '',
-        'salary' => 'A combinar', 'description' => '', 'requirements' => '', 'benefits' => '', 'courses' => '',
-    ], $v, [
-        'origem'          => 'egresso',
-        'uid'             => 'egresso-' . (int) ($v['id'] ?? 0),
-        'featured'        => true,
-        'createdAt'       => $v['publishedAt'] ?? ($v['createdAt'] ?? ''),
-        'applicationLink' => egressoNormalizarLink($v['applicationLink'] ?? ''),
-    ]);
-}
-usort($vagasEgressos, fn($a, $b) => ($b['publishedTs'] ?? 0) <=> ($a['publishedTs'] ?? 0));
-// Egressos primeiro (mais recentes no topo), depois as vagas da FSA
-$allJobs = array_merge($vagasEgressos, array_values($allJobs));
-
-// Cursos da FSA — fonte única, vinda do config.php
-$fsaCourses = getFsaCourses();
-
-// Filtros
-$searchTerm = $_GET['search'] ?? '';
-$selectedCourses = $_GET['courses'] ?? [];
-$selectedCourses = array_filter((array)$selectedCourses); // remove valores vazios ("Selecione seu curso...")
-
-function normalize($str) {
-    return strtolower(preg_replace('/[áàãâäéèêëíìîïóòõôöúùûüç]/u', '', $str));
-}
-
-$filteredJobs = array_filter($allJobs, function($job) use ($searchTerm, $selectedCourses) {
-    if ($searchTerm) {
-        $found = false;
-        $searchNorm = normalize($searchTerm);
-        if (strpos(normalize($job['title']), $searchNorm) !== false) $found = true;
-        if (strpos(normalize($job['company']), $searchNorm) !== false) $found = true;
-        if (strpos(normalize($job['description']), $searchNorm) !== false) $found = true;
-        if (!$found) return false;
+if ($podeVerEgresso) {
+    foreach (egressoVagas() as $v) {
+        if (egressoVagaStatusEfetivo($v) !== 'aprovada') continue;
+        $vagas[] = array_merge($v, [
+            'origem'          => 'egresso',
+            'classe'          => 'egresso',
+            'featured'        => true,   // vaga de egresso sempre vai para "Destaque"
+            'createdAt'       => $v['publishedAt'] ?? ($v['createdAt'] ?? ''),
+            'applicationLink' => egressoNormalizarLink($v['applicationLink'] ?? ''),
+        ]);
     }
+}
 
-    // Filtro de curso — courses é salvo como string "Curso A, Curso B"
-    if (!empty($selectedCourses)) {
-        $jobCoursesRaw = trim($job['courses'] ?? '');
-        if ($jobCoursesRaw !== '') {
-            $jobCoursesList = array_map('trim', explode(',', $jobCoursesRaw));
-            $match = false;
-            foreach ($selectedCourses as $course) {
-                if (in_array($course, $jobCoursesList)) {
-                    $match = true;
-                    break;
-                }
-            }
-            if (!$match) return false;
-        }
-        // se courses estiver vazio, a vaga continua aparecendo (tolerante)
+/** Lista de cursos da vaga (aceita "A, B" ou array) */
+function jobsCursos(array $v): array {
+    $c = $v['courses'] ?? '';
+    $lista = is_array($c) ? $c : explode(',', (string) $c);
+    return array_values(array_filter(array_map('trim', $lista), fn($x) => $x !== ''));
+}
+
+/** É destaque? (featured pode vir como true ou "true" no JSON) */
+function jobsDestaque(array $v): bool {
+    $f = $v['featured'] ?? false;
+    return $f === true || $f === 1 || $f === '1' || $f === 'true';
+}
+
+/* -----------------------------------------------------------------------------
+ * 2) Filtros (tudo pela URL, então dá para compartilhar uma busca)
+ * -------------------------------------------------------------------------- */
+$busca    = trim((string) ($_GET['search'] ?? ''));
+$cursoSel = trim((string) ($_GET['curso'] ?? ''));
+if ($cursoSel === '' && !empty($_GET['courses'])) {          // link antigo: courses[]=...
+    $antigo = (array) $_GET['courses'];
+    $cursoSel = trim((string) reset($antigo));
+}
+
+$origens = ['' => 'Todas as origens', 'fsa' => 'Vagas da FSA', 'externa' => 'Vagas externas'];
+if ($podeVerEgresso) $origens['egresso'] = 'Vagas de egressos';
+$origemSel = (string) ($_GET['origem'] ?? '');
+if (!isset($origens[$origemSel])) $origemSel = '';
+
+$cidades   = mhCidadesFiltro();
+$cidadeSel = (string) ($_GET['cidade'] ?? '');
+if (!isset($cidades[$cidadeSel])) $cidadeSel = '';
+
+$modalidades = mhModalidadesFiltro();
+$modSel      = (string) ($_GET['modalidade'] ?? '');
+if (!isset($modalidades[$modSel])) $modSel = '';
+
+$ordens   = mhOrdemFiltro();
+$ordemSel = (string) ($_GET['ordem'] ?? 'recentes');
+if (!isset($ordens[$ordemSel])) $ordemSel = 'recentes';
+
+$buscaNorm = mhSemAcento($busca);
+$filtradas = array_values(array_filter($vagas, function ($v) use ($buscaNorm, $cursoSel, $origemSel, $cidadeSel, $modSel) {
+    if ($buscaNorm !== '') {
+        $alvo = mhSemAcento(implode(' ', [
+            $v['title'] ?? '', $v['company'] ?? '', $v['description'] ?? '', $v['location'] ?? '', implode(' ', jobsCursos($v)),
+        ]));
+        if (mb_strpos($alvo, $buscaNorm) === false) return false;
     }
-
+    if ($cursoSel !== '') {
+        $lista = jobsCursos($v);
+        if ($lista && !in_array($cursoSel, $lista, true)) return false;   // vaga sem curso = aberta a todos
+    }
+    if ($origemSel !== '' && $v['classe'] !== $origemSel) return false;
+    if ($cidadeSel !== '' && !mhCidadeCasa($v, $cidadeSel)) return false;
+    if ($modSel !== '' && mhModalidade($v) !== $modSel) return false;
     return true;
+}));
+
+/* 3) Ordem */
+usort($filtradas, function ($a, $b) use ($ordemSel) {
+    if ($ordemSel === 'bolsa') return mhBolsaValor($b['salary'] ?? '') <=> mhBolsaValor($a['salary'] ?? '');
+    if ($ordemSel === 'vencer') {
+        $da = vagaDiasRestantes($a); $db = vagaDiasRestantes($b);
+        return ($da ?? PHP_INT_MAX) <=> ($db ?? PHP_INT_MAX);   // sem prazo vai para o fim
+    }
+    return mhVagaTs($b) <=> mhVagaTs($a);   // mais recentes
 });
 
-$featuredJobs = array_filter($filteredJobs, function($job) {
-    return ($job['featured'] ?? false) === true;
-});
+$destaque = array_values(array_filter($filtradas, 'jobsDestaque'));
+$demais   = array_values(array_filter($filtradas, fn($v) => !jobsDestaque($v)));
+$novasSemana = count(array_filter($vagas, fn($v) => mhVagaTs($v) >= strtotime('-7 days')));
+$filtrosAtivos = $busca !== '' || $cursoSel !== '' || $origemSel !== '' || $cidadeSel !== '' || $modSel !== '' || $ordemSel !== 'recentes';
 
-$regularJobs = array_filter($filteredJobs, function($job) {
-    return ($job['featured'] ?? false) !== true;
-});
+/* -----------------------------------------------------------------------------
+ * 4) Cartão de uma vaga (mesmo layout do antigo mural de egressos)
+ * -------------------------------------------------------------------------- */
+function jobsCartao(array $v, bool $podeCandidatar): void {
+    $classe     = $v['classe'];
+    $ehEgresso  = $classe === 'egresso';
+    $ehDestaque = !$ehEgresso && jobsDestaque($v);
+    $id         = (int) ($v['id'] ?? 0);
+    $link       = egressoNormalizarLink((string) ($v['applicationLink'] ?? ''));
+    $cursos     = jobsCursos($v);
 
-// Cálculo real de "Novas Esta Semana", baseado em createdAt
-$novasEstaSemana = array_filter($allJobs, function($job) {
-    if (!empty($job['publishedTs'])) return $job['publishedTs'] >= strtotime('-7 days'); // vagas de egressos
-    if (empty($job['createdAt'])) return false;
-    $data = strtotime($job['createdAt']);
-    if (!$data) return false;
-    return $data >= strtotime('-7 days');
-});
-$totalNovasSemana = count($novasEstaSemana);
+    // Cores por classificação
+    if ($ehEgresso)      { $caixa = 'border-2 border-[#4A9FCA]/40 bg-[#4A9FCA]/5'; $iconeCaixa = 'bg-[#4A9FCA]/15 text-[#2B7FA6]'; $icone = 'fa-user-graduate'; }
+    elseif ($ehDestaque) { $caixa = 'border-2 border-yellow-200 bg-yellow-50/40';  $iconeCaixa = 'bg-yellow-100 text-yellow-600';  $icone = 'fa-building'; }
+    else                 { $caixa = 'border border-gray-100 bg-white';             $iconeCaixa = 'bg-[#4A9FCA]/10 text-[#4A9FCA]';  $icone = 'fa-building'; }
+
+    // Botão principal: aluno registra em Minhas Vagas; os outros perfis abrem o link direto
+    $hrefCandidatar = $podeCandidatar
+        ? 'candidatar.php?origem=' . rawurlencode($v['origem']) . '&job_id=' . $id
+        : $link;
+    ?>
+    <div class="p-6 <?= $caixa ?> rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-start gap-6">
+            <div class="w-14 h-14 <?= $iconeCaixa ?> rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas <?= $icone ?> text-xl"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+
+                <!-- Título, empresa e etiquetas -->
+                <div class="flex flex-wrap justify-between items-start gap-2 mb-3">
+                    <div class="min-w-0">
+                        <h3 class="text-lg font-bold text-slate-900"><?= egh($v['title'] ?? '') ?></h3>
+                        <p class="text-slate-500 font-semibold"><?= egh($v['company'] ?? '') ?></p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <?php if ($ehEgresso): ?>
+                            <span class="px-3 py-1 bg-[#4A9FCA] text-white rounded-full text-xs font-bold"><i class="fas fa-user-graduate mr-1"></i>Egresso</span>
+                            <?php if (!empty($v['categoria'])): ?>
+                                <span class="px-3 py-1 bg-[#4A9FCA]/10 text-[#2B7FA6] rounded-full text-xs font-bold"><?= egh($v['categoria']) ?></span>
+                            <?php endif; ?>
+                        <?php elseif ($ehDestaque): ?>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold"><i class="fas fa-star mr-1"></i>Destaque</span>
+                        <?php endif; ?>
+                        <?php if (!empty($v['type'])): ?>
+                            <span class="px-3 py-1 border border-slate-200 text-slate-500 rounded-full text-xs font-bold"><?= egh($v['type']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Selos: nova, perto de vencer, vaga externa, já se candidatou -->
+                <?= vagaSelosHtml($v) ?>
+
+                <!-- Local, carga horária, bolsa, data -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 mt-3 text-sm font-medium">
+                    <div class="flex items-center gap-2 text-slate-500"><i class="fas fa-map-marker-alt text-[#E35444]"></i><?= egh($v['location'] ?? '') ?: '—' ?></div>
+                    <div class="flex items-center gap-2 text-slate-500"><i class="fas fa-clock text-[#58A1D4]"></i><?= egh($v['hours'] ?? '') ?: '—' ?></div>
+                    <div class="flex items-center gap-2 font-bold text-[#27AE60]"><i class="fas fa-dollar-sign"></i><?= egh($v['salary'] ?? '') ?: 'A combinar' ?></div>
+                    <div class="text-slate-400"><?= egh($v['createdAt'] ?? '') ?><?= vagaValidadeHtml($v) ?></div>
+                </div>
+
+                <?php if ($ehEgresso): ?>
+                    <p class="text-xs text-slate-500 mb-4">
+                        <i class="fas fa-user-graduate text-[#4A9FCA] mr-1"></i>
+                        Divulgada por <strong><?= egh($v['egressoName'] ?? 'Egresso') ?></strong>
+                        <?php if (!empty($v['egressoCurso'])): ?> &bull; egresso(a) de <?= egh($v['egressoCurso']) ?><?php endif; ?>
+                        <?php if (!empty($v['egressoAno'])): ?> (turma <?= egh($v['egressoAno']) ?>)<?php endif; ?>
+                    </p>
+                <?php endif; ?>
+
+                <!-- Detalhes (abre e fecha) -->
+                <details class="mb-4">
+                    <summary class="cursor-pointer text-sm font-semibold text-[#4A9FCA] select-none">
+                        <i class="fas fa-eye mr-1"></i> Ver detalhes
+                    </summary>
+                    <div class="mt-3 space-y-3 text-sm text-gray-600">
+                        <div><p class="font-bold text-gray-700 uppercase text-xs mb-1">Cursos indicados</p><p class="bg-gray-50 p-3 rounded-xl"><?= egh($cursos ? implode(', ', $cursos) : 'Todos os cursos') ?></p></div>
+                        <div><p class="font-bold text-gray-700 uppercase text-xs mb-1">Descrição</p><p class="bg-gray-50 p-3 rounded-xl whitespace-pre-line"><?= egh($v['description'] ?? '') ?: 'Não informado' ?></p></div>
+                        <?php if (!empty($v['requirements'])): ?>
+                            <div><p class="font-bold text-gray-700 uppercase text-xs mb-1">Requisitos</p><p class="bg-gray-50 p-3 rounded-xl whitespace-pre-line"><?= egh($v['requirements']) ?></p></div>
+                        <?php endif; ?>
+                        <?php if (!empty($v['benefits'])): ?>
+                            <div><p class="font-bold text-gray-700 uppercase text-xs mb-1">Benefícios</p><p class="bg-gray-50 p-3 rounded-xl whitespace-pre-line"><?= egh($v['benefits']) ?></p></div>
+                        <?php endif; ?>
+                    </div>
+                </details>
+
+                <!-- Ações -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <?php if ($hrefCandidatar !== ''): ?>
+                        <a href="<?= egh($hrefCandidatar) ?>" target="_blank" rel="noopener"
+                           class="px-5 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all">
+                            <i class="fas fa-paper-plane mr-1"></i> <?= $podeCandidatar ? 'Candidatar-se' : 'Abrir vaga' ?>
+                        </a>
+                    <?php else: ?>
+                        <span class="px-5 py-2 bg-gray-100 text-gray-400 rounded-xl text-sm font-semibold">Link indisponível</span>
+                    <?php endif; ?>
+                    <?= favoritoBotaoHtml($v['origem'], $id) ?>
+                    <?= vagaCompartilharHtml($v) ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
+}
 
 include 'includes/header.php';
 ?>
@@ -105,364 +235,110 @@ include 'includes/header.php';
 <main class="ml-16 pt-16">
     <div class="p-8 max-w-7xl mx-auto">
 
-        <!-- Header -->
-        <div class="mb-8 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Vagas de Estágio</h2>
-            <p class="text-slate-500 font-medium">Encontre oportunidades que combinam com seu perfil</p>
-        </div>
-
-        <!-- Search and Filter -->
-        <div class="flex gap-4 mb-8">
-            <form method="GET" action="jobs.php" class="flex-1 flex gap-4">
-                <div class="flex-1 relative">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input
-                        type="text"
-                        name="search"
-                        placeholder="Buscar por vaga, empresa ou curso..."
-                        value="<?php echo htmlspecialchars($searchTerm); ?>"
-                        class="w-full h-14 pl-12 bg-white border border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-[#4A9FCA]"
-                    />
-                </div>
-                <button type="button" onclick="toggleFilters()" class="h-14 px-6 bg-white border border-gray-200 rounded-xl font-semibold text-slate-700">
-                    <i class="fas fa-filter mr-1"></i> Filtros
-                </button>
-                <button type="submit" class="h-14 px-6 bg-[#4A9FCA] text-white rounded-xl">Buscar</button>
-            </form>
-        </div>
-
-        <!-- Filtros de Cursos -->
-        <div id="filtersSection" class="mb-8 p-6 bg-white rounded-2xl border border-gray-100 <?php echo $selectedCourses ? '' : 'hidden'; ?>">
-            <div class="flex justify-between items-center mb-4">
-                <h4 class="font-bold text-slate-800">Seu Curso na FSA</h4>
-                <a href="jobs.php" class="text-red-500 text-sm">Limpar Filtros</a>
+        <!-- Título + atalhos de quem publica vaga -->
+        <div class="mb-8 animate-fade-in flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Vagas</h2>
+                <p class="text-slate-500 font-medium">Vagas da FSA, de empresas parceiras e divulgadas por ex-alunos, num lugar só.</p>
             </div>
-            <form method="GET" action="jobs.php">
-                <?php if ($searchTerm): ?>
-                    <input type="hidden" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>">
+            <div class="flex flex-wrap gap-2">
+                <?php if (perfilPode('divulgar_vaga')): ?>
+                    <a href="egresso-publicar.php" class="px-6 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold text-sm"><i class="fas fa-plus-circle mr-1"></i> Divulgar uma vaga</a>
                 <?php endif; ?>
-                <select name="courses[]" class="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 mb-4" onchange="this.form.submit()">
-                    <option value="">Selecione seu curso...</option>
-                    <?php foreach ($fsaCourses as $course): ?>
-                        <option value="<?php echo $course; ?>" <?php echo in_array($course, (array)$selectedCourses) ? 'selected' : ''; ?>>
-                            <?php echo $course; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </form>
-            <?php if ($selectedCourses): ?>
-                <div class="flex flex-wrap gap-3">
-                    <?php foreach ((array)$selectedCourses as $course): ?>
-                        <span class="flex items-center gap-2 px-5 py-2.5 bg-[#58A1D4] text-white rounded-xl font-medium">
-                            <?php echo htmlspecialchars($course); ?>
-                            <a href="jobs.php?search=<?php echo urlencode($searchTerm); ?>" class="hover:text-red-200">✕</a>
-                        </span>
-                    <?php endforeach; ?>
+                <?php if (perfilPode('gestao')): ?>
+                    <a href="admin-jobs.php" class="px-6 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold text-sm"><i class="fas fa-cog mr-1"></i> Gerenciar vagas</a>
+                <?php endif; ?>
+                <?php if (perfilPode('gestao_egressos')): ?>
+                    <a href="admin-egressos.php" class="px-6 py-3 border border-[#4A9FCA] text-[#2B7FA6] rounded-xl font-semibold text-sm hover:bg-blue-50"><i class="fas fa-user-graduate mr-1"></i> Painel de Egressos</a>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Busca e filtros -->
+        <form method="GET" action="jobs.php" class="bg-white p-4 rounded-2xl border border-gray-100 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div class="md:col-span-3 relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="search" value="<?= egh($busca) ?>" placeholder="Buscar por vaga, empresa, local ou curso..."
+                           class="w-full h-12 pl-12 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4A9FCA]">
                 </div>
+                <button type="submit" class="h-12 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold"><i class="fas fa-search mr-1"></i> Buscar</button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
+                <?php
+                // [nome do campo, opções, valor escolhido]
+                $selects = [
+                    ['origem', $origens, $origemSel],
+                    ['curso', ['' => 'Todos os cursos'] + array_combine($fsaCourses, $fsaCourses), $cursoSel],
+                    ['cidade', $cidades, $cidadeSel],
+                    ['modalidade', $modalidades, $modSel],
+                    ['ordem', $ordens, $ordemSel],
+                ];
+                foreach ($selects as [$nome, $opcoes, $valor]): ?>
+                    <select name="<?= $nome ?>" onchange="this.form.submit()" class="h-11 px-3 bg-white border border-gray-200 rounded-xl text-sm">
+                        <?php foreach ($opcoes as $k => $rot): ?>
+                            <option value="<?= egh((string) $k) ?>" <?= (string) $k === $valor ? 'selected' : '' ?>><?= egh($rot) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php endforeach; ?>
+            </div>
+            <?php if ($filtrosAtivos): ?>
+                <a href="jobs.php" class="inline-block mt-3 text-sm text-red-500 hover:underline"><i class="fas fa-times mr-1"></i>Limpar filtros</a>
             <?php endif; ?>
+        </form>
+
+        <!-- Números -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="p-6 bg-[#58A1D4] text-white rounded-2xl h-28 relative overflow-hidden">
+                <p class="text-white/90 text-sm font-medium mb-1"><?= $filtrosAtivos ? 'Resultado da busca' : 'Total de vagas' ?></p>
+                <p class="text-4xl font-bold"><?= count($filtradas) ?></p>
+                <i class="fas fa-briefcase absolute -right-3 -bottom-3 text-6xl text-white/10"></i>
+            </div>
+            <div class="p-6 bg-[#E35444] text-white rounded-2xl h-28 relative overflow-hidden">
+                <p class="text-white/90 text-sm font-medium mb-1">Vagas em destaque</p>
+                <p class="text-4xl font-bold"><?= count($destaque) ?></p>
+                <i class="fas fa-star absolute -right-3 -bottom-3 text-6xl text-white/10"></i>
+            </div>
+            <div class="p-6 bg-[#27AE60] text-white rounded-2xl h-28 relative overflow-hidden">
+                <p class="text-white/90 text-sm font-medium mb-1">Novas esta semana</p>
+                <p class="text-4xl font-bold"><?= $novasSemana ?></p>
+                <i class="fas fa-chart-line absolute -right-3 -bottom-3 text-6xl text-white/10"></i>
+            </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="p-6 bg-[#58A1D4] text-white rounded-2xl relative overflow-hidden h-32 shadow-sm">
-                <p class="text-white/90 text-sm font-medium mb-1">Total de Vagas</p>
-                <p class="text-5xl font-bold"><?php echo count($filteredJobs); ?></p>
-                <i class="fas fa-briefcase absolute -right-4 -bottom-4 text-6xl text-white/10 transform rotate-12"></i>
-            </div>
-            <div class="p-6 bg-[#E35444] text-white rounded-2xl relative overflow-hidden h-32 shadow-sm">
-                <p class="text-white/90 text-sm font-medium mb-1">Vagas em Destaque</p>
-                <p class="text-5xl font-bold"><?php echo count($featuredJobs); ?></p>
-                <i class="fas fa-star absolute -right-4 -bottom-4 text-6xl text-white/10 transform rotate-12"></i>
-            </div>
-            <div class="p-6 bg-[#27AE60] text-white rounded-2xl relative overflow-hidden h-32 shadow-sm">
-                <p class="text-white/90 text-sm font-medium mb-1">Novas Esta Semana</p>
-                <p class="text-5xl font-bold"><?php echo $totalNovasSemana; ?></p>
-                <i class="fas fa-chart-line absolute -right-4 -bottom-4 text-6xl text-white/10 transform rotate-12"></i>
-            </div>
+        <!-- Legenda das cores -->
+        <div class="flex flex-wrap gap-4 text-xs text-gray-500 mb-8">
+            <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-white border border-gray-300"></span>Vaga da FSA</span>
+            <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-yellow-100 border border-yellow-300"></span>Destaque</span>
+            <?php if ($podeVerEgresso): ?>
+                <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-[#4A9FCA]/20 border border-[#4A9FCA]"></span>Divulgada por egresso</span>
+            <?php endif; ?>
+            <span class="flex items-center gap-2"><i class="fas fa-external-link-alt text-gray-400"></i>Vaga externa (empresa de fora)</span>
         </div>
 
-        <!-- Vagas em Destaque -->
-        <?php if (!empty($featuredJobs)): ?>
-            <div class="mb-10">
-                <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <i class="fas fa-star text-yellow-400"></i> Vagas em Destaque
-                </h3>
-                <div class="space-y-4">
-                    <?php foreach ($featuredJobs as $job): ?>
-                        <?php $ehEgresso = ($job['origem'] ?? '') === 'egresso'; ?>
-                        <div class="p-6 border-2 <?php echo $ehEgresso ? 'border-purple-200 bg-purple-50/30' : 'border-yellow-200 bg-yellow-50/30'; ?> rounded-2xl shadow-sm">
-                            <div class="flex items-start gap-6">
-                                <div class="w-16 h-16 bg-[#58A1D4] rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-building text-2xl text-white"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div>
-                                            <h3 class="text-xl font-bold text-slate-900">
-                                                <?php echo htmlspecialchars($job['title']); ?>
-                                                <i class="fas fa-star text-yellow-400 text-base ml-1"></i>
-                                                <?php if ($ehEgresso): ?>
-                                                    <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 align-middle"><i class="fas fa-user-graduate mr-1"></i>Egresso</span>
-                                                <?php endif; ?>
-                                            </h3>
-                                            <p class="text-slate-600 font-semibold text-lg"><?php echo htmlspecialchars($job['company']); ?></p>
-                                            <?php if ($ehEgresso && !empty($job['egressoName'])): ?>
-                                                <p class="text-xs text-purple-700 mt-1">
-                                                    Divulgada por <strong><?php echo htmlspecialchars($job['egressoName']); ?></strong>
-                                                    <?php if (!empty($job['egressoCurso'])): ?>&bull; egresso(a) de <?php echo htmlspecialchars($job['egressoCurso']); ?><?php endif; ?>
-                                                </p>
-                                            <?php endif; ?>
-                                        </div>
-                                        <span class="px-3 py-1 bg-[#58A1D4] text-white rounded-full font-bold">
-                                            <?php echo htmlspecialchars($job['type']); ?>
-                                        </span>
-                                    </div>
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5 text-sm font-medium">
-                                        <div class="flex items-center gap-2 text-slate-500">
-                                            <i class="fas fa-map-marker-alt text-[#E35444]"></i>
-                                            <?php echo htmlspecialchars($job['location']); ?>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-slate-500">
-                                            <i class="fas fa-clock text-[#58A1D4]"></i>
-                                            <?php echo htmlspecialchars($job['hours']); ?>
-                                        </div>
-                                        <div class="flex items-center gap-2 font-bold text-[#27AE60]">
-                                            <i class="fas fa-dollar-sign"></i>
-                                            <?php echo htmlspecialchars($job['salary']); ?>
-                                        </div>
-                                        <div class="text-slate-400">
-                                            <?php echo htmlspecialchars($job['createdAt'] ?? 'Recente'); ?><?php echo vagaValidadeHtml($job); ?>
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <!-- Ver Detalhes -->
-                                        <button
-                                            onclick="showDetails('<?php echo htmlspecialchars($job['uid'] ?? ('faculdade-' . $job['id']), ENT_QUOTES); ?>')"
-                                            class="px-6 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-all text-sm">
-                                            <i class="fas fa-eye mr-1"></i> Ver Detalhes
-                                        </button>
-                                        <!-- Candidatar-se: leva ao link cadastrado pelo admin -->
-                                        <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=' . ($job['origem'] ?? 'faculdade') . '&amp;job_id=' . (int) $job['id']; ?>"
-                                           target="_blank"
-                                           class="px-6 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-xl transition-all text-sm">
-                                            <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
-                                        </a>
-                                        <?php echo favoritoBotaoHtml($job['origem'] ?? 'faculdade', (int) $job['id']); ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+        <?php if (empty($filtradas)): ?>
+            <div class="p-16 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-white">
+                <i class="fas fa-briefcase text-6xl text-gray-200 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Nenhuma vaga encontrada</h3>
+                <p class="text-slate-500"><?= empty($vagas) ? 'Ainda não há vagas abertas.' : 'Tente ajustar os filtros ou a busca.' ?></p>
             </div>
         <?php endif; ?>
 
-        <!-- Vagas Regulares -->
-        <section>
-            <h3 class="text-xl font-bold text-slate-900 mb-4">Todas as Vagas</h3>
-            <div class="space-y-4">
-                <?php foreach ($regularJobs as $job): ?>
-                    <div class="p-6 border border-gray-100 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex items-start gap-6">
-                            <div class="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-building text-slate-400 text-xl"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div>
-                                        <h3 class="text-lg font-bold text-slate-900"><?php echo htmlspecialchars($job['title']); ?></h3>
-                                        <p class="text-slate-500 font-semibold"><?php echo htmlspecialchars($job['company']); ?></p>
-                                    </div>
-                                    <span class="px-3 py-1 border border-slate-200 text-slate-400 rounded-full font-bold">
-                                        <?php echo htmlspecialchars($job['type']); ?>
-                                    </span>
-                                </div>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5 text-sm font-medium">
-                                    <div class="flex items-center gap-2 text-slate-500">
-                                        <i class="fas fa-map-marker-alt text-[#E35444]"></i>
-                                        <?php echo htmlspecialchars($job['location']); ?>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-500">
-                                        <i class="fas fa-clock text-[#58A1D4]"></i>
-                                        <?php echo htmlspecialchars($job['hours']); ?>
-                                    </div>
-                                    <div class="flex items-center gap-2 font-bold text-[#27AE60]">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        <?php echo htmlspecialchars($job['salary']); ?>
-                                    </div>
-                                    <div class="text-slate-400">
-                                        <?php echo htmlspecialchars($job['createdAt'] ?? 'Recente'); ?><?php echo vagaValidadeHtml($job); ?>
-                                    </div>
-                                </div>
-                                <div class="flex gap-3">
-                                    <!-- Ver Detalhes -->
-                                    <button
-                                        onclick="showDetails('<?php echo htmlspecialchars($job['uid'] ?? ('faculdade-' . $job['id']), ENT_QUOTES); ?>')"
-                                        class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-all text-sm">
-                                        <i class="fas fa-eye mr-1"></i> Ver Detalhes
-                                    </button>
-                                    <!-- Candidatar-se: leva ao link cadastrado pelo admin -->
-                                    <a href="<?php echo !empty($_SESSION['is_admin']) ? htmlspecialchars($job['applicationLink'] ?? '#') : 'candidatar.php?origem=' . ($job['origem'] ?? 'faculdade') . '&amp;job_id=' . (int) $job['id']; ?>"
-                                       target="_blank"
-                                       class="px-4 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-lg transition-all text-sm">
-                                        <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
-                                    </a>
-                                    <?php echo favoritoBotaoHtml($job['origem'] ?? 'faculdade', (int) $job['id']); ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+        <?php if (!empty($destaque)): ?>
+            <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i class="fas fa-star text-yellow-400"></i> Vagas em Destaque</h3>
+            <div class="space-y-4 mb-10">
+                <?php foreach ($destaque as $v) jobsCartao($v, $podeCandidatar); ?>
             </div>
-        </section>
+        <?php endif; ?>
 
-        <!-- Empty State -->
-        <?php if (empty($filteredJobs)): ?>
-            <div class="p-16 text-center border-2 border-dashed border-gray-200 rounded-3xl">
-                <i class="fas fa-briefcase text-6xl text-gray-200 mb-4"></i>
-                <h3 class="text-xl font-bold text-slate-900 mb-2">Nenhuma vaga encontrada</h3>
-                <p class="text-slate-500 font-medium">Tente ajustar seus filtros ou termos de busca.</p>
+        <?php if (!empty($demais)): ?>
+            <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i class="fas fa-briefcase text-[#4A9FCA]"></i> <?= $destaque ? 'Mais vagas' : 'Vagas' ?></h3>
+            <div class="space-y-4">
+                <?php foreach ($demais as $v) jobsCartao($v, $podeCandidatar); ?>
             </div>
         <?php endif; ?>
 
     </div>
 </main>
-
-<!-- Modal de Detalhes (mesmo estilo do my-applications) -->
-<div id="detailsModal" class="fixed inset-0 z-[999] hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDetails()"></div>
-    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 z-10 max-h-[90vh] overflow-y-auto">
-
-        <!-- Cabeçalho -->
-        <div class="flex items-start justify-between mb-6">
-            <div>
-                <h3 id="modalTitle" class="text-xl font-bold text-gray-900 mb-1"></h3>
-                <p id="modalCompany" class="text-[#58A1D4] font-medium"></p>
-                <p id="modalEgresso" class="hidden mt-2 text-xs font-semibold text-purple-700"></p>
-            </div>
-            <button onclick="closeDetails()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-
-        <!-- Infos rápidas -->
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <div class="p-3 bg-gray-50 rounded-xl text-sm">
-                <p class="text-gray-400 text-xs mb-1">Localização</p>
-                <p id="modalLocation" class="font-medium text-gray-700"></p>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-xl text-sm">
-                <p class="text-gray-400 text-xs mb-1">Modalidade</p>
-                <p id="modalType" class="font-medium text-gray-700"></p>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-xl text-sm">
-                <p class="text-gray-400 text-xs mb-1">Carga Horária</p>
-                <p id="modalHours" class="font-medium text-gray-700"></p>
-            </div>
-            <div class="p-3 bg-green-50 rounded-xl text-sm">
-                <p class="text-gray-400 text-xs mb-1">Bolsa Auxílio</p>
-                <p id="modalSalary" class="font-bold text-[#27AE60]"></p>
-            </div>
-        </div>
-
-        <!-- Descrição -->
-        <div class="mb-4">
-            <h4 class="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Descrição</h4>
-            <p id="modalDescription" class="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl"></p>
-        </div>
-
-        <!-- Requisitos -->
-        <div class="mb-4">
-            <h4 class="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Requisitos</h4>
-            <p id="modalRequirements" class="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl"></p>
-        </div>
-
-        <!-- Benefícios -->
-        <div class="mb-6">
-            <h4 class="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Benefícios</h4>
-            <p id="modalBenefits" class="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl"></p>
-        </div>
-
-        <!-- Botão Candidatar -->
-        <a id="modalApplyBtn"
-           href="#"
-           target="_blank"
-           class="flex items-center justify-center gap-2 w-full py-3 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white font-semibold rounded-2xl transition-all text-sm mb-3">
-            <i class="fas fa-paper-plane"></i> Candidatar-se Agora
-        </a>
-
-        <!-- Fechar -->
-        <button onclick="closeDetails()"
-                class="w-full py-3 rounded-2xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-all text-sm">
-            Fechar
-        </button>
-    </div>
-</div>
-
-<script>
-    const allJobsData = <?php echo json_encode(array_values($allJobs)); ?>;
-    const souAdmin = <?php echo !empty($_SESSION['is_admin']) ? 'true' : 'false'; ?>;
-
-    function toggleFilters() {
-        document.getElementById('filtersSection').classList.toggle('hidden');
-    }
-
-    // =============================
-    // Modal Detalhes
-    // =============================
-    function showDetails(jobId) {
-        const job = allJobsData.find(j => j.uid == jobId);
-        if (!job) return;
-
-        document.getElementById('modalTitle').textContent        = job.title;
-        document.getElementById('modalCompany').textContent      = job.company;
-
-        const selo = document.getElementById('modalEgresso');
-        if (job.origem === 'egresso') {
-            selo.textContent = 'Vaga de egresso' + (job.egressoName ? ' · divulgada por ' + job.egressoName : '');
-            selo.classList.remove('hidden');
-        } else {
-            selo.classList.add('hidden');
-        }
-        document.getElementById('modalLocation').textContent     = job.location;
-        document.getElementById('modalType').textContent         = job.type;
-        document.getElementById('modalHours').textContent        = job.hours;
-        document.getElementById('modalSalary').textContent       = job.salary;
-        document.getElementById('modalDescription').textContent  = job.description || 'Não informado';
-        document.getElementById('modalRequirements').textContent = job.requirements || 'Não informado';
-        document.getElementById('modalBenefits').textContent     = job.benefits || 'Não informado';
-
-        // Botão candidatar — usa o link de candidatura cadastrado pelo admin
-        const applyBtn = document.getElementById('modalApplyBtn');
-        // Aluno: passa por candidatar.php (registra em "Minhas Candidaturas" e abre o link).
-        // Admin: abre o link direto, como antes.
-        if (souAdmin) {
-            if (job.applicationLink) {
-                applyBtn.href = job.applicationLink;
-                applyBtn.classList.remove('hidden');
-            } else {
-                applyBtn.classList.add('hidden');
-            }
-        } else {
-            applyBtn.href = 'candidatar.php?origem=' + encodeURIComponent(job.origem || 'faculdade') + '&job_id=' + encodeURIComponent(job.id);
-            applyBtn.classList.remove('hidden');
-        }
-
-        const modal = document.getElementById('detailsModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
-    function closeDetails() {
-        const modal = document.getElementById('detailsModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    // Fecha com ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeDetails();
-    });
-</script>
 
 <?php include 'includes/footer.php'; ?>

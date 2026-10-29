@@ -1,0 +1,20 @@
+# =============================================================================
+# Proteção para hospedagem com Apache (no Render quem protege é o router.php)
+# =============================================================================
+Options -Indexes
+
+# Arquivos e pastas que começam com ponto (.env, .git...)
+RedirectMatch 403 /\.
+
+# Pastas internas (as fotos do currículo em data/users/<id>/ continuam liberadas)
+RedirectMatch 403 ^/(data/(?!users/\d+/[^/]+\.(jpe?g|png|webp|gif)$)|includes/|docs/|ferramentas/|vendor/|logs/)
+
+# Extensões de dados e configuração
+<FilesMatch "\.(json|md|lock|sql|ya?ml|log|ini|env|pem|bak|sh|dist|example)$">
+    Require all denied
+</FilesMatch>
+
+# Configuração e testes
+<FilesMatch "^(Dockerfile|router\.php|composer\.(json|lock)|teste[-_].*\.php|GupyFonte\.php)$">
+    Require all denied
+</FilesMatch>

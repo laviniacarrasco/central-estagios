@@ -54,6 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
     $avisoAluno = null;
 
+    // Marcar erro (devolver ao aluno): justificativa obrigatória
+    $justErro = $acao === 'marcar_erro' ? justificativaPost('mensagem', 500) : null;
+    if ($acao === 'marcar_erro' && $justErro === null) {
+        header('Location: admin-signature.php?erro=justificativa');
+        exit;
+    }
+
     foreach ($assinaturas as &$sol) {
         if (($sol['id'] ?? 0) != $id) continue;
 
@@ -64,7 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($acao === 'marcar_erro') {
             $sol['status'] = 'erro';
-            $sol['mensagemErro'] = trim($_POST['mensagem'] ?? '') ?: 'Houve um problema com os arquivos enviados.';
+            $sol['mensagemErro'] = $justErro;
+            $sol['erroPor']      = (string) ($_SESSION['user_name'] ?? '');
             $sol['avisoAluno'] = true;   // bolinha no menu do aluno
             $avisoAluno = ['sol' => $sol, 'tipo' => 'erro'];
         }
@@ -317,6 +325,11 @@ include 'includes/header.php';
 
 <main class="ml-16 pt-16 bg-gray-50 min-h-screen">
 <div class="p-8 max-w-6xl mx-auto">
+        <?php if (($_GET['erro'] ?? '') === 'justificativa'): ?>
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+                <i class="fas fa-exclamation-circle mr-1"></i> A justificativa é obrigatória (pelo menos 10 caracteres). Nada foi alterado.
+            </div>
+        <?php endif; ?>
 
     <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -466,7 +479,7 @@ include 'includes/header.php';
             <input type="hidden" name="id" id="erroId">
             <input type="hidden" name="acao" value="marcar_erro">
 
-            <textarea name="mensagem" rows="3" required placeholder="Ex.: O arquivo enviado está ilegível, favor reenviar."
+            <textarea name="mensagem" rows="3" required minlength="10" maxlength="500" placeholder="Ex.: O arquivo enviado está ilegível, favor reenviar."
                 class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-400"></textarea>
 
             <div class="flex gap-3 pt-2">

@@ -1,11 +1,13 @@
 <?php
 /**
  * Painel do ADMIN DE EGRESSOS (usuario com is_admin=true e tipo="admin_egressos").
- * Abas: Painel (indicadores) | Vagas (moderacao) | Egressos (lista) | Cadastro
+ * Abas: Vagas (moderacao) | Egressos (lista) | Cadastro
+ * Os indicadores (antiga aba Painel) ficam em Painéis > pasta Egressos (admin-paineis.php).
  */
 require_once 'includes/config.php';
 require_once 'includes/egressos.php';
 require_once 'includes/alertas.php';
+require_once 'includes/melhorias.php';
 checkAuth();
 
 if (!isAdminEgressos()) {
@@ -13,12 +15,12 @@ if (!isAdminEgressos()) {
     exit;
 }
 
-$pageTitle    = 'Painel de Egressos';
+$pageTitle    = 'Gestão de Egressos';
 $fsaCourses   = getFsaCourses();
 $opcoesStatus = egressoStatusOptions();
 
-$abasValidas = ['painel', 'vagas', 'egressos', 'cadastro'];
-$aba = in_array($_GET['tab'] ?? '', $abasValidas, true) ? $_GET['tab'] : 'painel';
+$abasValidas = ['vagas', 'egressos', 'cadastro'];
+$aba = in_array($_GET['tab'] ?? '', $abasValidas, true) ? $_GET['tab'] : 'vagas';   // a antiga aba "painel" abre Vagas
 
 $mensagens = [
     'vaga_aprovada'  => 'Vaga aprovada e publicada no mural.',
@@ -35,6 +37,7 @@ $erros = [
     'ra_nao'     => 'Não encontrei nenhum aluno com esse RA.',
     'ja_egresso' => 'Esse usuário já é egresso ou é administrador.',
     'senha'      => 'A senha provisória precisa ter ao menos 6 caracteres.',
+    'motivo'     => 'A justificativa é obrigatória (pelo menos 10 caracteres). Nada foi alterado.',
 ];
 
 function voltar(string $tab, string $chave, bool $erro = false): void {
@@ -54,7 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vagas = egressoVagas();
         $vagaAlvo = null;
 
+        // Rejeitar, encerrar e remover: justificativa obrigatória
+        $motivo = '';
+        if ($acao !== 'aprovar_vaga') {
+            $motivo = (string) justificativaPost('motivo', 500);
+            if ($motivo === '') voltar('vagas', 'motivo', true);
+        }
+
         if ($acao === 'remover_vaga') {
+            foreach ($vagas as $v0) {
+                if (($v0['id'] ?? 0) == $id) mhLogAdmin('Vaga de egresso removida', ($v0['title'] ?? '') . ' - ' . ($v0['company'] ?? '') . ' | Motivo: ' . $motivo);
+            }
             $vagas = array_values(array_filter($vagas, fn($v) => ($v['id'] ?? 0) != $id));
             egressoSalvarVagas($vagas);
             voltar('vagas', 'vaga_removida');
@@ -70,10 +83,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $v['motivoRejeicao'] = '';
             } elseif ($acao === 'rejeitar_vaga') {
                 $v['status']         = 'rejeitada';
-                $v['motivoRejeicao'] = mb_substr(trim($_POST['motivo'] ?? ''), 0, 500);
+                $v['motivoRejeicao'] = $motivo;
+                mhLogAdmin('Vaga de egresso rejeitada', ($v['title'] ?? '') . ' | Motivo: ' . $motivo);
             } else {
-                $v['status']      = 'encerrada';
-                $v['encerradaEm'] = date('d/m/Y H:i');
+                $v['status']             = 'encerrada';
+                $v['encerradaEm']        = date('d/m/Y H:i');
+                $v['motivoEncerramento'] = $motivo;
+                $v['encerradaPor']       = $_SESSION['user_name'] ?? '';
+                mhLogAdmin('Vaga de egresso encerrada', ($v['title'] ?? '') . ' | Motivo: ' . $motivo);
             }
             $vagaAlvo = $v;
             break;
@@ -301,8 +318,9 @@ include 'includes/header.php';
     <div class="p-8 max-w-7xl mx-auto">
 
         <div class="mb-6 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Painel de Egressos</h2>
-            <p class="text-slate-500 font-medium">Acompanhe a trajetória dos ex-alunos e modere as vagas que eles divulgam.</p>
+            <h2 class="text-3xl font-bold text-slate-900 mb-2">Gestão de Egressos</h2>
+            <p class="text-slate-500 font-medium">Modere as vagas que os ex-alunos divulgam e cuide do cadastro.
+                Os indicadores ficam em <a href="admin-paineis.php?pasta=egressos" class="text-[#4A9FCA] font-semibold hover:underline"><i class="fas fa-chart-pie mr-1"></i>Painéis &gt; Egressos</a>.</p>
         </div>
 
         <?php if (!empty($_GET['msg']) && isset($mensagens[$_GET['msg']])): ?>
@@ -318,7 +336,7 @@ include 'includes/header.php';
 
         <div class="flex flex-wrap gap-2 mb-8 border-b border-gray-200">
             <?php
-            $rotulosAbas = ['painel' => ['fa-chart-pie', 'Painel'], 'vagas' => ['fa-briefcase', 'Vagas'], 'egressos' => ['fa-users', 'Egressos'], 'cadastro' => ['fa-user-plus', 'Cadastro']];
+            $rotulosAbas = ['vagas' => ['fa-briefcase', 'Vagas'], 'egressos' => ['fa-users', 'Egressos'], 'cadastro' => ['fa-user-plus', 'Cadastro']];
             foreach ($rotulosAbas as $chave => $info): ?>
                 <button type="button" data-tab="<?= $chave ?>"
                         class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 -mb-px <?= $aba === $chave ? 'border-[#4A9FCA] text-[#4A9FCA]' : 'border-transparent text-gray-500 hover:text-gray-700' ?>">
@@ -329,140 +347,6 @@ include 'includes/header.php';
                 </button>
             <?php endforeach; ?>
         </div>
-
-        <!-- ===================== PAINEL ===================== -->
-        <section id="tab-painel" class="tab-panel <?= $aba === 'painel' ? '' : 'hidden' ?>">
-
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div class="p-5 bg-[#58A1D4] text-white rounded-2xl">
-                    <p class="text-white/90 text-sm font-medium">Egressos cadastrados</p>
-                    <p class="text-4xl font-bold"><?= $totalEg ?></p>
-                </div>
-                <div class="p-5 bg-[#27AE60] text-white rounded-2xl">
-                    <p class="text-white/90 text-sm font-medium">Taxa de empregabilidade</p>
-                    <p class="text-4xl font-bold"><?= $taxaEmpreg ?>%</p>
-                </div>
-                <div class="p-5 bg-purple-500 text-white rounded-2xl">
-                    <p class="text-white/90 text-sm font-medium">Atuando na área (dos ocupados)</p>
-                    <p class="text-4xl font-bold"><?= $taxaNaArea ?>%</p>
-                </div>
-                <div class="p-5 bg-[#E35444] text-white rounded-2xl">
-                    <p class="text-white/90 text-sm font-medium">Buscando oportunidade</p>
-                    <p class="text-4xl font-bold"><?= $grupos['buscando'] ?></p>
-                </div>
-            </div>
-            <p class="text-xs text-gray-400 mb-8">
-                Empregabilidade = egressos empregados, estagiando ou empreendendo ÷ total de egressos.
-                Quem não informou a situação conta no total.
-            </p>
-
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div class="p-5 bg-white border border-gray-100 rounded-2xl">
-                    <p class="text-gray-500 text-sm">Vagas no mural</p>
-                    <p class="text-3xl font-bold text-slate-900"><?= $contVagas['aprovada'] ?></p>
-                </div>
-                <div class="p-5 bg-white border border-gray-100 rounded-2xl">
-                    <p class="text-gray-500 text-sm">Aguardando moderação</p>
-                    <p class="text-3xl font-bold <?= $contVagas['pendente'] ? 'text-red-500' : 'text-slate-900' ?>"><?= $contVagas['pendente'] ?></p>
-                </div>
-                <div class="p-5 bg-white border border-gray-100 rounded-2xl">
-                    <p class="text-gray-500 text-sm">Candidaturas de alunos geradas</p>
-                    <p class="text-3xl font-bold text-slate-900"><?= $candidatosGerados ?></p>
-                </div>
-                <div class="p-5 bg-white border border-gray-100 rounded-2xl">
-                    <p class="text-gray-500 text-sm">Tempo médio até 1ª colocação</p>
-                    <p class="text-3xl font-bold text-slate-900"><?= $mediaMeses !== null ? str_replace('.', ',', (string) $mediaMeses) . ' meses' : '—' ?></p>
-                    <p class="text-xs text-gray-400"><?= $qtdMeses ?> resposta(s)</p>
-                </div>
-            </div>
-
-            <?php if ($totalEg === 0): ?>
-                <div class="p-12 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-white mb-8">
-                    <i class="fas fa-user-graduate text-5xl text-gray-200 mb-3"></i>
-                    <p class="text-slate-600 font-semibold mb-1">Ainda não há egressos cadastrados</p>
-                    <p class="text-sm text-gray-500">Use a aba Cadastro para criar um egresso ou converter um aluno formado.</p>
-                </div>
-            <?php else: ?>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100">
-                        <h3 class="font-bold text-slate-900 mb-4">Situação profissional</h3>
-                        <div style="height:260px"><canvas id="chartStatus"></canvas></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100 lg:col-span-2">
-                        <h3 class="font-bold text-slate-900 mb-4">Egressos por curso (total x ocupados)</h3>
-                        <div style="height:260px"><canvas id="chartCursos"></canvas></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100">
-                        <h3 class="font-bold text-slate-900 mb-4">Egressos por ano de conclusão</h3>
-                        <div style="height:240px"><canvas id="chartAnos"></canvas></div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100 lg:col-span-2 overflow-x-auto">
-                        <h3 class="font-bold text-slate-900 mb-4">Empregabilidade por curso</h3>
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="text-left text-gray-500 border-b">
-                                    <th class="py-2 pr-3">Curso</th><th class="py-2 pr-3">Egressos</th>
-                                    <th class="py-2 pr-3">Empregabilidade</th><th class="py-2 pr-3">Na área</th><th class="py-2">Meses p/ 1ª colocação</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <?php foreach ($porCurso as $nomeCurso => $c): ?>
-                                <tr class="border-b last:border-0">
-                                    <td class="py-2 pr-3 font-medium text-gray-800"><?= egh($nomeCurso) ?></td>
-                                    <td class="py-2 pr-3"><?= $c['total'] ?></td>
-                                    <td class="py-2 pr-3"><?= (int) round($c['ocupados'] / $c['total'] * 100) ?>%</td>
-                                    <td class="py-2 pr-3"><?= $c['ocupados'] ? (int) round($c['na_area'] / $c['ocupados'] * 100) . '%' : '—' ?></td>
-                                    <td class="py-2"><?= $c['qm'] ? str_replace('.', ',', (string) round($c['meses'] / $c['qm'], 1)) : '—' ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100">
-                        <h3 class="font-bold text-slate-900 mb-1">Onde nossos egressos trabalham</h3>
-                        <p class="text-xs text-gray-400 mb-4">Útil para buscar parcerias de estágio</p>
-                        <?php if (empty($topEmpresas)): ?>
-                            <p class="text-sm text-gray-400">Nenhum egresso informou a empresa ainda.</p>
-                        <?php else: foreach ($topEmpresas as $emp): ?>
-                            <div class="flex justify-between text-sm py-1.5 border-b last:border-0">
-                                <span class="text-gray-700"><?= egh($emp['nome']) ?></span><strong><?= $emp['qtd'] ?></strong>
-                            </div>
-                        <?php endforeach; endif; ?>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100">
-                        <h3 class="font-bold text-slate-900 mb-1">Egressos que mais divulgam vagas</h3>
-                        <p class="text-xs text-gray-400 mb-4">Quem vale a pena reconhecer</p>
-                        <?php if (empty($topDivulgadores)): ?>
-                            <p class="text-sm text-gray-400">Nenhuma vaga publicada ainda.</p>
-                        <?php else: foreach ($topDivulgadores as $d): ?>
-                            <div class="flex justify-between text-sm py-1.5 border-b last:border-0">
-                                <span class="text-gray-700"><?= egh($d['nome']) ?></span>
-                                <span class="text-gray-500"><strong><?= $d['qtd'] ?></strong> vaga(s) &bull; <?= $d['cands'] ?> cand.</span>
-                            </div>
-                        <?php endforeach; endif; ?>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100">
-                        <h3 class="font-bold text-slate-900 mb-1">Engajamento</h3>
-                        <p class="text-xs text-gray-400 mb-4">Relacionamento com a base de egressos</p>
-                        <div class="flex justify-between text-sm py-1.5 border-b"><span class="text-gray-700">Aceitam mentoria</span><strong><?= $mentores ?></strong></div>
-                        <div class="flex justify-between text-sm py-1.5 border-b"><span class="text-gray-700">Perfil desatualizado (+12 meses)</span><strong class="<?= count($desatualizados) ? 'text-amber-600' : '' ?>"><?= count($desatualizados) ?></strong></div>
-                        <div class="flex justify-between text-sm py-1.5"><span class="text-gray-700">Situação não informada</span><strong><?= $grupos['nao_informado'] ?></strong></div>
-                        <button type="button" data-tab="egressos" class="mt-4 w-full px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">
-                            Ver lista de egressos
-                        </button>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </section>
 
         <!-- ===================== VAGAS ===================== -->
         <section id="tab-vagas" class="tab-panel <?= $aba === 'vagas' ? '' : 'hidden' ?>">
@@ -543,12 +427,12 @@ include 'includes/header.php';
                             <td class="p-3">
                                 <div class="flex justify-end gap-2">
                                     <?php if (($v['status'] ?? '') === 'aprovada'): ?>
-                                        <form method="POST" data-confirm="A vaga sai do mural e deixa de aparecer para os alunos." data-confirm-titulo="Encerrar esta vaga?" data-confirm-botao="Encerrar" data-confirm-tipo="aviso" data-confirm-icone="fa-ban">
+                                        <form method="POST" data-confirm="A vaga sai do mural e deixa de aparecer para os alunos. O egresso vê a justificativa." data-justificativa="motivo" data-justificativa-dica="Ex.: a empresa avisou que a vaga já foi preenchida." data-confirm-titulo="Encerrar esta vaga?" data-confirm-botao="Encerrar" data-confirm-tipo="aviso" data-confirm-icone="fa-ban">
                                             <input type="hidden" name="action" value="encerrar_vaga"><input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
                                             <button class="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-xs hover:bg-gray-50">Encerrar</button>
                                         </form>
                                     <?php endif; ?>
-                                    <form method="POST" data-confirm="A vaga será removida definitivamente. Esta ação não pode ser desfeita." data-confirm-titulo="Remover esta vaga?" data-confirm-botao="Remover" data-confirm-tipo="perigo" data-confirm-icone="fa-trash-alt">
+                                    <form method="POST" data-confirm="A vaga será removida definitivamente. Esta ação não pode ser desfeita. A justificativa fica no log." data-justificativa="motivo" data-justificativa-dica="Ex.: vaga duplicada ou com conteúdo inadequado." data-confirm-titulo="Remover esta vaga?" data-confirm-botao="Remover" data-confirm-tipo="perigo" data-confirm-icone="fa-trash-alt">
                                         <input type="hidden" name="action" value="remover_vaga"><input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
                                         <button class="px-3 py-1.5 text-red-500 hover:bg-red-50 rounded-lg text-xs">Remover</button>
                                     </form>
@@ -678,7 +562,7 @@ include 'includes/header.php';
         <p class="text-sm text-gray-500 mb-4">O egresso verá o motivo e poderá corrigir e reenviar.</p>
         <input type="hidden" name="action" value="rejeitar_vaga">
         <input type="hidden" name="id" id="rejId">
-        <textarea name="motivo" rows="4" maxlength="500" required placeholder="Ex: faltou informar a remuneração e o link de candidatura."
+        <textarea name="motivo" rows="4" minlength="10" maxlength="500" required placeholder="Ex: faltou informar a remuneração e o link de candidatura."
                   class="w-full px-3 py-2 border border-gray-200 rounded-lg mb-4"></textarea>
         <div class="flex justify-end gap-3">
             <button type="button" onclick="fecharRejeicao()" class="px-5 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm">Cancelar</button>
@@ -747,7 +631,7 @@ include 'includes/header.php';
             return `<tr class="border-b last:border-0">
                 <td class="p-3"><p class="font-medium text-gray-800">${esc(e.nome)}</p><p class="text-xs text-gray-500">${esc(e.email)}</p></td>
                 <td class="p-3 text-gray-600">${esc(e.curso)}<p class="text-xs text-gray-400">${e.ano ? 'Turma ' + esc(e.ano) : ''}</p></td>
-                <td class="p-3 text-gray-700">${esc(e.status)}${e.mentoria === 'Sim' ? '<p class="text-xs text-purple-600">Aceita mentoria</p>' : ''}</td>
+                <td class="p-3 text-gray-700">${esc(e.status)}${e.mentoria === 'Sim' ? '<p class="text-xs text-[#3A8FB0]">Aceita mentoria</p>' : ''}</td>
                 <td class="p-3 text-gray-600">${esc(e.empresa) || '—'}<p class="text-xs text-gray-400">${esc(e.cargo)}</p></td>
                 <td class="p-3 text-gray-500">${esc(e.atualizado)}</td>
                 <td class="p-3 text-right whitespace-nowrap">

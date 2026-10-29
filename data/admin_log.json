@@ -1,0 +1,134 @@
+[
+    {
+        "ts": 1793281817,
+        "admin": "Admin Egressos Teste",
+        "acao": "Conversa de mentoria consultada",
+        "detalhe": "Pedido #1792416701046: Lavinia x Egresso Teste"
+    },
+    {
+        "ts": 1793281194,
+        "admin": "Admin Egressos Teste",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 4, repetidas: 274, descartadas: 53"
+    },
+    {
+        "ts": 1793276651,
+        "admin": "Admin Egressos Teste",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 3, repetidas: 275, descartadas: 52"
+    },
+    {
+        "ts": 1793276627,
+        "admin": "Admin Egressos Teste",
+        "acao": "Histórico de vagas sugeridas limpo",
+        "detalhe": ""
+    },
+    {
+        "ts": 1793229510,
+        "admin": "Admin Egressos Teste",
+        "acao": "Denúncia de mentoria: Resolvida",
+        "detalhe": "#1 contra Egresso Teste | conversamos e vimos que foi para teste"
+    },
+    {
+        "ts": 1793229510,
+        "admin": "Admin Egressos Teste",
+        "acao": "Denúncia de mentoria: Resolvida",
+        "detalhe": "#1 contra Egresso Teste | conversamos e vimos que foi para teste"
+    },
+    {
+        "ts": 1793229509,
+        "admin": "Admin Egressos Teste",
+        "acao": "Denúncia de mentoria: Resolvida",
+        "detalhe": "#1 contra Egresso Teste | conversamos e vimos que foi para teste"
+    },
+    {
+        "ts": 1793229419,
+        "admin": "Admin Egressos Teste",
+        "acao": "Conversa de mentoria consultada",
+        "detalhe": "Pedido #1792416701046: Lavinia x Egresso Teste"
+    },
+    {
+        "ts": 1793228463,
+        "admin": "Admin Egressos Teste",
+        "acao": "Conversa de mentoria baixada (TXT)",
+        "detalhe": "Pedido #1792416701046: Lavinia x Egresso Teste"
+    },
+    {
+        "ts": 1793228458,
+        "admin": "Admin Egressos Teste",
+        "acao": "Conversa de mentoria consultada",
+        "detalhe": "Pedido #1792416701046: Lavinia x Egresso Teste"
+    },
+    {
+        "ts": 1793228103,
+        "admin": "Admin Egressos Teste",
+        "acao": "Conversas de mentoria baixadas (todas)",
+        "detalhe": "1 conversa(s)"
+    },
+    {
+        "ts": 1793227137,
+        "admin": "Admin Egressos Teste",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 52"
+    },
+    {
+        "ts": 1793226655,
+        "admin": "Admin Egressos Teste",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 52"
+    },
+    {
+        "ts": 1793225356,
+        "admin": "Admin Egressos Teste",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 5, repetidas: 271, descartadas: 52"
+    },
+    {
+        "ts": 1793209016,
+        "admin": "Admin Egressos Teste",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 51"
+    },
+    {
+        "ts": 1793207248,
+        "admin": "Coordenação",
+        "acao": "Vaga sugerida aprovada",
+        "detalhe": "Estágio em Supply Chain (Transportes) - Vaga Afirmativa p\/pessoas pretas, pardas e\/ou indígenas - BAT Brasil"
+    },
+    {
+        "ts": 1793207248,
+        "admin": "Coordenação",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 51"
+    },
+    {
+        "ts": 1793207184,
+        "admin": "Coordenação",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 51"
+    },
+    {
+        "ts": 1793207165,
+        "admin": "Coordenação",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 51"
+    },
+    {
+        "ts": 1793207147,
+        "admin": "Coordenação",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 51"
+    },
+    {
+        "ts": 1793207129,
+        "admin": "Coordenação",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 0, repetidas: 276, descartadas: 51"
+    },
+    {
+        "ts": 1793207113,
+        "admin": "Coordenação",
+        "acao": "Busca de vagas externas",
+        "detalhe": "novas: 265, repetidas: 11, descartadas: 51"
+    }
+]

@@ -20,42 +20,24 @@ define('ACESSOS_LOG_PATH', DATA_PATH . 'acessos_log.json');
  * a autenticacao ser validada com sucesso.
  */
 function registrarAcesso(int $userId): void {
-    $log = [];
-    if (file_exists(ACESSOS_LOG_PATH)) {
-        $conteudo = json_decode(file_get_contents(ACESSOS_LOG_PATH), true);
-        if (is_array($conteudo)) {
-            $log = $conteudo;
+    // dadosOperar trava a gravação, então dois logins ao mesmo tempo não se apagam
+    dadosOperar('acessos_log', function (array &$log) use ($userId) {
+        $log[] = [
+            'userId' => $userId,
+            'data'   => date('Y-m-d H:i:s'),
+        ];
+        // Guarda só os últimos 5000 registros (evita crescer para sempre)
+        if (count($log) > 5000) {
+            $log = array_slice($log, -5000);
         }
-    }
-
-    $log[] = [
-        'userId' => $userId,
-        'data'   => date('Y-m-d H:i:s'),
-    ];
-
-    // Mantem o arquivo com um tamanho razoavel, guardando apenas os
-    // ultimos 5000 registros (evita crescimento infinito do arquivo).
-    if (count($log) > 5000) {
-        $log = array_slice($log, -5000);
-    }
-
-    $dir = dirname(ACESSOS_LOG_PATH);
-    if (!is_dir($dir)) {
-        mkdir($dir, 0777, true);
-    }
-    file_put_contents(ACESSOS_LOG_PATH, json_encode($log, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    });
 }
 
 /**
- * Le o log completo de acessos (com seguranca, mesmo se o arquivo nao
- * existir ainda ou estiver corrompido).
+ * Le o log completo de acessos (com seguranca, mesmo se ainda nao existir).
  */
 function getAcessosLog(): array {
-    if (!file_exists(ACESSOS_LOG_PATH)) {
-        return [];
-    }
-    $conteudo = json_decode(file_get_contents(ACESSOS_LOG_PATH), true);
-    return is_array($conteudo) ? $conteudo : [];
+    return dadosLer('acessos_log');
 }
 
 /**

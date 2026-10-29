@@ -18,4 +18,4 @@ Entre como admin-egressos > Painel de Egressos > aba Cadastro:
   - "Cadastrar egresso novo": cria login com CPF e senha provisoria.
 
 ## Antes de subir
-Teste local com php -S localhost:8000 (nao consegui rodar PHP aqui).
+Teste local com php -S localhost:8000 router.php (nao consegui rodar PHP aqui).

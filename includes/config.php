@@ -18,6 +18,9 @@ if (file_exists(__DIR__ . '/../.env')) {
     $dotenv->load();
 }
 
+// Onde os dados ficam guardados (arquivos JSON ou banco de dados)
+require_once __DIR__ . '/armazenamento.php';
+
 /**
  * Bloqueia acesso de quem não está logado
  * e, em seguida, aplica a regra de permissão por perfil (admin x aluno).
@@ -42,7 +45,7 @@ function checkAdmin() {
 }
 
 /**
- * Controle de acesso por perfil.
+ * Controle de acesso por perfil (detalhes e listas em includes/perfis.php).
  *  - ALUNO:           nao entra nas paginas de admin nem nas de egresso.
  *  - ADMIN:           so entra nas paginas administrativas + mural de egressos.
  *  - ADMIN-EGRESSOS:  tudo que o admin ve + admin-egressos.php.
@@ -52,106 +55,36 @@ function checkAdmin() {
  * adicionar nada de novo nas paginas - so manter o checkAuth()/checkAdmin() que ja existe.
  */
 function verificarPermissaoPagina() {
-    $paginaAtual     = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
-    $isAdmin         = !empty($_SESSION['is_admin']);
-    $isEgresso       = !empty($_SESSION['is_egresso']);
-    $isAdminEgressos = $isAdmin && !empty($_SESSION['is_admin_egressos']);
-
-    // ---- EGRESSO: lista fechada de paginas ----
-    if ($isEgresso) {
-        $paginasEgresso = [
-            'egressos.php',          // mural de vagas de egressos
-            'egresso-perfil.php',    // perfil do egresso
-            'egresso-publicar.php',  // divulgar vagas
-            'mentoria.php',          // mentoria (egresso e mentor)
-            'forgot-password.php',
-            'index.php',
-        ];
-        if (!in_array($paginaAtual, $paginasEgresso, true)) {
-            header('Location: egressos.php');
-            exit;
-        }
-        return;
-    }
-
-    // Paginas que o ADMIN pode acessar
-    $paginasPermitidasAdmin = [
-        'admin-dashboard.php', // ajuste aqui se o nome real for admin_dashboard.php
-        'admin-jobs.php',
-        'admin-signature.php',
-        'dashboard.php',
-        'forgot-password.php',
-        'index.php',
-        'jobs.php',
-        'posts.php',
-        'egressos.php',        // mural de egressos: todo admin ve
-        'admin-alertas.php',   // fila de e-mails e resumo semanal
-    ];
-    if ($isAdminEgressos) {
-        $paginasPermitidasAdmin[] = 'admin-egressos.php';
-        $paginasPermitidasAdmin[] = 'admin-relatorios.php';
-        $paginasPermitidasAdmin[] = 'admin-mentoria.php';
-    }
-
-    // Paginas exclusivas de admin (aluno nao pode entrar)
-    $paginasExclusivasAdmin = [
-        'admin-dashboard.php', // ajuste aqui se o nome real for admin_dashboard.php
-        'admin-jobs.php',
-        'admin-signature.php',
-        'posts.php',
-        'admin-egressos.php',
-        'admin-alertas.php',
-        'admin-relatorios.php',
-        'admin-mentoria.php',
-    ];
-
-    // Paginas so de egresso (aluno nao entra; admin ja e barrado pela lista acima)
-    $paginasSoEgresso = ['egresso-perfil.php', 'egresso-publicar.php'];
-
-    if ($isAdmin) {
-        if (!in_array($paginaAtual, $paginasPermitidasAdmin, true)) {
-            header('Location: admin-dashboard.php'); // ajuste aqui se necessario
-            exit;
-        }
-    } else {
-        if (in_array($paginaAtual, $paginasExclusivasAdmin, true) || in_array($paginaAtual, $paginasSoEgresso, true)) {
-            header('Location: dashboard.php');
-            exit;
-        }
-    }
+    // As regras de cada perfil (paginas, menu e recursos) ficam em includes/perfis.php
+    perfilProtegerPagina();
 }
 
 /**
- * Carrega dados de um JSON.
+ * Carrega dados (de um JSON ou do banco, conforme DADOS_DRIVER).
  * - Dados globais: loadData('platform_jobs')
  * - Dados do usuário logado: loadData('userCurriculum', true)
+ * Quem decide ONDE os dados ficam é o includes/armazenamento.php.
  */
 function loadData($name, $perUser = false) {
-    $path = getDataPath($name, $perUser);
-
-    if (!file_exists($path)) {
-        return [];
-    }
-
-    $json = file_get_contents($path);
-    $data = json_decode($json, true);
-    return is_array($data) ? $data : [];
+    return dadosLer(dadosChave($name, $perUser));
 }
 
 /**
- * Salva dados em um JSON (global ou por usuário)
+ * Salva dados (global ou por usuário).
  */
 function saveData($name, $data, $perUser = false) {
-    $path = getDataPath($name, $perUser);
-    $dir = dirname($path);
-
-    if (!is_dir($dir)) {
-        mkdir($dir, 0777, true);
-    }
-
-    file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    dadosGravar(dadosChave($name, $perUser), $data);
 }
 
+/** 'platform_jobs' ou 'users/<id do logado>/userCurriculum' */
+function dadosChave($name, $perUser = false): string {
+    if ($perUser) {
+        return 'users/' . (int) ($_SESSION['user_id'] ?? 0) . '/' . $name;
+    }
+    return (string) $name;
+}
+
+/** Caminho do arquivo JSON (mantido para o código antigo; no modo banco ele não é usado). */
 function getDataPath($name, $perUser = false) {
     if ($perUser) {
         $userId = $_SESSION['user_id'] ?? 0;
@@ -183,3 +116,20 @@ function getFsaCourses() {
         "Sistemas de Informação"
     ];
 }
+
+/**
+ * JUSTIFICATIVA OBRIGATÓRIA
+ * Toda ação de negar, recusar, rejeitar, suspender, bloquear, encerrar ou remover
+ * exige um texto explicando o motivo (no mínimo JUSTIFICATIVA_MIN caracteres).
+ * Devolve o texto limpo, ou null se estiver vazio ou curto demais.
+ * Na tela, use no formulário: data-justificativa="motivo" (veja includes/header.php).
+ */
+const JUSTIFICATIVA_MIN = 10;
+function justificativaPost(string $campo = 'motivo', int $max = 500): ?string {
+    $t = trim(preg_replace('/[ \t]+/u', ' ', (string) ($_POST[$campo] ?? '')));
+    $t = mb_substr($t, 0, $max);
+    return mb_strlen($t) >= JUSTIFICATIVA_MIN ? $t : null;
+}
+
+// Arquitetura de perfis: alunos, professores, egressos e funcionarios
+require_once __DIR__ . '/perfis.php';

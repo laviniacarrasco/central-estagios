@@ -6,6 +6,8 @@ $userName  = $_SESSION['user_name'] ?? 'Visitante';
 $userId    = $_SESSION['user_id'] ?? 0;
 $isAdmin   = !empty($_SESSION['is_admin']);
 $isEgresso = !empty($_SESSION['is_egresso']);
+$perfilAtual = perfilAtual();                   // aluno | aluno_restrito | professor | egresso | admin | admin_egressos
+$isRestrito  = ($perfilAtual === 'aluno_restrito');
 $isAdminEgressos = $isAdmin && !empty($_SESSION['is_admin_egressos']);
 
 // Envio de e-mails em fila/resumo semanal: roda depois que a pagina ja foi entregue
@@ -222,112 +224,24 @@ if (is_array($usuariosHeaderCheck)) {
 
         <!-- Navegação -->
         <nav class="sidebar-nav">
-
-            <?php if ($isEgresso): ?>
-                <!-- ===== ÁREA DO EGRESSO (só enxerga o que é de egressos) ===== -->
-                <a href="egressos.php" class="sidebar-link" title="Vagas de Egressos">
-                    <i class="fas fa-briefcase"></i>
-                </a>
-                <a href="egresso-publicar.php" class="sidebar-link" title="Divulgar Vaga">
-                    <i class="fas fa-plus-circle"></i>
-                </a>
-                <a href="egresso-perfil.php" class="sidebar-link" title="Meu Perfil de Egresso">
-                    <i class="fas fa-user-graduate"></i>
-                </a>
-                <a href="mentoria.php" class="sidebar-link" title="Mentoria">
-                    <i class="fas fa-hands-helping"></i>
-                    <?php echo avisosBadge('mentoria'); ?>
-                </a>
-            <?php else: ?>
-
-            <!-- Início: visível para todos -->
-            <a href="dashboard.php"  class="sidebar-link" title="Início">
-                <i class="fas fa-home"></i>
-            </a>
-
-            <?php if (!$isAdmin): ?>
-                <!-- ===== ÁREA DO ALUNO (oculta para admin) ===== -->
-                <a href="profile.php"    class="sidebar-link" title="Perfil">
-                    <i class="fas fa-user"></i>
-                </a>
-                <a href="curriculum.php" class="sidebar-link" title="Currículo">
-                    <i class="fas fa-file-alt"></i>
-                </a>
-                <a href="documents.php"  class="sidebar-link" title="Documentos">
-                    <i class="fas fa-folder"></i>
-                </a>
-            <?php endif; ?>
-
-            <!-- Vagas: visível para todos (aluno usa pra buscar, admin também pode ver a listagem pública) -->
-            <a href="jobs.php" class="sidebar-link" title="Vagas">
-                <i class="fas fa-briefcase"></i>
-            </a>
-
-            <?php if (!$isAdmin): ?>
-                <a href="minhas-vagas.php" class="sidebar-link" title="Minhas Vagas">
-                    <i class="fas fa-clipboard-check"></i>
-                </a>
-                <a href="vagas-para-voce.php" class="sidebar-link" title="Vagas para Você">
-                    <i class="fas fa-star"></i>
-                </a>
-            <?php endif; ?>
-
-            <?php if (!$isAdmin): ?>
-                <a href="signature.php" class="sidebar-link" title="Assinaturas">
-                    <i class="fas fa-file-signature"></i>
-                    <?php echo avisosBadge('aluno_assinaturas'); ?>
-                </a>
-                <a href="career-tips.php" class="sidebar-link" title="Dicas de Carreira">
-                    <i class="fas fa-lightbulb"></i>
-                </a>
-                <a href="mentoria.php" class="sidebar-link" title="Mentoria">
-                    <i class="fas fa-hands-helping"></i>
-                </a>
-
-                <!-- Icone de Solicitar Vaga: escondido para alunos bloqueados por ma conduta -->
-                <?php if (!$isBloqueado): ?>
-                    <a href="request-job.php" class="sidebar-link" title="Solicitar Vaga">
-                        <i class="fas fa-plus-circle"></i>
-                    </a>
-                <?php endif; ?>
-            <?php endif; ?>
-
-            <?php if ($isAdmin): ?>
+            <?php
+            /* Menu montado pelo registro de perfis (includes/perfis.php).
+               Itens do grupo "gestao" ficam abaixo do divisor, com o icone menor. */
+            $grupoMenuAnterior = null;
+            foreach (perfilMenu() as $itemMenu):
+                if (($itemMenu['cond'] ?? '') === 'nao_bloqueado' && $isBloqueado) continue;
+                $ehGestao = ($itemMenu['grupo'] ?? '') === 'gestao';
+                if ($ehGestao && $grupoMenuAnterior !== 'gestao'): ?>
                 <hr class="sidebar-divider">
-
-                <!-- ===== ÁREA ADMIN (ordem coesa: gestão -> conteúdo -> visão geral) ===== -->
-                <a href="admin-jobs.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Admin Vagas">
-                    <i class="fas fa-cog"></i>
-                    <?php echo avisosBadge('admin_jobs'); ?>
+            <?php endif;
+                $grupoMenuAnterior = $itemMenu['grupo'] ?? ''; ?>
+                <a href="<?php echo htmlspecialchars($itemMenu['href']); ?>"
+                   class="sidebar-link<?php echo $ehGestao ? ' sidebar-link-muted sidebar-link-sm' : ''; ?>"
+                   title="<?php echo htmlspecialchars($itemMenu['titulo']); ?>">
+                    <i class="fas <?php echo htmlspecialchars($itemMenu['icone']); ?>"></i>
+                    <?php if (!empty($itemMenu['badge'])) echo avisosBadge($itemMenu['badge']); ?>
                 </a>
-                <a href="admin-signature.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Admin Assinaturas">
-                    <i class="fas fa-file-signature"></i>
-                    <?php echo avisosBadge('admin_assinaturas'); ?>
-                </a>
-                <a href="posts.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Admin Posts">
-                    <i class="fas fa-newspaper"></i>
-                </a>
-                <a href="admin-dashboard.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Dashboard Admin">
-                    <i class="fas fa-chart-line"></i>
-                </a>
-                <a href="admin-alertas.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Alertas e E-mails">
-                    <i class="fas fa-envelope"></i>
-                </a>
-                <?php if ($isAdminEgressos): ?>
-                    <a href="admin-egressos.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Painel de Egressos">
-                        <i class="fas fa-users"></i>
-                        <?php echo avisosBadge('admin_egressos'); ?>
-                    </a>
-                    <a href="admin-mentoria.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Mentoria (Admin)">
-                        <i class="fas fa-hands-helping"></i>
-                        <?php echo avisosBadge('mentoria'); ?>
-                    </a>
-                    <a href="admin-relatorios.php" class="sidebar-link sidebar-link-muted sidebar-link-sm" title="Relatórios de Egressos">
-                        <i class="fas fa-file-export"></i>
-                    </a>
-                <?php endif; ?>
-            <?php endif; ?>
-            <?php endif; /* fim: nao egresso */ ?>
+            <?php endforeach; ?>
         </nav>
         <!-- Espaçador flexível: é ESTE elemento que absorve o espaço
              sobrando entre a navegação e o botão de logout, mantendo
@@ -353,7 +267,7 @@ if (is_array($usuariosHeaderCheck)) {
             <?php echo htmlspecialchars($pageTitle); ?>
         </h1>
 
-        <?php $mostrarEngrenagem = !$isAdmin && !$isEgresso; ?>
+        <?php $mostrarEngrenagem = perfilPode('alertas'); ?>
         <?php if ($mostrarEngrenagem): ?>
         <!-- Engrenagem: abre Meus Alertas dentro do Perfil -->
         <a href="profile.php?config=alertas"
@@ -364,7 +278,8 @@ if (is_array($usuariosHeaderCheck)) {
         <?php endif; ?>
 
         <!-- Avatar / Perfil -->
-        <a href="<?php echo $isEgresso ? 'egresso-perfil.php' : 'profile.php'; ?>"
+        <?php $linkAvatar = perfilPaginaPermitida('profile.php') ? 'profile.php' : (perfilPaginaPermitida('egresso-perfil.php') ? 'egresso-perfil.php' : perfilHome()); ?>
+        <a href="<?php echo $linkAvatar; ?>"
            class="<?php echo $mostrarEngrenagem ? '' : 'ml-auto'; ?> flex items-center gap-3 px-4 py-2 border-2 border-gray-200 rounded-full hover:border-[#4A9FCA] hover:bg-gray-50 transition-all cursor-pointer flex-shrink-0"
            title="Ver Perfil">
 
@@ -396,7 +311,10 @@ if (is_array($usuariosHeaderCheck)) {
     <!-- Substitui o confirm()/alert() do navegador em todas as paginas.        -->
     <!-- Uso em formularios:  <form data-confirm="Texto" data-confirm-titulo="Titulo"
          data-confirm-botao="Excluir" data-confirm-tipo="perigo|aviso" data-confirm-icone="fa-trash-alt">
-         Uso em JS:  fsaConfirmar({titulo, texto, botao, tipo, icone}, function(){...});  fsaAviso('texto', 'titulo'); -->
+         Uso em JS:  fsaConfirmar({titulo, texto, botao, tipo, icone}, function(){...});  fsaAviso('texto', 'titulo');
+         JUSTIFICATIVA OBRIGATÓRIA: acrescente data-justificativa="motivo" no formulário (nome do campo enviado).
+         Opcionais: data-justificativa-dica="Ex.: ..." e data-justificativa-max="300". A caixa só confirma com
+         pelo menos 10 caracteres. Em JS: fsaConfirmar({..., justificativa: true}, function (texto) {...}); -->
     <!-- ================================================================ -->
     <div id="fsaModal" class="fixed inset-0 z-[999] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="fsaModalTitulo">
         <div id="fsaModalFundo" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
@@ -406,6 +324,12 @@ if (is_array($usuariosHeaderCheck)) {
             </div>
             <h3 id="fsaModalTitulo" class="text-xl font-bold text-gray-900 text-center mb-2"></h3>
             <p id="fsaModalTexto" class="text-gray-500 text-sm text-center mb-8 leading-relaxed"></p>
+            <div id="fsaModalJustBox" class="hidden -mt-4 mb-6">
+                <label for="fsaModalJust" class="block text-xs font-bold text-gray-500 uppercase mb-1">Justificativa (obrigatória)</label>
+                <textarea id="fsaModalJust" rows="3" maxlength="500"
+                          class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#4A9FCA]"></textarea>
+                <p id="fsaModalJustErro" class="hidden text-xs text-red-600 mt-1"><i class="fas fa-exclamation-circle mr-1"></i>Escreva a justificativa (pelo menos 10 caracteres).</p>
+            </div>
             <div class="flex gap-3">
                 <button type="button" id="fsaModalCancelar"
                         class="flex-1 py-3 px-4 rounded-2xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-all text-sm">
@@ -424,6 +348,8 @@ if (is_array($usuariosHeaderCheck)) {
         var $ = function (id) { return document.getElementById(id); };
         var acaoOk = null;
         var focoAnterior = null;
+        var exigeJust = false;
+        var JUST_MIN = 10;
 
         function fechar() {
             modal.classList.add('hidden');
@@ -453,9 +379,19 @@ if (is_array($usuariosHeaderCheck)) {
             $('fsaModalCancelar').style.display = o.soAviso ? 'none' : '';
             acaoOk = o.onOk || null;
             focoAnterior = document.activeElement;
+
+            // Justificativa obrigatória (negar, recusar, suspender, bloquear...)
+            exigeJust = !!o.justificativa;
+            var just = $('fsaModalJust');
+            $('fsaModalJustBox').classList.toggle('hidden', !exigeJust);
+            $('fsaModalJustErro').classList.add('hidden');
+            just.value = o.justificativaValor || '';
+            just.placeholder = o.justificativaDica || 'Explique o motivo. A pessoa afetada pode ver este texto.';
+            just.maxLength = +o.justificativaMax || 500;
+
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            (o.soAviso ? ok : $('fsaModalCancelar')).focus();
+            (exigeJust ? just : (o.soAviso ? ok : $('fsaModalCancelar'))).focus();
         }
 
         $('fsaModalCancelar').addEventListener('click', fechar);
@@ -464,9 +400,17 @@ if (is_array($usuariosHeaderCheck)) {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) fechar();
         });
         $('fsaModalOk').addEventListener('click', function () {
-            var f = acaoOk;
+            var f = acaoOk, texto = '';
+            if (exigeJust) {
+                texto = $('fsaModalJust').value.trim();
+                if (texto.length < JUST_MIN) {
+                    $('fsaModalJustErro').classList.remove('hidden');
+                    $('fsaModalJust').focus();
+                    return;
+                }
+            }
             fechar();
-            if (f) f();
+            if (f) f(texto);
         });
 
         // Formularios com data-confirm abrem a caixa antes de enviar
@@ -474,16 +418,30 @@ if (is_array($usuariosHeaderCheck)) {
             var form = e.target;
             if (!form || !form.getAttribute) return;
             var texto = form.getAttribute('data-confirm');
-            if (!texto || form.__fsaConfirmado) return;
+            var campoJust = form.getAttribute('data-justificativa');
+            if ((!texto && !campoJust) || form.__fsaConfirmado) return;
             e.preventDefault();
             var quemEnviou = e.submitter || null;
             abrir({
                 titulo: form.getAttribute('data-confirm-titulo'),
-                texto:  texto,
+                texto:  texto || '',
                 botao:  form.getAttribute('data-confirm-botao'),
                 tipo:   form.getAttribute('data-confirm-tipo'),
                 icone:  form.getAttribute('data-confirm-icone'),
-                onOk: function () {
+                justificativa:     !!campoJust,
+                justificativaDica: form.getAttribute('data-justificativa-dica'),
+                justificativaMax:  form.getAttribute('data-justificativa-max'),
+                onOk: function (just) {
+                    if (campoJust) {               // coloca o texto no formulário antes de enviar
+                        var campo = form.querySelector('[name="' + campoJust + '"]');
+                        if (!campo) {
+                            campo = document.createElement('input');
+                            campo.type = 'hidden';
+                            campo.name = campoJust;
+                            form.appendChild(campo);
+                        }
+                        campo.value = just;
+                    }
                     form.__fsaConfirmado = true;
                     if (form.requestSubmit) { form.requestSubmit(quemEnviou || undefined); }
                     else { form.submit(); }
@@ -558,3 +516,31 @@ if (is_array($usuariosHeaderCheck)) {
             });
         });
     </script>
+
+<?php if (perfilPaginaPermitida('mentoria-chat.php')): ?>
+<script>
+/* Bolinha do ícone Mentoria: pergunta ao servidor a cada 30 segundos
+   se chegou mensagem nova ou pedido novo, sem precisar recarregar a página. */
+(function () {
+    function atualizar() {
+        fetch('mentoria-chat.php?contar=1', { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.ok) return;
+                document.querySelectorAll('a.sidebar-link[href="mentoria.php"]').forEach(function (link) {
+                    var b = link.querySelector('.sidebar-badge');
+                    if (d.total > 0) {
+                        if (!b) { b = document.createElement('span'); b.className = 'sidebar-badge'; link.appendChild(b); }
+                        b.textContent = d.total > 99 ? '99+' : d.total;
+                    } else if (b) {
+                        b.remove();
+                    }
+                });
+            })
+            .catch(function () {});
+    }
+    window.fsaAtualizarBolinhaMentoria = atualizar;
+    setInterval(atualizar, 30000);
+})();
+</script>
+<?php endif; ?>

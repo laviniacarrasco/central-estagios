@@ -76,8 +76,8 @@ $telefone    = $curriculumData['telefone']    ?? '';
 $cidade      = $curriculumData['cidade']      ?? '';
 
 // NOVO: resultado do Perfil por Competências (busca no servidor Flask via cURL)
-$resultadoPerfil = buscarResultadoPerfil($userName);
-$urlFormPerfil   = urlFormularioPerfil($userName);
+$resultadoPerfil = perfilPode('ia_perfil') ? buscarResultadoPerfil($userName) : null;
+$urlFormPerfil   = perfilPode('ia_perfil') ? urlFormularioPerfil($userName) : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_perfil'])) {
     $uploadDir = "uploads/profile/{$_SESSION['user_id']}/";
@@ -265,6 +265,7 @@ include 'includes/header.php';
                     </a>
                 </div>
 
+                <?php if (perfilPode('ia_perfil')): /* card de IA (oculto para aluno restrito) */ ?>
                 <!-- ============================================================ -->
                 <!-- NOVO: Card "Perfil por Competências" (integração com Flask) -->
                 <!-- ============================================================ -->
@@ -335,6 +336,8 @@ include 'includes/header.php';
                     <?php endif; ?>
                 </div>
 
+                <?php endif; ?>
+
                 <div class="bg-gradient-to-br from-[#E74C3C] to-[#C0392B] text-white p-6 rounded-2xl">
                     <h3 class="text-2xl font-bold mb-3">Magazine FSA</h3>
                     <p class="text-white/90 mb-4 text-sm">
@@ -349,7 +352,7 @@ include 'includes/header.php';
             </div>
         </div>
 
-        <?php include 'includes/alertas-card.php'; ?>
+        <?php if (perfilPode('alertas')) include 'includes/alertas-card.php'; ?>
 
     </div>
 </main>

@@ -1,0 +1,42 @@
+[
+    {
+        "RA": "760876",
+        "NOME": "Lavinia",
+        "CPF": "00000000001",
+        "EMAIL": "lavinia.760876@graduacao.fsa.br",
+        "CURSO": "CIENCIA DE DADOS E INTELIGENCIA ARTIFICIAL",
+        "PERIODO": "5",
+        "TURNO": "N",
+        "SITUACAO": "ATIVO"
+    },
+    {
+        "RA": "999001",
+        "NOME": "Aluno Exemplo TOTVS",
+        "CPF": "55555555555",
+        "EMAIL": "aluno.exemplo@teste.com",
+        "CURSO": "ENG. DE PRODUCAO",
+        "PERIODO": "2",
+        "TURNO": "M",
+        "SITUACAO": "MATRICULADO"
+    },
+    {
+        "RA": "999002",
+        "NOME": "Aluna Curso Novo",
+        "CPF": "66666666666",
+        "EMAIL": "aluna.cursonovo@teste.com",
+        "CURSO": "MEDICINA VETERINARIA",
+        "PERIODO": "1",
+        "TURNO": "I",
+        "SITUACAO": "ATIVO"
+    },
+    {
+        "RA": "",
+        "NOME": "Linha sem identificação",
+        "CPF": "",
+        "EMAIL": "",
+        "CURSO": "DIREITO",
+        "PERIODO": "3",
+        "TURNO": "N",
+        "SITUACAO": "ATIVO"
+    }
+]

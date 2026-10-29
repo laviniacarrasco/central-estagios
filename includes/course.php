@@ -188,19 +188,17 @@ function seedCursosConfig(): array {
  * Le (ou cria, se ainda nao existir) o arquivo de configuracao de cursos.
  */
 function getCursosConfig(): array {
-    if (!file_exists(COURSE_PATH)) {
+    // Primeira vez: grava os valores oficiais (JSON ou banco, ver armazenamento.php)
+    if (!dadosExiste('course')) {
         $seed = seedCursosConfig();
-        $dir = dirname(COURSE_PATH);
-        if (!is_dir($dir)) mkdir($dir, 0777, true);
-        file_put_contents(COURSE_PATH, json_encode($seed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        dadosGravar('course', $seed);
         return $seed;
     }
-    $conteudo = json_decode(file_get_contents(COURSE_PATH), true);
-    return is_array($conteudo) ? $conteudo : [];
+    return dadosLer('course');
 }
 
 function salvarCursosConfig(array $config): void {
-    file_put_contents(COURSE_PATH, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    dadosGravar('course', $config);
 }
 
 /**

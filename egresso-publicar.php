@@ -346,6 +346,12 @@ include 'includes/header.php';
                                     </p>
                                 <?php endif; ?>
 
+                                <?php if ($st === 'encerrada' && !empty($v['motivoEncerramento'])): ?>
+                                    <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg mb-3">
+                                        <strong>Encerrada pela coordenação:</strong> <?= egh($v['motivoEncerramento']) ?>
+                                    </p>
+                                <?php endif; ?>
+
                                 <?php if ($st === 'aprovada'): ?>
                                     <p class="text-xs text-gray-500 mb-3"><i class="fas fa-users mr-1"></i> <?= (int) ($v['applicants'] ?? 0) ?> candidatura(s) de alunos</p>
                                 <?php endif; ?>
