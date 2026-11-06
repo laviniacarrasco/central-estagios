@@ -131,7 +131,7 @@ $csrf = htmlspecialchars($_SESSION['csrf_banco']);
 <div class="p-8 max-w-7xl mx-auto">
 
     <div class="mb-6">
-        <h2 class="text-3xl font-bold text-slate-900 mb-1">Banco de dados</h2>
+        <h2 class="text-3xl font-extrabold text-slate-900 mb-1">Banco de dados</h2>
         <p class="text-slate-500">Onde a Central guarda os dados de cada aba, e o que fazer quando o banco cai. Detalhes em <code>docs/BANCO-DE-DADOS.md</code>.</p>
     </div>
 
@@ -234,6 +234,25 @@ $csrf = htmlspecialchars($_SESSION['csrf_banco']);
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <!-- Reservas das integrações -->
+    <?php $reservas = reservaListar(); ?>
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 mb-8">
+        <h3 class="font-bold text-slate-900 mb-1"><i class="fas fa-life-ring mr-2 text-[#4A9FCA]"></i>Reserva das integrações</h3>
+        <p class="text-xs text-gray-400 mb-4">Cópia em JSON da última leitura do TOTVS e de cada consulta do banco / data lake. Se eles não responderem, os Painéis e Relatórios usam esta cópia (com aviso). A sincronização de alunos nunca usa a cópia.</p>
+        <?php if (!$reservas): ?>
+            <p class="text-sm text-gray-500">Ainda não há cópias. Elas são criadas na primeira leitura que der certo (TOTVS no modo "real" ou "banco", ou uma consulta SQL nos Painéis).</p>
+        <?php else: ?>
+            <table class="w-full text-sm">
+                <thead><tr class="text-left text-xs uppercase text-gray-400 border-b"><th class="py-2 pr-3">Cópia</th><th class="py-2 pr-3">Origem</th><th class="py-2 pr-3">Guardada em</th><th class="py-2 text-right">Linhas</th></tr></thead>
+                <tbody>
+                <?php foreach ($reservas as $rv): ?>
+                    <tr class="border-b border-gray-50"><td class="py-2 pr-3 font-mono text-xs"><?= htmlspecialchars($rv['nome']) ?></td><td class="py-2 pr-3"><?= htmlspecialchars($rv['rotulo']) ?></td><td class="py-2 pr-3"><?= htmlspecialchars($rv['quando']) ?></td><td class="py-2 text-right"><?= (int) $rv['total'] ?></td></tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
     </div>
 
     <!-- Integrações -->

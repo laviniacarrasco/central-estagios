@@ -130,10 +130,10 @@ include 'includes/header.php';
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Posts e Notícias</h2>
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Posts e Notícias</h2>
                 <p class="text-gray-600">Gerencie o que aparece no Dashboard dos alunos</p>
             </div>
-            <button onclick="openCreateModal()" class="px-4 py-2 bg-[#4A9FCA] text-white rounded-lg hover:bg-[#3A8FB0] transition-all">
+            <button onclick="openCreateModal()" class="px-4 py-2 bg-[#4A9FCA] text-white rounded-lg hover:bg-[#2B7FA6] transition-all">
                 + Novo Post
             </button>
         </div>
@@ -141,17 +141,17 @@ include 'includes/header.php';
         <!-- Modal Criar Post -->
         <div id="postModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
             <div class="bg-white rounded-[32px] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6">Criar Nova Postagem</h3>
+                <h3 class="text-2xl font-bold text-slate-900 mb-6">Criar Nova Postagem</h3>
                 <form method="POST" action="posts.php" enctype="multipart/form-data" class="space-y-6">
                     <input type="hidden" name="action" value="save">
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Título do Post</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Título do Post</label>
                         <input type="text" name="title" class="w-full h-12 px-6 bg-gray-50 rounded-2xl" placeholder="Ex: Evento de Tecnologia 2026" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Imagens</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Imagens</label>
                         <div class="border-2 border-dashed border-gray-200 rounded-[32px] p-10 text-center bg-white">
                             <i class="fas fa-upload text-4xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 mb-6">Selecione imagens para o seu post</p>
@@ -161,18 +161,18 @@ include 'includes/header.php';
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Conteúdo do Post</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Conteúdo do Post</label>
                         <textarea name="content" rows="5" class="w-full p-6 bg-gray-50 rounded-2xl resize-none" placeholder="Escreva aqui os detalhes da notícia..." required></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Hashtags (separadas por vírgula)</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Hashtags (separadas por vírgula)</label>
                         <input type="text" name="hashtags" class="w-full h-12 px-6 bg-gray-50 rounded-2xl" placeholder="FSA, Estágio, Oportunidades">
                     </div>
 
-                    <div class="flex items-center justify-between p-6 bg-gray-50 rounded-[24px]">
+                    <div class="flex items-center justify-between p-6 bg-gray-50 rounded-3xl">
                         <div>
-                            <label class="text-lg font-bold text-gray-900">Remover fundo branco?</label>
+                            <label class="text-lg font-bold text-slate-900">Remover fundo branco?</label>
                             <p class="text-sm text-gray-500">Aplica transparência automática</p>
                         </div>
                         <input type="checkbox" name="whiteBackground" class="w-6 h-6">
@@ -189,18 +189,18 @@ include 'includes/header.php';
         <!-- Modal Editar Post -->
         <div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
             <div class="bg-white rounded-[32px] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6">Editar Postagem</h3>
+                <h3 class="text-2xl font-bold text-slate-900 mb-6">Editar Postagem</h3>
                 <form method="POST" action="posts.php" enctype="multipart/form-data" class="space-y-6">
                     <input type="hidden" name="action" value="edit">
                     <input type="hidden" name="id" id="editPostId">
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Título do Post</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Título do Post</label>
                         <input type="text" name="title" id="editPostTitle" class="w-full h-12 px-6 bg-gray-50 rounded-2xl" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Nova Imagem (opcional)</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Nova Imagem (opcional)</label>
                         <div class="border-2 border-dashed border-gray-200 rounded-[32px] p-8 text-center bg-white">
                             <p class="text-gray-400 text-sm mb-3">Deixe vazio para manter a imagem atual</p>
                             <div id="editCurrentImage" class="mb-4"></div>
@@ -210,18 +210,18 @@ include 'includes/header.php';
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Conteúdo do Post</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Conteúdo do Post</label>
                         <textarea name="content" id="editPostContent" rows="5" class="w-full p-6 bg-gray-50 rounded-2xl resize-none" required></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Hashtags (separadas por vírgula)</label>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Hashtags (separadas por vírgula)</label>
                         <input type="text" name="hashtags" id="editPostHashtags" class="w-full h-12 px-6 bg-gray-50 rounded-2xl">
                     </div>
 
-                    <div class="flex items-center justify-between p-6 bg-gray-50 rounded-[24px]">
+                    <div class="flex items-center justify-between p-6 bg-gray-50 rounded-3xl">
                         <div>
-                            <label class="text-lg font-bold text-gray-900">Remover fundo branco?</label>
+                            <label class="text-lg font-bold text-slate-900">Remover fundo branco?</label>
                             <p class="text-sm text-gray-500">Aplica transparência automática</p>
                         </div>
                         <input type="checkbox" name="whiteBackground" id="editPostWhiteBg" class="w-6 h-6">
@@ -297,7 +297,7 @@ include 'includes/header.php';
                                     <?php echo $post["whiteBackground"] ? "true" : "false"; ?>,
                                     <?php echo json_encode($post["images"][0] ?? ""); ?>
                                 )'
-                                class="flex-1 px-3 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2">
+                                class="flex-1 px-3 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
 
@@ -323,12 +323,12 @@ include 'includes/header.php';
 
                             <div id="postCarouselWrapper_<?php echo $post['id']; ?>" class="relative group">
 
-                                <div class="overflow-hidden rounded-[24px]">
+                                <div class="overflow-hidden rounded-3xl">
                                     <div id="postCarouselTrack_<?php echo $post['id']; ?>" class="flex transition-transform duration-500 ease-in-out">
                                         <?php if (!empty($imagensPost)): ?>
                                             <?php foreach ($imagensPost as $img): ?>
                                                 <div class="w-full flex-shrink-0">
-                                                    <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+                                                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                                                         <div class="w-full relative" style="height: 260px; overflow: hidden; background: #000;">
                                                             <img
                                                                 src="<?php echo htmlspecialchars($img); ?>"
@@ -338,14 +338,14 @@ include 'includes/header.php';
                                                             >
                                                         </div>
                                                         <div class="p-10">
-                                                            <span class="px-3 py-1 bg-[#58A1D4] text-white rounded-full text-xs font-bold uppercase mb-4 inline-block">Destaque</span>
+                                                            <span class="px-3 py-1 bg-[#4A9FCA] text-white rounded-full text-xs font-bold uppercase mb-4 inline-block">Destaque</span>
                                                             <p class="text-xs text-gray-400 mb-2">Publicado em <?php echo htmlspecialchars($post['createdAt']); ?></p>
                                                             <h3 class="text-3xl font-bold text-slate-900 mb-4"><?php echo htmlspecialchars($post['title']); ?></h3>
                                                             <p class="text-slate-600 text-lg mb-6"><?php echo htmlspecialchars(substr($post['content'], 0, 200)); ?></p>
                                                             <?php if (!empty($post['hashtags'])): ?>
                                                                 <div class="flex flex-wrap gap-2">
                                                                     <?php foreach ($post['hashtags'] as $tag): ?>
-                                                                        <span class="text-[#58A1D4] font-semibold text-sm">#<?php echo htmlspecialchars(trim($tag, '# ')); ?></span>
+                                                                        <span class="text-[#2B7FA6] font-semibold text-sm">#<?php echo htmlspecialchars(trim($tag, '# ')); ?></span>
                                                                     <?php endforeach; ?>
                                                                 </div>
                                                             <?php endif; ?>
@@ -355,16 +355,16 @@ include 'includes/header.php';
                                             <?php endforeach; ?>
                                         <?php else: ?>
                                             <div class="w-full flex-shrink-0">
-                                                <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+                                                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                                                     <div class="p-10">
-                                                        <span class="px-3 py-1 bg-[#58A1D4] text-white rounded-full text-xs font-bold uppercase mb-4 inline-block">Destaque</span>
+                                                        <span class="px-3 py-1 bg-[#4A9FCA] text-white rounded-full text-xs font-bold uppercase mb-4 inline-block">Destaque</span>
                                                         <p class="text-xs text-gray-400 mb-2">Publicado em <?php echo htmlspecialchars($post['createdAt']); ?></p>
                                                         <h3 class="text-3xl font-bold text-slate-900 mb-4"><?php echo htmlspecialchars($post['title']); ?></h3>
                                                         <p class="text-slate-600 text-lg mb-6"><?php echo htmlspecialchars(substr($post['content'], 0, 200)); ?></p>
                                                         <?php if (!empty($post['hashtags'])): ?>
                                                             <div class="flex flex-wrap gap-2">
                                                                 <?php foreach ($post['hashtags'] as $tag): ?>
-                                                                    <span class="text-[#58A1D4] font-semibold text-sm">#<?php echo htmlspecialchars(trim($tag, '# ')); ?></span>
+                                                                    <span class="text-[#2B7FA6] font-semibold text-sm">#<?php echo htmlspecialchars(trim($tag, '# ')); ?></span>
                                                                 <?php endforeach; ?>
                                                             </div>
                                                         <?php endif; ?>
@@ -406,7 +406,7 @@ include 'includes/header.php';
             <?php if (empty($posts)): ?>
                 <div class="col-span-full p-24 text-center border-2 border-dashed border-gray-200 bg-white rounded-[40px]">
                     <i class="fas fa-image text-6xl text-gray-300 mb-4"></i>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Sua galeria estão vazia</h3>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Sua galeria estão vazia</h3>
                     <p class="text-gray-500 mb-10">Crie postagens para manter os alunos informados.</p>
                     <button onclick="openCreateModal()" class="px-10 py-4 bg-[#4A9FCA] text-white rounded-2xl font-bold text-lg">
                         + Criar Primeiro Post
@@ -430,7 +430,7 @@ include 'includes/header.php';
                     <i class="fas fa-trash-alt text-red-500 text-3xl"></i>
                 </div>
 
-                <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Excluir Post?</h3>
+                <h3 class="text-xl font-bold text-slate-900 text-center mb-2">Excluir Post?</h3>
                 <p class="text-gray-500 text-sm text-center mb-1 leading-relaxed">Você está prestes a excluir:</p>
                 <p id="modalNomePost" class="text-[#4A9FCA] font-semibold text-sm text-center mb-3 leading-relaxed"></p>
                 <p class="text-gray-400 text-xs text-center mb-8">Esta ação não pode ser desfeita e o post sumirá para todos os alunos.</p>

@@ -131,7 +131,7 @@ include 'includes/header.php';
         <?php endif; ?>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="p-5 bg-[#58A1D4] text-white rounded-2xl">
+            <div class="p-5 bg-[#4A9FCA] text-white rounded-2xl">
                 <p class="text-white/90 text-sm font-medium">Total</p>
                 <p class="text-4xl font-bold"><?= $total ?></p>
             </div>
@@ -231,7 +231,7 @@ include 'includes/header.php';
 <?php else: ?>
 
         <div class="grid grid-cols-2 gap-4 mb-8 max-w-md">
-            <div class="p-5 bg-[#58A1D4] text-white rounded-2xl">
+            <div class="p-5 bg-[#4A9FCA] text-white rounded-2xl">
                 <p class="text-white/90 text-sm font-medium">Salvas</p>
                 <p class="text-4xl font-bold"><?= $totalSalvas ?></p>
             </div>
@@ -283,7 +283,7 @@ include 'includes/header.php';
                         <div class="flex flex-wrap items-center gap-3">
                             <?php if ($ok): ?>
                                 <a href="candidatar.php?origem=<?= egh($it['origem']) ?>&amp;job_id=<?= (int) $it['id'] ?>" target="_blank"
-                                   class="px-6 py-2 bg-[#58A1D4] hover:bg-[#4A8FBA] text-white rounded-xl text-sm">
+                                   class="px-6 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm">
                                     <i class="fas fa-paper-plane mr-1"></i> Candidatar-se
                                 </a>
                             <?php endif; ?>

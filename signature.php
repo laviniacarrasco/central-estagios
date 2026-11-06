@@ -266,7 +266,7 @@ function renderSignatureCard(array $sol, string $EMAIL_AJUDA): string {
                     <input type="file" name="arquivo_reenvio" required
                         class="flex-1 min-w-[200px] text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
                     <button type="submit"
-                        class="px-4 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white text-sm font-semibold rounded-xl transition-all">
+                        class="px-4 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white text-sm font-semibold rounded-xl transition-all">
                         <i class="fas fa-paper-plane mr-1.5"></i> Reenviar
                     </button>
                 </form>
@@ -507,7 +507,7 @@ include 'includes/header.php';
 
         <div class="flex justify-end mt-5">
             <button type="button" id="btnEnviarAssinatura" disabled
-                class="opacity-50 pointer-events-none px-6 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white font-semibold rounded-xl transition-all">
+                class="opacity-50 pointer-events-none px-6 py-3 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white font-semibold rounded-xl transition-all">
                 <i class="fas fa-paper-plane mr-2"></i>Enviar para assinatura
             </button>
         </div>
@@ -588,7 +588,7 @@ include 'includes/header.php';
             ou compareça pessoalmente à coordenação da faculdade.
         </p>
         <button type="button" onclick="fecharModalAjuda()"
-            class="w-full py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white font-medium rounded-xl transition-all">
+            class="w-full py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white font-medium rounded-xl transition-all">
             Entendi
         </button>
     </div>
@@ -749,7 +749,7 @@ function atualizarBotaoOk() {
     }
     btnOk.disabled = !valido;
     btnOk.className = valido
-        ? 'flex-1 py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white font-semibold rounded-xl transition-all'
+        ? 'flex-1 py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white font-semibold rounded-xl transition-all'
         : 'flex-1 py-2.5 bg-gray-300 text-white font-semibold rounded-xl transition-all cursor-not-allowed';
 }
 

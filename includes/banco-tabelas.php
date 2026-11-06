@@ -159,6 +159,12 @@ function dadosTabelasConfig(): array {
             'chaves' => ['totvs_ultima_sincronizacao', 'totvs_exemplo'],
         ],
 
+        'reservas' => [
+            'tabela' => 'central_reservas',
+            'aba'    => 'Reserva das integrações (cópia do TOTVS e do banco / data lake, usada quando eles não respondem)',
+            'chaves' => ['reserva/*'],
+        ],
+
         /* ------------------------------ O RESTO ----------------------------- */
         'geral' => [
             'tabela' => 'central_dados',

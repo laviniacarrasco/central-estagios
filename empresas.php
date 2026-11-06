@@ -59,14 +59,14 @@ include 'includes/header.php';
                 <input type="text" name="search" value="<?= egh($busca) ?>" placeholder="Buscar por empresa, setor ou descrição..."
                        class="w-full h-12 pl-12 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4A9FCA]">
             </div>
-            <select name="curso" class="h-12 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.submit()">
+            <select name="curso" class="h-12 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.requestSubmit()">
                 <option value="">Todos os cursos</option>
                 <?php foreach ($fsaCourses as $c): ?>
                     <option value="<?= egh($c) ?>" <?= $c === $cursoSel ? 'selected' : '' ?>><?= egh($c) ?></option>
                 <?php endforeach; ?>
             </select>
             <label class="h-12 px-4 bg-white border border-gray-200 rounded-xl flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                <input type="checkbox" name="com_vagas" value="1" <?= $soComVagas ? 'checked' : '' ?> onchange="this.form.submit()">
+                <input type="checkbox" name="com_vagas" value="1" <?= $soComVagas ? 'checked' : '' ?> onchange="this.form.requestSubmit()">
                 Só com vagas abertas
             </label>
         </form>

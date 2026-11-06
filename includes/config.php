@@ -20,6 +20,8 @@ if (file_exists(__DIR__ . '/../.env')) {
 
 // Onde os dados ficam guardados (arquivos JSON ou banco de dados)
 require_once __DIR__ . '/armazenamento.php';
+// Cópia em JSON do TOTVS e do banco / data lake, usada quando eles não respondem
+require_once __DIR__ . '/reserva-externa.php';
 
 /**
  * Bloqueia acesso de quem não está logado

@@ -11,7 +11,7 @@ require_once 'includes/melhorias.php';
 checkAuth();
 
 if (!isAdminEgressos()) {
-    header('Location: admin-dashboard.php');
+    header('Location: ' . perfilHome());
     exit;
 }
 
@@ -318,9 +318,9 @@ include 'includes/header.php';
     <div class="p-8 max-w-7xl mx-auto">
 
         <div class="mb-6 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Gestão de Egressos</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Gestão de Egressos</h2>
             <p class="text-slate-500 font-medium">Modere as vagas que os ex-alunos divulgam e cuide do cadastro.
-                Os indicadores ficam em <a href="admin-paineis.php?pasta=egressos" class="text-[#4A9FCA] font-semibold hover:underline"><i class="fas fa-chart-pie mr-1"></i>Painéis &gt; Egressos</a>.</p>
+                Os indicadores ficam em <?php if (perfilPaginaPermitida('admin-paineis.php')): ?><a href="admin-paineis.php?pasta=egressos" class="text-[#4A9FCA] font-semibold hover:underline"><i class="fas fa-chart-pie mr-1"></i>Painéis &gt; Egressos</a><?php endif; ?>.</p>
         </div>
 
         <?php if (!empty($_GET['msg']) && isset($mensagens[$_GET['msg']])): ?>

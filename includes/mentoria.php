@@ -1,7 +1,7 @@
 <?php
 /**
  * =============================================================================
- * MODULO MENTORIA (egressos orientam alunos)
+ * MODULO MENTORIA (professores orientam alunos)
  * -----------------------------------------------------------------------------
  * Fluxo:
  *   1. Egresso se cadastra como mentor em mentoria.php (aba "Minha mentoria").
@@ -20,6 +20,18 @@
  */
 
 require_once __DIR__ . '/egressos.php';
+
+/* Quem é mentor: PROFESSOR (antes eram os egressos). Para trocar, mude só aqui
+   e o recurso "ser_mentor" em includes/perfis.php. */
+const MENTORIA_TIPO_MENTOR = 'professor';
+
+/** A pessoa logada é mentora? */
+function mentoriaSouMentor(): bool { return function_exists('perfilPode') && perfilPode('ser_mentor'); }
+
+/** Quem administra a mentoria (aprova mentores, vê denúncias): recurso "gestao_mentoria" */
+function mentoriaGestorUsuario(array $u): bool {
+    return !empty($u['is_admin']) && perfilPode('gestao_mentoria', perfilDoUsuario($u));
+}
 
 const MENTORIA_MAX_PEDIDOS_ALUNO = 3;  // pedidos em andamento (aguardando + ativos) por aluno
 const MENTORIA_MAX_FILA_MENTOR   = 5;  // pedidos aguardando resposta por mentor
@@ -103,7 +115,7 @@ function mentoriaMax(array $u): int {
 
 /** Egresso aprovado e que marcou "aparecer para alunos" */
 function mentoriaMentorVisivel(array $u): bool {
-    return ($u['tipo'] ?? '') === 'egresso'
+    return ($u['tipo'] ?? '') === MENTORIA_TIPO_MENTOR
         && ($u['mentoriaStatus'] ?? '') === 'aprovado'
         && !empty($u['aceitaMentoria']);
 }
@@ -173,17 +185,20 @@ function mentoriaPendentesParaMim(): int {
     if (empty($_SESSION['user_id'])) return 0;
     $userId = (int) $_SESSION['user_id'];
 
-    // Egresso: pedidos aguardando resposta + mensagens novas no chat
-    if (isEgresso()) {
+    // Mentor (professor): pedidos aguardando resposta + mensagens novas no chat
+    if (mentoriaSouMentor()) {
         return mentoriaPendentesDoMentor($userId, mentoriaPedidos()) + mentoriaNaoLidasTotal($userId);
     }
-    // Admin de egressos: mentores aguardando aprovação + denúncias novas
-    if (isAdminEgressos()) {
+    // Quem administra a mentoria: mentores aguardando aprovação + denúncias novas
+    if (perfilPode('gestao_mentoria') || perfilPode('gestao_denuncias')) {
         $n = 0;
-        foreach (loadData('usuarios') as $u) {
-            if (($u['tipo'] ?? '') === 'egresso' && ($u['mentoriaStatus'] ?? '') === 'pendente') $n++;
+        if (perfilPode('gestao_mentoria')) {            // Coordenação de Estágios: mentores para aprovar
+            foreach (loadData('usuarios') as $u) {
+                if (($u['tipo'] ?? '') === MENTORIA_TIPO_MENTOR && ($u['mentoriaStatus'] ?? '') === 'pendente') $n++;
+            }
         }
-        return $n + mentoriaDenunciasAbertas();
+        if (perfilPode('gestao_denuncias')) $n += mentoriaDenunciasAbertas();   // Admin de Denúncias
+        return $n;
     }
     // Aluno: mensagens novas no chat
     if (empty($_SESSION['is_admin'])) {
@@ -313,7 +328,7 @@ function mentoriaEmailNovoPedido(array $mentor, array $pedido): void {
     if ($email === '') return;
     $curso = trim((string) ($pedido['alunoCurso'] ?? ''));
     notificarEmail($email, (string) ($mentor['nome'] ?? ''), 'Novo pedido de mentoria', 'Você recebeu um pedido de mentoria',
-        '<p>Olá, <strong>' . emH($mentor['nome'] ?? 'egresso(a)') . '</strong>,</p>'
+        '<p>Olá, <strong>' . emH($mentor['nome'] ?? 'professor(a)') . '</strong>,</p>'
         . '<p><strong>' . emH($pedido['alunoNome'] ?? '') . '</strong>' . ($curso !== '' ? ' (' . emH($curso) . ')' : '')
         . ' quer conversar com você sobre: <strong>' . emH($pedido['assunto'] ?? '') . '</strong>.</p>'
         . '<p>Você decide se aceita. Seu contato só é compartilhado com o aluno se você aceitar.</p>',
@@ -336,7 +351,7 @@ function mentoriaEmailResposta(array $pedido, bool $aceito, array $mentor): void
         notificarEmail($email, (string) ($pedido['alunoNome'] ?? ''), 'Sobre o seu pedido de mentoria', 'Pedido de mentoria não aceito',
             '<p>Olá, <strong>' . emH($pedido['alunoNome'] ?? 'aluno(a)') . '</strong>,</p>'
             . '<p>Desta vez <strong>' . emH($nomeMentor) . '</strong> não conseguiu aceitar o seu pedido. Isso costuma acontecer por falta de agenda.</p>'
-            . '<p>Você pode pedir mentoria a outros egressos.</p>' . $extra,
+            . '<p>Você pode pedir mentoria a outros professores.</p>' . $extra,
             'Ver outros mentores', mentoriaLink('mentores'));
     }
 }
@@ -346,7 +361,7 @@ function mentoriaEmailMentorStatus(array $u, string $tipo, string $motivo = ''):
     $email = trim((string) ($u['email'] ?? ''));
     if ($email === '') return;
     $extra = $motivo !== '' ? '<p style="background:#f3f6f9;padding:12px;border-radius:8px"><em>' . emH($motivo) . '</em></p>' : '';
-    $ola = '<p>Olá, <strong>' . emH($u['nome'] ?? 'egresso(a)') . '</strong>,</p>';
+    $ola = '<p>Olá, <strong>' . emH($u['nome'] ?? 'professor(a)') . '</strong>,</p>';
     if ($tipo === 'aprovado') {
         notificarEmail($email, (string) ($u['nome'] ?? ''), 'Você é mentor(a) da Central de Estágios', 'Cadastro de mentor aprovado',
             $ola . '<p>Seu cadastro como mentor(a) foi aprovado. Agora os alunos podem enviar pedidos de mentoria para você.</p>'
@@ -365,11 +380,11 @@ function mentoriaEmailMentorStatus(array $u, string $tipo, string $motivo = ''):
 /** Avisa os admins de egressos que ha um mentor novo para analisar */
 function mentoriaNotificarAdminsNovoMentor(array $egresso): void {
     foreach (loadData('usuarios') as $u) {
-        if (empty($u['is_admin']) || ($u['tipo'] ?? '') !== 'admin_egressos') continue;
+        if (!mentoriaGestorUsuario($u)) continue;
         $email = trim((string) ($u['email'] ?? ''));
         if ($email === '') continue;
         notificarEmail($email, (string) ($u['nome'] ?? ''), 'Novo mentor para analisar', 'Mentor aguardando aprovação',
-            '<p>O egresso <strong>' . emH($egresso['nome'] ?? '') . '</strong> quer ser mentor(a).</p>'
+            '<p>O(a) professor(a) <strong>' . emH($egresso['nome'] ?? '') . '</strong> quer ser mentor(a).</p>'
             . '<p>Ele só aparece para os alunos depois de aprovado.</p>',
             'Analisar agora', appBaseUrl() . '/admin-mentoria.php');
     }
@@ -641,11 +656,11 @@ function mentoriaDenunciaErro(string $chave): string {
     return $t[$chave] ?? $t['falha'];
 }
 
-/** E-mails da Coordenação de Egressos */
+/** E-mails do Admin de Denúncias (recebe as denúncias da mentoria). O nome da função ficou da versão antiga. */
 function mentoriaAdminsEgressos(): array {
     $out = [];
     foreach (loadData('usuarios') as $u) {
-        if (empty($u['is_admin']) || ($u['tipo'] ?? '') !== 'admin_egressos') continue;
+        if (!is_array($u) || perfilDoUsuario($u) !== 'admin_denuncias') continue;
         $email = trim((string) ($u['email'] ?? ''));
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) $out[$email] = [$email, (string) ($u['nome'] ?? '')];
     }
@@ -684,7 +699,7 @@ function mentoriaEmailDenunciaConcluida(array $d): void {
         [$st] = mentoriaDenunciaStatusInfo($d['status'] ?? '');
         notificarEmail($email, (string) ($d['denuncianteNome'] ?? ''), 'Sua denúncia foi analisada', 'Denúncia analisada',
             '<p>Olá, <strong>' . emH($d['denuncianteNome'] ?? '') . '</strong>,</p>'
-            . '<p>A Coordenação de Egressos analisou a denúncia que você fez na mentoria (situação: <strong>' . emH($st) . '</strong>).</p>'
+            . '<p>A coordenação analisou a denúncia que você fez na mentoria (situação: <strong>' . emH($st) . '</strong>).</p>'
             . '<p style="background:#f2f4f7;border-left:4px solid #4A9FCA;padding:10px 14px"><strong>Resposta da coordenação:</strong><br>' . nl2br(emH($d['resposta'] ?? '')) . '</p>'
             . '<p>Obrigado por nos avisar.</p>',
             'Ver minhas denúncias', appBaseUrl() . '/mentoria.php?aba=denuncias');

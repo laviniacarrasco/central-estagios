@@ -17,6 +17,7 @@
  *
  * Como o perfil e descoberto (perfilDoUsuario), pelo usuarios.json:
  *   is_admin + tipo "admin_egressos"  -> admin_egressos   (Funcionarios)
+ *   is_admin + tipo "admin_denuncias" -> admin_denuncias  (Funcionarios: denúncias e chats da mentoria)
  *   is_admin                          -> admin            (Funcionarios: Coordenacao)
  *   tipo "egresso"                    -> egresso          (Egressos)
  *   tipo "professor"                  -> professor        (Professores)
@@ -40,7 +41,7 @@ function perfisGrupos(): array {
         'alunos'       => ['rotulo' => 'Alunos',       'perfis' => ['aluno', 'aluno_restrito']],
         'professores'  => ['rotulo' => 'Professores',  'perfis' => ['professor']],
         'egressos'     => ['rotulo' => 'Egressos',     'perfis' => ['egresso']],
-        'funcionarios' => ['rotulo' => 'Funcionários', 'perfis' => ['admin', 'admin_egressos']],
+        'funcionarios' => ['rotulo' => 'Funcionários', 'perfis' => ['admin', 'admin_egressos', 'admin_denuncias']],
     ];
 }
 
@@ -67,12 +68,16 @@ function perfisRegistro(): array {
     $mMinhas   = perfilItemMenu('minhas-vagas.php', 'Minhas Vagas', 'fa-clipboard-check');
     $mParaVoce = perfilItemMenu('vagas-para-voce.php', 'Vagas para Você', 'fa-star');
     $mDicas    = perfilItemMenu('career-tips.php', 'Dicas de Carreira', 'fa-lightbulb');
+    $mDen      = perfilItemMenu('denuncias.php', 'Canal de Denúncias', 'fa-shield-alt', 'denuncias');   // bolinha = resposta nova
+    $pagDen    = ['denuncias.php', 'denuncia-anexo.php'];
 
     // ---------- Paginas da area do aluno ----------
     $paginasAlunoBase = [
         'dashboard.php', 'profile.php', 'curriculum.php', 'documents.php',
         'jobs.php', 'minhas-vagas.php', 'vagas-para-voce.php', 'career-tips.php',
         'candidatar.php', 'favoritar.php', 'candidaturas.php', 'favoritos.php',
+        'configuracoes.php',   // caixa de Configurações (engrenagem do topo)
+        'curriculo-pdf.php',   // currículo em PDF com texto (legível por ATS)
     ];
 
     // ---------- Gestao (funcionarios) ----------
@@ -110,15 +115,17 @@ function perfisRegistro(): array {
                 'signature.php', 'mentoria.php', 'request-job.php', 'egressos.php',
                 'alertas-salvar.php', 'perfil-extras-salvar.php',
                 'mentoria-chat.php',   // chat da mentoria (JSON)
-            ]),
+                'ia-curriculo.php',    // IA do currículo (Gemini)
+            ], $pagDen),
             'menu' => [
                 $mInicio, $mPerfil, $mCv, $mDocs, $mVagas, $mMinhas, $mParaVoce,
                 perfilItemMenu('signature.php', 'Assinaturas', 'fa-file-signature', 'aluno_assinaturas'),
                 $mDicas,
                 perfilItemMenu('mentoria.php', 'Mentoria', 'fa-hands-helping', 'mentoria'),   // bolinha = mensagens novas
                 perfilItemMenu('request-job.php', 'Solicitar Vaga', 'fa-plus-circle', '', 'principal', 'nao_bloqueado'),
+                $mDen,
             ],
-            'recursos' => ['area_aluno', 'candidatar', 'favoritar', 'alertas', 'ia_perfil', 'vagas_egresso'],
+            'recursos' => ['area_aluno', 'candidatar', 'favoritar', 'alertas', 'ia_perfil', 'ia_curriculo', 'ia_cv', 'vagas_egresso'],
         ],
 
         'aluno_restrito' => [
@@ -126,64 +133,103 @@ function perfisRegistro(): array {
             'rotulo'   => 'Aluno (acesso restrito)',
             'home'     => 'dashboard.php',
             'fallback' => 'dashboard.php',
-            'paginas'  => array_merge($comuns, $paginasAlunoBase),
-            'menu'     => [$mInicio, $mPerfil, $mCv, $mDocs, $mVagas, $mMinhas, $mParaVoce, $mDicas],
-            // sem: alertas, IA do perfil, vagas de egressos, assinaturas, mentoria, solicitar vaga
-            'recursos' => ['area_aluno', 'candidatar', 'favoritar'],
+            'paginas'  => array_merge($comuns, $paginasAlunoBase, $pagDen, [
+                'ia-curriculo.php',    // v33: só a IA do currículo (acao=avaliar)
+            ]),
+            'menu'     => [$mInicio, $mPerfil, $mCv, $mDocs, $mVagas, $mMinhas, $mParaVoce, $mDicas, $mDen],
+            // sem: alertas, IA do perfil, IA de vagas, vagas de egressos, assinaturas, mentoria, solicitar vaga
+            // v33: 'ia_cv' = só a avaliação do currículo com IA
+            'recursos' => ['area_aluno', 'candidatar', 'favoritar', 'ia_cv'],
         ],
 
         /* ========================== PROFESSORES ========================= */
-        // Ponto de partida: so consulta. Amplie aqui quando a coordenacao definir
-        // o papel do professor (ex.: orientador de estagio, ver alunos do curso).
+        // Publica vagas (aprovação da Coordenação de Estágios) e é MENTOR dos alunos.
         'professor' => [
             'grupo'    => 'professores',
             'rotulo'   => 'Professor',
-            'home'     => 'dashboard.php',
+            'home'     => 'dashboard.php',      // Início próprio (includes/inicio-gestao.php)
             'fallback' => 'dashboard.php',
-            'paginas'  => array_merge($comuns, ['dashboard.php', 'jobs.php', 'egressos.php', 'career-tips.php']),
-            'menu'     => [$mInicio, $mVagas, $mDicas],   // vagas de egressos já aparecem em Vagas
-            'recursos' => ['vagas_egresso'],
+            'paginas'  => array_merge($comuns, $pagDen, [
+                'dashboard.php', 'jobs.php', 'egressos.php', 'career-tips.php',
+                'request-job.php', 'mentoria.php', 'mentoria-chat.php',
+            ]),
+            'menu'     => [
+                $mInicio, $mVagas,
+                perfilItemMenu('request-job.php', 'Publicar Vaga', 'fa-plus-circle', '', 'principal', 'nao_bloqueado'),
+                perfilItemMenu('mentoria.php', 'Mentoria', 'fa-hands-helping', 'mentoria'),
+                $mDicas, $mDen,
+            ],
+            'recursos' => ['vagas_egresso', 'publicar_vaga', 'ser_mentor'],
         ],
 
         /* =========================== EGRESSOS =========================== */
+        // Só divulga vagas e vê AS SUAS vagas (em Divulgar Vaga). Não vê a aba Vagas.
         'egresso' => [
             'grupo'    => 'egressos',
             'rotulo'   => 'Egresso',
-            'home'     => 'jobs.php',
-            'fallback' => 'jobs.php',
-            'paginas'  => array_merge($comuns, ['jobs.php', 'egressos.php', 'egresso-perfil.php', 'egresso-publicar.php', 'mentoria.php', 'mentoria-chat.php']),
+            'home'     => 'dashboard.php',
+            'fallback' => 'dashboard.php',
+            'paginas'  => array_merge($comuns, $pagDen, ['dashboard.php', 'egresso-publicar.php', 'egresso-perfil.php']),
             'menu'     => [
-                perfilItemMenu('jobs.php', 'Vagas', 'fa-briefcase'),
-                perfilItemMenu('egresso-publicar.php', 'Divulgar Vaga', 'fa-plus-circle'),
+                $mInicio,
+                perfilItemMenu('egresso-publicar.php', 'Divulgar e minhas vagas', 'fa-plus-circle'),
                 perfilItemMenu('egresso-perfil.php', 'Meu Perfil de Egresso', 'fa-user-graduate'),
-                perfilItemMenu('mentoria.php', 'Mentoria', 'fa-hands-helping', 'mentoria'),
+                $mDen,
             ],
-            'recursos' => ['vagas_egresso', 'divulgar_vaga', 'ser_mentor'],
+            'recursos' => ['divulgar_vaga'],
         ],
 
         /* ========================= FUNCIONARIOS ========================= */
+        // As coordenações não se misturam: cada uma vê só o que é dela.
         'admin' => [
             'grupo'    => 'funcionarios',
             'rotulo'   => 'Coordenação de Estágios',
             'home'     => 'dashboard.php',
-            'fallback' => 'admin-dashboard.php',
-            'paginas'  => array_merge($comuns, $paginasCoordenacao),
-            'menu'     => $menuCoordenacao,
-            'recursos' => ['gestao', 'vagas_egresso'],
+            'fallback' => 'dashboard.php',
+            'paginas'  => array_merge($comuns, $paginasCoordenacao, $pagDen, ['admin-mentoria.php']),
+            'menu'     => array_merge($menuCoordenacao, [
+                perfilItemMenu('admin-mentoria.php', 'Mentoria (Admin)', 'fa-hands-helping', 'mentoria', 'gestao'),   // aprovar mentores
+                $mDen,
+            ]),
+            'recursos' => ['gestao', 'gestao_mentoria', 'vagas_egresso'],
         ],
 
         'admin_egressos' => [
             'grupo'    => 'funcionarios',
             'rotulo'   => 'Coordenação de Egressos',
             'home'     => 'dashboard.php',
-            'fallback' => 'admin-dashboard.php',
-            'paginas'  => array_merge($comuns, $paginasCoordenacao, ['admin-egressos.php', 'admin-mentoria.php', 'admin-mentoria-conversa.php', 'admin-relatorios.php']),
-            'menu'     => array_merge($menuCoordenacao, [
-                perfilItemMenu('admin-egressos.php', 'Gestão de Egressos', 'fa-users', 'admin_egressos', 'gestao'),
-                perfilItemMenu('admin-mentoria.php', 'Mentoria (Admin)', 'fa-hands-helping', 'mentoria', 'gestao'),
-                // Relatórios de Egressos agora fica em Painéis > Relatórios (admin-relatorios.php continua liberado)
+            'fallback' => 'dashboard.php',
+            'paginas'  => array_merge($comuns, $pagDen, [
+                'dashboard.php', 'jobs.php', 'egressos.php',
+                'admin-egressos.php', 'admin-relatorios.php',
+                'admin-paineis.php', 'bi-dados.php', 'admin-dashboard.php',   // Painéis e relatórios
             ]),
-            'recursos' => ['gestao', 'gestao_egressos', 'vagas_egresso'],
+            'menu'     => [
+                $mInicio, $mVagas,
+                perfilItemMenu('admin-egressos.php', 'Gestão de Egressos', 'fa-users', 'admin_egressos', 'gestao'),
+                perfilItemMenu('admin-paineis.php', 'Painéis', 'fa-chart-pie', '', 'gestao'),
+                perfilItemMenu('admin-relatorios.php', 'Relatórios de Egressos', 'fa-chart-bar', '', 'gestao'),
+                $mDen,
+            ],
+            'recursos' => ['gestao_egressos', 'vagas_egresso', 'paineis'],
+        ],
+
+        // Recebe o Canal de Denúncias e controla os chats e as denúncias da mentoria
+        'admin_denuncias' => [
+            'grupo'    => 'funcionarios',
+            'rotulo'   => 'Admin de Denúncias',
+            'home'     => 'dashboard.php',
+            'fallback' => 'dashboard.php',
+            'paginas'  => array_merge($comuns, [
+                'dashboard.php', 'admin-denuncias.php', 'denuncia-anexo.php',
+                'admin-mentoria.php', 'admin-mentoria-conversa.php',
+            ]),
+            'menu'     => [
+                $mInicio,
+                perfilItemMenu('admin-denuncias.php', 'Denúncias', 'fa-shield-alt', 'denuncias'),
+                perfilItemMenu('admin-mentoria.php?tab=denuncias', 'Chats da Mentoria', 'fa-comments', 'mentoria'),
+            ],
+            'recursos' => ['gestao_denuncias'],
         ],
     ];
 
@@ -198,6 +244,7 @@ function perfilDoUsuario(array $u): string {
     $admin = !empty($u['is_admin']) && $u['is_admin'] !== 'false' && $u['is_admin'] !== 'False';
 
     if ($admin && $tipo === 'admin_egressos') return 'admin_egressos';
+    if ($admin && $tipo === 'admin_denuncias') return 'admin_denuncias';
     if ($admin)                               return 'admin';
     if ($tipo === 'egresso')                  return 'egresso';
     if ($tipo === 'professor')                return 'professor';
@@ -208,7 +255,7 @@ function perfilDoUsuario(array $u): string {
 /** Mantem as flags antigas da sessao coerentes com o perfil. */
 function perfilSincronizarSessao(): void {
     $p = $_SESSION['perfil'] ?? 'aluno';
-    $_SESSION['is_admin']          = in_array($p, ['admin', 'admin_egressos'], true);
+    $_SESSION['is_admin']          = in_array($p, ['admin', 'admin_egressos', 'admin_denuncias'], true);
     $_SESSION['is_admin_egressos'] = ($p === 'admin_egressos');
     $_SESSION['is_egresso']        = ($p === 'egresso');
     $_SESSION['is_restrito']       = ($p === 'aluno_restrito');

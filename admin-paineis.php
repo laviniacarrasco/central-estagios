@@ -19,7 +19,7 @@
  */
 require_once 'includes/config.php';
 checkAuth();
-if (!perfilPode('gestao')) { header('Location: dashboard.php'); exit; }
+if (!perfilPode('gestao') && !perfilPode('paineis')) { header('Location: dashboard.php'); exit; }
 
 $pageTitle    = 'Painéis';
 $podeEgressos = perfilPode('gestao_egressos');
@@ -59,7 +59,7 @@ include 'includes/header.php';
     <section id="vInicio">
         <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
             <div>
-                <h2 class="text-3xl font-bold text-slate-900">Painéis</h2>
+                <h2 class="text-3xl font-extrabold text-slate-900">Painéis</h2>
                 <p class="text-slate-500 text-sm">Todos os indicadores da Central num lugar só. Abra um painel, crie o seu ou organize em pastas.</p>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -746,8 +746,20 @@ function biCabecalhoPainel() {
 }
 
 function biFonte(id) {                        // cada fonte é buscada uma vez só
-    if (!BI.cache[id]) BI.cache[id] = biGet('bi-dados.php?fonte=' + encodeURIComponent(id));
+    if (!BI.cache[id]) BI.cache[id] = biGet('bi-dados.php?fonte=' + encodeURIComponent(id))
+        .then(f => { if (f && f.aviso) biAvisoReserva(f.aviso); return f; });
     return BI.cache[id];
+}
+/* Aviso amarelo quando a fonte veio da cópia de reserva (TOTVS ou banco externo fora do ar) */
+function biAvisoReserva(texto) {
+    let box = document.getElementById('biAvisoReserva');
+    if (!box) {
+        box = el('div', 'fixed bottom-4 right-4 z-50 max-w-md p-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl text-xs shadow-lg cursor-pointer');
+        box.id = 'biAvisoReserva'; box.title = 'Clique para fechar';
+        box.onclick = () => box.remove();
+        document.body.appendChild(box);
+    }
+    if (box.textContent.indexOf(texto) === -1) box.appendChild(el('p', 'mb-1', '⚠ ' + texto));
 }
 function biSalvar() {                         // salva sozinho, 700 ms depois da última mudança
     if (!BI.atual) return;
@@ -1317,7 +1329,8 @@ function relFmt(n) { return (+n).toLocaleString('pt-BR', { maximumFractionDigits
 function relDesenharPrevia(r) {
     const d = REL.def, cols = Object.keys(r.campos), box = document.getElementById('rlPrevia');
     document.getElementById('rlContagem').textContent = r.total + ' registro(s) na origem filtrada · origem: ' + r.origemNome
-        + (r.linhas.length < r.total ? ' · mostrando ' + r.linhas.length : '');
+        + (r.linhas.length < r.total ? ' · mostrando ' + r.linhas.length : '')
+        + (r.aviso ? ' · ⚠ ' + r.aviso : '');
     box.innerHTML = '';
     const tabela = el('table', 'w-full text-sm');
     const cab = tabela.createTHead().insertRow();
@@ -1343,7 +1356,7 @@ function relDesenharPrevia(r) {
         }
         let n = 0;
         chaves.forEach(k => {
-            const g = tb.insertRow(); const td = g.insertCell(); td.colSpan = cols.length; td.className = 'p-2 bg-[#eaf4fa] text-[#2B7FA6] font-bold text-xs';
+            const g = tb.insertRow(); const td = g.insertCell(); td.colSpan = cols.length; td.className = 'p-2 bg-[#e8f3fa] text-[#2B7FA6] font-bold text-xs';
             td.textContent = REL.camposOrigem[campoG].rotulo + ': ' + k + '  ·  ' + relRotuloResumo() + ': ' + relFmt(relResumir(grupos[k])) + '  (' + grupos[k].length + ' linha(s))';
             grupos[k].forEach(l => { if (n++ < MAX) linhaHtml(l); });
         });

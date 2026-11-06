@@ -26,18 +26,25 @@ composer.phar
 !/uploads/.gitkeep
 
 # ============================================
-# Dados da aplicacao (JSON) - TODOS VAO PARA O GIT
+# Dados da aplicacao (JSON) - TODOS VAO PARA O GIT (e para o Render)
 # --------------------------------------------
-# Todos os data/*.json (inclusive bi/, mentoria, denuncias, relatorios, logs de
-# acesso e o backup do TOTVS) vao para o git: o Render sobe com os mesmos dados
-# do seu computador e o git vira mais uma copia de seguranca.
-# Com o banco ligado, o espelho mantem esses JSON sempre em dia.
+# Os JSON sao a RESERVA de tudo:
+#   - dos dados da Central, quando o banco de dados nao conecta
+#     (o espelho mantem os JSON em dia enquanto o banco funciona);
+#   - do TOTVS e do banco / data lake (data/reserva/), quando eles nao respondem.
+# Por isso TODOS os data/**/*.json vao para o git: a cada deploy, o Render sobe
+# com a reserva mais recente do seu computador.
 #
-# FICA DE FORA so o controle interno do banco (data/_sistema/): lista de
-# pendentes, conflitos e trava da sincronizacao. Se o pendentes.json do seu
-# computador fosse para o Render, o servidor mandaria dados velhos para o banco.
+# Fica de fora SO o controle interno do banco (data/_sistema/: pendentes,
+# conflitos, trava). Ele vale so para a maquina onde foi gerado: se o
+# pendentes.json do seu computador fosse para o Render, o servidor mandaria
+# dados velhos para o banco por cima dos novos.
+#
 # O repositorio PRECISA ser privado (os JSON tem CPF, e-mail e conversas).
 # ============================================
+!/data/
+!/data/**/
+!/data/**/*.json
 /data/_sistema/
 /data/**/*.tmp*
 
@@ -71,6 +78,12 @@ saida.html
 node_modules/
 
 # ============================================
-# Integração TOTVS: cópia de segurança gerada a cada sincronização
+# v33: GARANTIA - todos os .json do projeto vao para o git
+# (data/, data/users/<id>/, data/reserva/, composer.json etc.)
+# Fica no FIM do arquivo para valer por cima das regras acima.
+# Unica excecao: data/_sistema/ (controle interno do banco, ver acima).
+# Para mandar ate ele, apague a linha "/data/_sistema/" abaixo.
 # ============================================
-/data/usuarios_backup_totvs.json
+!*.json
+!**/*.json
+/data/_sistema/

@@ -1,0 +1,56 @@
+{
+    "hash": "858634c0098938df10a2a0ce2d8d9d21",
+    "quando": "2026-11-04 14:31:26",
+    "modelo": "gemini-3.8-flash",
+    "resultado": {
+        "nota": 68,
+        "resumo": "Você possui uma excelente bagagem com o estágio na Ford e um ótimo perfil de idiomas. No entanto, o resumo está excessivamente informal e há um erro de digitação em uma linguagem essencial. Com pequenos ajustes, seu currículo ficará muito mais forte e profissional.",
+        "pontosFortes": [
+            "Estágio prático relevante em empresa de grande porte (Ford).",
+            "Excelente nível de idiomas (Inglês e Espanhol avançados).",
+            "Conhecimentos em ferramentas essenciais como Power BI e SQL.",
+            "Formação na área de Ciência de Dados e IA na Fundação Santo André."
+        ],
+        "melhorar": [
+            {
+                "secao": "Resumo",
+                "dica": "Reescreva o resumo profissionalmente. Substitua 'Oi gosto de TI' por uma breve apresentação do seu perfil e objetivos na área de dados."
+            },
+            {
+                "secao": "Habilidades",
+                "dica": "Corrija a digitação da tecnologia 'Pyhton' para 'Python'."
+            },
+            {
+                "secao": "Experiências",
+                "dica": "Enriqueça a descrição do seu estágio na Ford mencionando ferramentas usadas (ex: SQL, Power BI) e conquistas práticas."
+            },
+            {
+                "secao": "Habilidades",
+                "dica": "Se quiser, separe as habilidades técnicas (hard skills) das comportamentais (soft skills) para organizar melhor a leitura."
+            },
+            {
+                "secao": "Geral",
+                "dica": "Se quiser, inclua o link do seu perfil do LinkedIn."
+            }
+        ],
+        "palavrasChave": [
+            "Machine Learning",
+            "Python",
+            "Pandas",
+            "ETL",
+            "Estatística",
+            "Big Data",
+            "Scikit-Learn",
+            "Modelagem de Dados"
+        ],
+        "ats": {
+            "nota": 60,
+            "dicas": [
+                "Corrija o termo 'Pyhton' para 'Python', senão os robôs de triagem não reconhecerão a linguagem.",
+                "Adicione palavras-chave como Machine Learning, Pandas e ETL no resumo e nas experiências.",
+                "Mencione expressamente na descrição da experiência as ferramentas utilizadas para gerar os dashboards.",
+                "Use verbos de ação no início das descrições de experiências, como 'Desenvolver', 'Analisar' e 'Mapear'."
+            ]
+        }
+    }
+}

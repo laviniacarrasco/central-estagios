@@ -82,7 +82,7 @@ function favoritoBotaoHtml(string $origem, int $id): string {
     if (function_exists('perfilPode') ? !perfilPode('favoritar') : (!empty($_SESSION['is_admin']) || !empty($_SESSION['is_egresso']))) return '';
     $salvo = favoritoExiste($origem, $id);
     $volta = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'jobs.php', ENT_QUOTES, 'UTF-8');
-    return '<form method="POST" action="favoritar.php" class="inline">'
+    return '<form method="POST" action="favoritar.php" class="inline" data-parcial>'   // salva sem recarregar a tela
         . '<input type="hidden" name="origem" value="' . htmlspecialchars($origem, ENT_QUOTES, 'UTF-8') . '">'
         . '<input type="hidden" name="job_id" value="' . $id . '">'
         . '<input type="hidden" name="volta" value="' . $volta . '">'

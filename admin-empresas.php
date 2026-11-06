@@ -152,7 +152,7 @@ include 'includes/header.php';
     <div class="p-8 max-w-7xl mx-auto">
 
         <div class="mb-8 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Empresas Parceiras</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Empresas Parceiras</h2>
             <p class="text-slate-500 font-medium">Cadastre as empresas que os alunos podem consultar. As vagas abertas são encontradas pelo nome da empresa.</p>
         </div>
 
@@ -236,7 +236,7 @@ include 'includes/header.php';
                     </label>
                 </div>
 
-                <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold">
+                <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold">
                     <i class="fas fa-save mr-1"></i> <?= $editando ? 'Salvar alterações' : 'Cadastrar empresa' ?>
                 </button>
             </form>

@@ -148,7 +148,7 @@ function renderAdminSigCard(array $sol, array $mapaUsuarios): string {
                     <?php echo htmlspecialchars(getInitialsAdmin($nomeAluno)); ?>
                 </div>
                 <div class="min-w-0">
-                    <p class="font-bold text-gray-900 truncate"><?php echo htmlspecialchars($nomeAluno); ?></p>
+                    <p class="font-bold text-slate-900 truncate"><?php echo htmlspecialchars($nomeAluno); ?></p>
                     <p class="text-xs text-gray-400 truncate"><?php echo htmlspecialchars($aluno['email'] ?? ''); ?></p>
                 </div>
             </div>
@@ -333,7 +333,7 @@ include 'includes/header.php';
 
     <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div>
-            <h2 class="text-3xl font-bold text-gray-900 mb-1">Assinaturas</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-1">Assinaturas</h2>
             <p class="text-gray-500">Contratos de estágio e fim de estágio enviados pelos alunos</p>
         </div>
         <button type="button" onclick="abrirModalTodasAdmin()"
@@ -355,7 +355,7 @@ include 'includes/header.php';
                 <i class="fas fa-paper-plane text-yellow-600"></i>
             </div>
             <div>
-                <p class="text-2xl font-bold text-gray-900"><?php echo $totais['solicitado']; ?></p>
+                <p class="text-2xl font-bold text-slate-900"><?php echo $totais['solicitado']; ?></p>
                 <p class="text-xs text-gray-500">Solicitadas</p>
             </div>
         </div>
@@ -364,7 +364,7 @@ include 'includes/header.php';
                 <i class="fas fa-search text-blue-600"></i>
             </div>
             <div>
-                <p class="text-2xl font-bold text-gray-900"><?php echo $totais['em_analise']; ?></p>
+                <p class="text-2xl font-bold text-slate-900"><?php echo $totais['em_analise']; ?></p>
                 <p class="text-xs text-gray-500">Em análise</p>
             </div>
         </div>
@@ -373,7 +373,7 @@ include 'includes/header.php';
                 <i class="fas fa-file-signature text-green-600"></i>
             </div>
             <div>
-                <p class="text-2xl font-bold text-gray-900"><?php echo $totais['assinado']; ?></p>
+                <p class="text-2xl font-bold text-slate-900"><?php echo $totais['assinado']; ?></p>
                 <p class="text-xs text-gray-500">Assinadas</p>
             </div>
         </div>
@@ -382,7 +382,7 @@ include 'includes/header.php';
                 <i class="fas fa-exclamation-triangle text-red-600"></i>
             </div>
             <div>
-                <p class="text-2xl font-bold text-gray-900"><?php echo $totais['erro']; ?></p>
+                <p class="text-2xl font-bold text-slate-900"><?php echo $totais['erro']; ?></p>
                 <p class="text-xs text-gray-500">Com erro</p>
             </div>
         </div>
@@ -395,7 +395,7 @@ include 'includes/header.php';
         </div>
     <?php endif; ?>
 
-    <h3 class="text-lg font-bold text-gray-900 mb-4">Solicitações que precisam de ação</h3>
+    <h3 class="text-lg font-bold text-slate-900 mb-4">Solicitações que precisam de ação</h3>
 
     <?php if (empty($assinaturasAtivas) && !empty($assinaturas)): ?>
         <div class="bg-white rounded-2xl shadow-sm p-10 text-center mb-5">
@@ -419,7 +419,7 @@ include 'includes/header.php';
         <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4">
             <i class="fas fa-file-signature text-green-600 text-2xl"></i>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 mb-1">Enviar documento assinado</h3>
+        <h3 class="text-xl font-bold text-slate-900 mb-1">Enviar documento assinado</h3>
         <p class="text-gray-500 text-sm mb-5">Anexe o(s) arquivo(s) já assinado(s) pela coordenação.</p>
 
         <form method="POST" enctype="multipart/form-data" class="space-y-5" id="formAssinado">
@@ -472,7 +472,7 @@ include 'includes/header.php';
         <div class="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mb-4">
             <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 mb-1">Marcar como erro</h3>
+        <h3 class="text-xl font-bold text-slate-900 mb-1">Marcar como erro</h3>
         <p class="text-gray-500 text-sm mb-5">Descreva o problema encontrado nos arquivos. O aluno verá esta mensagem.</p>
 
         <form method="POST" class="space-y-4">
@@ -501,7 +501,7 @@ include 'includes/header.php';
     <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="fecharModalTodasAdmin()"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[85vh] flex flex-col">
         <div class="flex items-center justify-between mb-4 flex-shrink-0">
-            <h3 class="text-lg font-bold text-gray-900"><i class="fas fa-layer-group text-[#4A9FCA] mr-2"></i>Todas as solicitações recebidas</h3>
+            <h3 class="text-lg font-bold text-slate-900"><i class="fas fa-layer-group text-[#4A9FCA] mr-2"></i>Todas as solicitações recebidas</h3>
             <button type="button" onclick="fecharModalTodasAdmin()" class="text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-lg"></i>
             </button>

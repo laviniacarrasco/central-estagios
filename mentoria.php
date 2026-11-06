@@ -1,8 +1,8 @@
 <?php
 /**
- * Mentoria: alunos pedem orientacao de carreira a egressos.
+ * Mentoria: alunos pedem orientacao de carreira a PROFESSORES.
  *  - ALUNO:   encontra mentores aprovados, envia pedidos e acompanha as respostas.
- *  - EGRESSO: se cadastra como mentor e responde os pedidos que recebe.
+ *  - PROFESSOR: se cadastra como mentor e responde os pedidos que recebe.
  * Os contatos so sao liberados depois que o mentor aceita o pedido.
  * Depois do aceite, aluno e mentor conversam pelo chat (mentoria-chat.php).
  * Aba "Denúncias" (aluno e mentor): denunciar uma conversa e acompanhar as denúncias.
@@ -17,7 +17,7 @@ if (!empty($_SESSION['is_admin'])) {
     exit;
 }
 
-$souEgresso = isEgresso();
+$souEgresso = mentoriaSouMentor();   // true = professor (mentor). O nome da variável ficou do tempo dos egressos.
 $userId     = (int) $_SESSION['user_id'];
 $eu         = egressoCarregarUsuario($userId);
 if (!$eu) {
@@ -49,7 +49,7 @@ $erros = [
     'ja_respondido'       => 'Esse pedido já foi respondido ou alterado.',
     'status'              => 'Essa ação não é possível para esse pedido.',
     'areas'               => 'Informe pelo menos uma área em que você pode ajudar.',
-    'perfil_incompleto'   => 'Antes de se cadastrar, preencha o campo "Sobre você" no seu perfil de egresso.',
+    'perfil_incompleto'   => 'Antes de se cadastrar, escreva um pouco sobre você no campo "Sobre você".',
     'falha'               => 'Não foi possível concluir agora. Tente novamente.',
     'den_nao_encontrado'  => mentoriaDenunciaErro('nao_encontrado'),
     'den_descricao'       => mentoriaDenunciaErro('descricao'),
@@ -141,7 +141,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty(mentoriaAreasLista($areas))) mentoriaIrPara('config', 'areas', true);
 
+        $bio = mb_substr(trim((string) ($_POST['bio'] ?? ($eu['bio'] ?? ''))), 0, 600);
+        $lk  = trim((string) ($_POST['linkedin'] ?? ($eu['linkedin'] ?? '')));
+        if ($lk !== '') { $lk = egressoNormalizarLink($lk); if (stripos($lk, 'mailto:') === 0) $lk = ''; }
+        $eu['bio'] = $bio;
         $campos = [
+            'bio'             => $bio,
+            'linkedin'        => $lk,
             'mentoriaAreas'   => $areas,
             'mentoriaMax'     => $max,
             'mentoriaContato' => $contato,
@@ -246,7 +252,7 @@ include 'includes/header.php';
             <p class="text-slate-500 font-medium">
                 <?= $souEgresso
                     ? 'Ajude alunos da FSA com a sua experiência de carreira.'
-                    : 'Converse com egressos da FSA que já passaram pelo caminho que você está começando.' ?>
+                    : 'Converse com professores da FSA sobre carreira, estágio e os próximos passos.' ?>
             </p>
         </div>
 
@@ -308,7 +314,7 @@ include 'includes/header.php';
                 <input type="text" name="search" value="<?= egh($busca) ?>" placeholder="Buscar por nome, área, cargo ou empresa..."
                        class="w-full h-12 pl-12 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4A9FCA]">
             </div>
-            <select name="curso" class="h-12 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.submit()">
+            <select name="curso" class="h-12 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.requestSubmit()">
                 <option value="">Todos os cursos</option>
                 <?php foreach ($fsaCourses as $c): ?>
                     <option value="<?= egh($c) ?>" <?= $c === $cursoSel ? 'selected' : '' ?>><?= egh($c) ?></option>
@@ -362,7 +368,7 @@ include 'includes/header.php';
                         <?php if (!empty($areas)): ?>
                             <div class="flex flex-wrap gap-2 mb-3">
                                 <?php foreach ($areas as $a): ?>
-                                    <span class="px-3 py-1 bg-[#eaf4fa] text-[#2B7FA6] rounded-full text-xs font-semibold"><?= egh($a) ?></span>
+                                    <span class="px-3 py-1 bg-[#e8f3fa] text-[#2B7FA6] rounded-full text-xs font-semibold"><?= egh($a) ?></span>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
@@ -390,7 +396,7 @@ include 'includes/header.php';
                                 </div>
                             <?php else: ?>
                                 <button type="button" onclick="abrirPedido(this)" data-id="<?= $mid ?>" data-nome="<?= egh($m['nome'] ?? '') ?>"
-                                        class="w-full px-5 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all">
+                                        class="w-full px-5 py-3 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all">
                                     <i class="fas fa-hands-helping mr-1"></i> Pedir mentoria
                                 </button>
                             <?php endif; ?>
@@ -440,7 +446,7 @@ include 'includes/header.php';
                             <i class="fas fa-times mr-1"></i> Cancelar
                         </button>
                         <button type="submit"
-                                class="flex-1 py-3 px-4 rounded-2xl bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white font-semibold transition-all text-sm shadow-lg">
+                                class="flex-1 py-3 px-4 rounded-2xl bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white font-semibold transition-all text-sm shadow-lg">
                             <i class="fas fa-paper-plane mr-1"></i> Enviar pedido
                         </button>
                     </div>
@@ -477,7 +483,7 @@ include 'includes/header.php';
                 <i class="fas fa-clipboard-list text-6xl text-gray-200 mb-4"></i>
                 <h3 class="text-xl font-bold text-slate-900 mb-2">Você ainda não fez nenhum pedido</h3>
                 <p class="text-slate-500 mb-6">Escolha um mentor e conte o que você gostaria de aprender.</p>
-                <a href="mentoria.php?aba=mentores" class="inline-block px-6 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold text-sm">
+                <a href="mentoria.php?aba=mentores" class="inline-block px-6 py-3 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold text-sm">
                     <i class="fas fa-search mr-1"></i> Encontrar mentores
                 </a>
             </div>
@@ -509,13 +515,30 @@ include 'includes/header.php';
                             </p>
                         <?php endif; ?>
 
-
+                        <?php if ($st === 'aceito'): ?>
+                            <div class="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                <p class="text-sm font-bold text-emerald-800 mb-2"><i class="fas fa-handshake mr-1"></i> Contato liberado</p>
+                                <div class="flex flex-wrap gap-4 text-sm">
+                                    <?php if ($contato['email'] !== ''): ?>
+                                        <a href="mailto:<?= egh($contato['email']) ?>" class="text-[#2B7FA6] font-semibold hover:underline">
+                                            <i class="fas fa-envelope mr-1"></i><?= egh($contato['email']) ?>
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if ($linkLk !== ''): ?>
+                                        <a href="<?= egh($linkLk) ?>" target="_blank" rel="noopener" class="text-[#2B7FA6] font-semibold hover:underline">
+                                            <i class="fab fa-linkedin mr-1"></i>LinkedIn
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                                <p class="text-xs text-emerald-700 mt-2">Converse pelo chat aqui da Central ou pelos contatos acima. Seja objetivo e respeite o tempo do mentor.</p>
+                            </div>
+                        <?php endif; ?>
 
                         <?php if (mentoriaChatVisivel($p)): $naoLidas = mentoriaNaoLidasPedido($p, $userId); ?>
                             <button type="button" onclick="abrirChat(this)"
                                     data-pedido="<?= (int) $p['id'] ?>"
                                     data-nome="<?= egh($p['mentorNome'] ?? 'Mentor') ?>"
-                                    class="mt-4 mr-2 px-4 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2">
+                                    class="mt-4 mr-2 px-4 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2">
                                 <i class="fas fa-comments"></i> <?= ($p['status'] ?? '') === 'aceito' ? 'Abrir conversa' : 'Ver conversa' ?>
                                 <?php if ($naoLidas > 0): ?>
                                     <span class="chat-badge min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"><?= $naoLidas ?></span>
@@ -576,7 +599,7 @@ include 'includes/header.php';
                 <p class="text-white/90 text-sm font-medium mb-1">Mentorias em andamento</p>
                 <p class="text-4xl font-bold"><?= count($listaAtiv) ?> <span class="text-lg font-medium">de <?= $maxMentor ?></span></p>
             </div>
-            <div class="p-6 bg-[#58A1D4] text-white rounded-2xl h-28">
+            <div class="p-6 bg-[#4A9FCA] text-white rounded-2xl h-28">
                 <p class="text-white/90 text-sm font-medium mb-1">Total de pedidos</p>
                 <p class="text-4xl font-bold"><?= count($meusPedidos) ?></p>
             </div>
@@ -603,7 +626,7 @@ include 'includes/header.php';
                                     &bull; <?= egh($p['criadoEm'] ?? '') ?>
                                 </p>
                             </div>
-                            <span class="px-3 py-1 bg-[#eaf4fa] text-[#2B7FA6] rounded-full text-xs font-bold"><?= egh($p['assunto'] ?? '') ?></span>
+                            <span class="px-3 py-1 bg-[#e8f3fa] text-[#2B7FA6] rounded-full text-xs font-bold"><?= egh($p['assunto'] ?? '') ?></span>
                         </div>
                         <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-xl whitespace-pre-line"><?= egh($p['mensagem'] ?? '') ?></p>
 
@@ -615,7 +638,7 @@ include 'includes/header.php';
                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"></textarea>
                             <div class="flex flex-wrap gap-3 mt-3">
                                 <button type="button" onclick="responderPedido(this, 'aceitar')"
-                                        class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all">
+                                        class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all">
                                     <i class="fas fa-handshake mr-1"></i> Aceitar
                                 </button>
                                 <button type="button" onclick="responderPedido(this, 'recusar')"
@@ -650,7 +673,7 @@ include 'includes/header.php';
                             <button type="button" onclick="abrirChat(this)"
                                     data-pedido="<?= (int) $p['id'] ?>"
                                     data-nome="<?= egh($p['alunoNome'] ?? 'Aluno') ?>"
-                                    class="mt-4 mr-2 px-4 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2">
+                                    class="mt-4 mr-2 px-4 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2">
                                 <i class="fas fa-comments"></i> <?= ($p['status'] ?? '') === 'aceito' ? 'Abrir conversa' : 'Ver conversa' ?>
                                 <?php if ($naoLidas > 0): ?>
                                     <span class="chat-badge min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"><?= $naoLidas ?></span>
@@ -774,16 +797,19 @@ include 'includes/header.php';
                     <?= $novoCadastro ? 'Quero ser mentor(a)' : 'Configurações de mentoria' ?>
                 </h3>
 
-                <?php if ($novoCadastro && $perfilSemBio): ?>
-                    <div class="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm">
-                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                        Para os alunos conhecerem você, preencha o campo <strong>"Sobre você"</strong> no
-                        <a href="egresso-perfil.php" class="underline font-semibold">seu perfil de egresso</a> antes de enviar o cadastro.
-                    </div>
-                <?php endif; ?>
-
                 <form method="POST" action="mentoria.php" class="space-y-6">
                     <input type="hidden" name="acao" value="salvar_mentor">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sobre você <span class="text-xs text-gray-400 font-normal">(os alunos veem; até 600 caracteres)</span></label>
+                        <textarea name="bio" rows="3" maxlength="600" required placeholder="Ex.: Professor(a) de ... na FSA, com experiência em ..."
+                                  class="w-full px-3 py-2 border border-gray-200 rounded-lg"><?= egh($eu['bio'] ?? '') ?></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">LinkedIn <span class="text-xs text-gray-400 font-normal">(opcional)</span></label>
+                        <input type="text" name="linkedin" maxlength="200" value="<?= egh($eu['linkedin'] ?? '') ?>" placeholder="linkedin.com/in/seu-perfil"
+                               class="w-full h-11 px-3 border border-gray-200 rounded-lg">
+                    </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -816,7 +842,6 @@ include 'includes/header.php';
                     <p class="text-xs text-gray-400">
                         E-mail usado: <strong><?= egh($eu['email'] ?? '—') ?></strong> &bull;
                         LinkedIn: <strong><?= !empty($eu['linkedin']) ? 'cadastrado' : 'não cadastrado' ?></strong>.
-                        Altere em <a href="egresso-perfil.php" class="text-[#4A9FCA] underline">Meu perfil de egresso</a>.
                     </p>
 
                     <?php if (!$novoCadastro): ?>
@@ -826,7 +851,7 @@ include 'includes/header.php';
                         </label>
                     <?php endif; ?>
 
-                    <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold">
+                    <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold">
                         <i class="fas <?= $novoCadastro ? 'fa-paper-plane' : 'fa-save' ?> mr-1"></i>
                         <?= $novoCadastro ? 'Enviar para aprovação' : 'Salvar' ?>
                     </button>
@@ -845,7 +870,7 @@ include 'includes/header.php';
             <i class="fas fa-shield-alt text-red-500 mt-0.5"></i>
             <div>
                 Algo na mentoria te deixou desconfortável? Assédio, ofensa, pedido de dinheiro ou de dados pessoais: <strong>denuncie</strong>.
-                A Coordenação de Egressos recebe na hora e analisa com sigilo. <strong>A outra pessoa não fica sabendo quem denunciou.</strong>
+                A coordenação recebe na hora e analisa com sigilo. <strong>A outra pessoa não fica sabendo quem denunciou.</strong>
                 Para denunciar uma mensagem específica, abra a conversa e clique em <i class="fas fa-flag"></i> <strong>Denunciar</strong> embaixo dela.
             </div>
         </div>
@@ -857,7 +882,7 @@ include 'includes/header.php';
                     <p class="text-sm text-gray-500">Você ainda não tem nenhuma conversa de mentoria para denunciar.</p>
                 <?php else: ?>
                     <form method="POST" action="mentoria.php" class="space-y-4"
-                          data-confirm="A Coordenação de Egressos vai receber a denúncia por e-mail. A outra pessoa não será avisada."
+                          data-confirm="A coordenação vai receber a denúncia por e-mail. A outra pessoa não será avisada."
                           data-confirm-titulo="Enviar a denúncia?" data-confirm-botao="Enviar denúncia" data-confirm-tipo="perigo" data-confirm-icone="fa-flag">
                         <input type="hidden" name="acao" value="denunciar">
                         <div>
@@ -915,7 +940,7 @@ include 'includes/header.php';
                                 <?php endif; ?>
                                 <p class="text-sm text-gray-600 whitespace-pre-line"><?= egh($d['descricao'] ?? '') ?></p>
                                 <?php if (!empty($d['resposta']) && in_array($d['status'] ?? '', ['resolvida', 'arquivada'], true)): ?>
-                                    <p class="text-sm text-slate-700 bg-[#eaf4fa] p-3 rounded-xl mt-3"><strong>Resposta da coordenação:</strong> <?= egh($d['resposta']) ?></p>
+                                    <p class="text-sm text-slate-700 bg-[#e8f3fa] p-3 rounded-xl mt-3"><strong>Resposta da coordenação:</strong> <?= egh($d['resposta']) ?></p>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
@@ -953,7 +978,7 @@ include 'includes/header.php';
         </div>
 
         <p class="px-5 py-2 text-[11px] text-gray-400 border-b border-gray-100">
-            <i class="fas fa-shield-alt mr-1"></i> Para a segurança de todos, a Coordenação de Egressos pode consultar esta conversa.
+            <i class="fas fa-shield-alt mr-1"></i> Para a segurança de todos, a coordenação pode consultar esta conversa.
         </p>
 
         <!-- Mensagens -->
@@ -963,7 +988,7 @@ include 'includes/header.php';
         <form id="chatForm" class="flex items-end gap-2 p-3 border-t border-gray-100">
             <textarea id="chatTexto" rows="1" maxlength="1000" placeholder="Escreva uma mensagem (Enter envia, Shift+Enter pula linha)"
                       class="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-[#4A9FCA]" style="max-height: 120px;"></textarea>
-            <button type="submit" class="h-10 px-4 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold" title="Enviar">
+            <button type="submit" class="h-10 px-4 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold" title="Enviar">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </form>

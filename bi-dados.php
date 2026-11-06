@@ -47,7 +47,7 @@ function biResponder(array $d, int $codigo = 200): void {
 
 // Só chamadas da própria tela (mesma proteção do chat da mentoria)
 if (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') !== 'fetch') biResponder(['ok' => false, 'erro' => 'Requisição inválida.'], 400);
-if (!perfilPode('gestao')) biResponder(['ok' => false, 'erro' => 'Sem permissão.'], 403);
+if (!perfilPode('gestao') && !perfilPode('paineis')) biResponder(['ok' => false, 'erro' => 'Sem permissão.'], 403);
 
 $userId   = (int) $_SESSION['user_id'];
 $userNome = (string) ($_SESSION['user_name'] ?? 'Funcionário');

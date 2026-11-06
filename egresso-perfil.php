@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'telefone'           => mb_substr(trim($_POST['telefone'] ?? ''), 0, 30),
             'linkedin'           => $linkedin,
             'mesesAteColocacao'  => $meses === '' ? null : max(0, min(240, (int) $meses)),
-            'aceitaMentoria'     => isset($_POST['aceitaMentoria']),
+            'aceitaMentoria'     => false,   // mentoria agora é com professores
             'bio'                => mb_substr(trim($_POST['bio'] ?? ''), 0, 600),
             'perfilAtualizadoEm' => date('Y-m-d'),
         ];
@@ -260,17 +260,13 @@ include 'includes/header.php';
                         <textarea name="bio" rows="3" maxlength="600" class="w-full px-3 py-2 border border-gray-200 rounded-lg"><?= egh($egresso['bio'] ?? '') ?></textarea>
                     </div>
 
-                    <label class="flex items-start gap-2 text-sm text-gray-700">
-                        <input type="checkbox" name="aceitaMentoria" class="mt-1" <?= !empty($egresso['aceitaMentoria']) ? 'checked' : '' ?>>
-                        <span>Aceito conversar com alunos atuais sobre carreira (mentoria). Para aparecer para os alunos, faça o cadastro em <a href="mentoria.php?aba=config" class="text-[#4A9FCA] underline">Mentoria</a>.</span>
-                    </label>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Foto de perfil <span class="text-xs text-gray-400 font-normal">(opcional, até 5MB)</span></label>
                         <input type="file" name="foto_perfil" accept=".jpg,.jpeg,.png,.webp,.gif" class="text-sm">
                     </div>
 
-                    <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold">
+                    <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold">
                         <i class="fas fa-save mr-1"></i> Salvar perfil
                     </button>
                 </form>

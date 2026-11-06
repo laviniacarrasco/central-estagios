@@ -113,7 +113,7 @@ include 'includes/header.php';
     <div class="p-8 max-w-5xl mx-auto">
 
         <div class="mb-8 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Vagas Sugeridas</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Vagas Sugeridas</h2>
             <p class="text-slate-500 font-medium">Vagas de São Paulo e do ABC vindas de fontes externas. Nada aparece para os alunos até você aprovar.</p>
         </div>
 

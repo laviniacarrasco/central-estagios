@@ -253,12 +253,15 @@ function mhDashboardAcoes(bool $restrito): array {
     $curso   = trim((string) ($usuario['curso'] ?? ''));
 
     $passos = [];
-    $passos[] = ['Complete seu perfil (foto e disponibilidade)', ($temFoto && ($prefs['turno'] !== '' || $prefs['modalidade'] !== '')), 'profile.php', 'fa-user'];
+    // O perfil não tem porcentagem: o que conta é o currículo
     $passos[] = ['Monte seu currículo (70% ou mais)', $pont['pct'] >= 70, 'curriculum.php', 'fa-file-alt'];
+    if (perfilPode('ia_curriculo')) {
+        $passos[] = ['Peça a avaliação da IA no currículo', !empty(dadosLer('users/' . $userId . '/iaCurriculo')['resultado']), 'curriculum.php#cvIaCard', 'fa-wand-magic-sparkles'];
+    }
 
     if (!$restrito) {
         $cursosAlerta = $usuario['alertas']['cursos'] ?? [];
-        $passos[] = ['Escolha cursos de interesse e ative os alertas', !empty($cursosAlerta), 'profile.php?config=alertas', 'fa-bell'];
+        $passos[] = ['Escolha cursos de interesse e ative os alertas', !empty($cursosAlerta), '#configuracoes-alertas', 'fa-bell'];
     }
     $c = loadData('userCandidaturas', true);
     $cands = is_array($c) ? $c : [];

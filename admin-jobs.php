@@ -297,7 +297,7 @@ include 'includes/header.php';
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Gerenciamento de Vagas</h2>
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Gerenciamento de Vagas</h2>
                 <p class="text-gray-600">Crie e gerencie oportunidades de estagio</p>
             </div>
             <div class="flex items-center gap-3">
@@ -310,7 +310,7 @@ include 'includes/header.php';
                     <?php endif; ?>
                 </button>
 
-                <button onclick="openCreateModal()" class="px-4 py-2 bg-[#4A9FCA] text-white rounded-lg hover:bg-[#3A8FB0]">
+                <button onclick="openCreateModal()" class="px-4 py-2 bg-[#4A9FCA] text-white rounded-lg hover:bg-[#2B7FA6]">
                     + Nova Vaga
                 </button>
             </div>
@@ -320,7 +320,7 @@ include 'includes/header.php';
         <div id="solicitacoesModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900">
+                    <h3 class="text-2xl font-bold text-slate-900">
                         <i class="fas fa-bell text-[#4A9FCA] mr-2"></i>Solicitações de Vaga
                     </h3>
                     <button onclick="closeSolicitacoesModal()" class="text-gray-400 hover:text-gray-600">
@@ -331,7 +331,7 @@ include 'includes/header.php';
                 <?php if (empty($solicitacoesPendentes)): ?>
                     <div class="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
                         <i class="fas fa-inbox text-3xl text-gray-300 mb-3"></i>
-                        <p class="text-gray-500 font-medium">Nenhuma solicitação pendente no momento.</p>
+                        <p class="text-slate-500 font-medium">Nenhuma solicitação pendente no momento.</p>
                     </div>
                 <?php else: ?>
                     <div class="space-y-3">
@@ -346,7 +346,7 @@ include 'includes/header.php';
                                         <i class="fas fa-building text-[#4A9FCA]"></i>
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="font-semibold text-gray-900 truncate"><?php echo htmlspecialchars($req['company']); ?></p>
+                                        <p class="font-semibold text-slate-900 truncate"><?php echo htmlspecialchars($req['company']); ?></p>
                                         <p class="text-xs text-gray-500 truncate">
                                             <?php if (!empty($req['applicationLink'])): ?>
                                                 <i class="fas fa-link mr-1"></i><?php echo htmlspecialchars($req['applicationLink']); ?>
@@ -355,7 +355,7 @@ include 'includes/header.php';
                                             <?php endif; ?>
                                         </p>
                                         <p class="text-xs text-gray-400 truncate">
-                                            <i class="fas fa-user mr-1"></i>Solicitado por <?php echo htmlspecialchars($req['studentName']); ?>
+                                            <i class="fas fa-user mr-1"></i>Solicitado por <?php echo htmlspecialchars($req['studentName']); ?><?php echo ($req['autorPerfil'] ?? '') === 'professor' ? ' <span class="ml-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#e8f3fa] text-[#2B7FA6]">Professor</span>' : ''; ?>
                                         </p>
                                     </div>
                                 </div>
@@ -368,7 +368,7 @@ include 'includes/header.php';
                             <!-- Detalhes completos, exibidos apenas ao clicar -->
                             <div class="req-compact-details" id="<?php echo $cardId; ?>">
                                 <div class="pt-4">
-                                    <h4 class="font-semibold text-gray-900 mb-1"><?php echo htmlspecialchars($req['title']); ?></h4>
+                                    <h4 class="font-semibold text-slate-900 mb-1"><?php echo htmlspecialchars($req['title']); ?></h4>
                                     <p class="text-sm text-gray-600 mb-1"><?php echo htmlspecialchars($req['location'] ?: 'Local não informado'); ?></p>
                                     <p class="text-xs text-gray-400 mb-4">
                                         E-mail: <?php echo htmlspecialchars($req['studentEmail']); ?> &bull; Enviada em <?php echo htmlspecialchars($req['createdAt']); ?>
@@ -426,7 +426,7 @@ include 'includes/header.php';
         <!-- Modal: Motivo de Rejeicao (agora com opcao de bloquear o aluno) -->
         <div id="rejeitarModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl p-6 max-w-md w-full">
-                <h3 class="text-lg font-bold text-gray-900 mb-3">Rejeitar Solicitação</h3>
+                <h3 class="text-lg font-bold text-slate-900 mb-3">Rejeitar Solicitação</h3>
                 <p class="text-sm text-gray-500 mb-4">A justificativa é <strong>obrigatória</strong> (pelo menos 10 caracteres). O aluno verá essa mensagem.</p>
                 <form method="POST" action="admin-jobs.php">
                     <input type="hidden" name="action" value="reject_request">
@@ -633,7 +633,7 @@ include 'includes/header.php';
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 <?php echo $job['featured'] ? 'border-l-yellow-400' : 'border-l-transparent'; ?>">
                     <div class="flex items-start justify-between mb-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">
+                            <h3 class="text-lg font-semibold text-slate-900">
                                 <?php echo htmlspecialchars($job['title']); ?>
                             </h3>
                             <p class="text-gray-700 font-medium"><?php echo htmlspecialchars($job['company']); ?></p>
@@ -683,7 +683,7 @@ include 'includes/header.php';
 
                     <div class="flex gap-3 pt-4 border-t">
                         <button type="button"
-                            class="btn-editar-vaga px-4 py-2 bg-[#4A9FCA] text-white rounded-lg text-sm hover:bg-[#3A8FB0] flex items-center gap-2"
+                            class="btn-editar-vaga px-4 py-2 bg-[#4A9FCA] text-white rounded-lg text-sm hover:bg-[#2B7FA6] flex items-center gap-2"
                             data-job='<?php echo htmlspecialchars(json_encode([
                                 "id"              => $job["id"],
                                 "title"           => $job["title"],
@@ -714,7 +714,7 @@ include 'includes/header.php';
 
             <?php if (empty($jobs)): ?>
                 <div class="text-center py-20 bg-white rounded-xl border-2 border-dashed border-gray-200">
-                    <p class="text-gray-500 font-medium">Nenhuma vaga cadastrada.</p>
+                    <p class="text-slate-500 font-medium">Nenhuma vaga cadastrada.</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -730,7 +730,7 @@ include 'includes/header.php';
                 <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
                     <i class="fas fa-trash-alt text-red-500 text-3xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Excluir Vaga?</h3>
+                <h3 class="text-xl font-bold text-slate-900 text-center mb-2">Excluir Vaga?</h3>
                 <p class="text-gray-500 text-sm text-center mb-1 leading-relaxed">Voce esta prestes a excluir:</p>
                 <p id="modalNomeVaga" class="text-[#4A9FCA] font-semibold text-sm text-center mb-3 leading-relaxed"></p>
                 <p class="text-gray-400 text-xs text-center mb-8">Esta acao nao pode ser desfeita e a vaga sumira para todos os alunos.</p>

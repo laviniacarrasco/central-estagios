@@ -1,0 +1,52 @@
+{
+    "hash": "ed4412379b16d85e94bd8c9ebddd716d",
+    "quando": "2026-11-06 10:04:24",
+    "modelo": "gemini-3.8-flash",
+    "resultado": {
+        "nota": 88,
+        "resumo": "Seu currículo está muito bem estruturado e focado em resultados práticos. A combinação de experiência em suporte com projetos de desenvolvimento demonstra um perfil versátil e proativo para o estágio.",
+        "pontosFortes": [
+            "Uso de resultados quantificáveis (ex: redução de tempo de inventário)",
+            "Experiência prática com projetos reais (ONG)",
+            "Boa clareza na trajetória técnica",
+            "Alinhamento direto entre habilidades e área de estudo"
+        ],
+        "melhorar": [
+            {
+                "secao": "Experiências",
+                "dica": "Reduza o espaço dedicado ao cargo de Atendente para destacar ainda mais o projeto da ONG e a automação que você criou."
+            },
+            {
+                "secao": "Habilidades",
+                "dica": "Se quiser, separe as habilidades técnicas (Hard Skills) das comportamentais (Soft Skills) para facilitar a leitura do recrutador."
+            },
+            {
+                "secao": "Resumo",
+                "dica": "Se quiser, pode mencionar no resumo que você busca atuar especificamente com Back-end ou Full Stack para guiar melhor o recrutador."
+            },
+            {
+                "secao": "Geral",
+                "dica": "Se quiser, adicione o link do seu LinkedIn no cabeçalho para facilitar o contato."
+            }
+        ],
+        "palavrasChave": [
+            "PHP",
+            "JavaScript",
+            "SQL",
+            "MySQL",
+            "Git",
+            "Desenvolvimento Web",
+            "Automação",
+            "Suporte de Sistemas"
+        ],
+        "ats": {
+            "nota": 92,
+            "dicas": [
+                "Use verbos de ação consistentes em toda a experiência, como 'Desenvolvi', 'Implementei' e 'Automatizei'.",
+                "Mantenha o currículo em formato de uma única coluna para garantir uma leitura fluida pelo robô.",
+                "Certifique-se de que os títulos das seções sejam padrão, como 'Experiência Profissional' e 'Formação Acadêmica'.",
+                "Evite o uso de tabelas ou gráficos, garantindo que o PDF contenha texto selecionável."
+            ]
+        }
+    }
+}

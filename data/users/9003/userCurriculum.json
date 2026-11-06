@@ -1,0 +1,87 @@
+{
+    "nome": "Aluno Restrito Teste",
+    "email": "aluno.restrito@teste.com",
+    "telefone": "(11) 98765-4321",
+    "cidade": "Santo André, SP",
+    "resumo": "Estudante do 3º período de Análise e Desenvolvimento de Sistemas na Fundação Santo André, no turno da noite. Comecei a programar por curiosidade, montando planilhas automatizadas para o comércio da família, e hoje desenvolvo aplicações web com PHP, JavaScript e SQL. Durante o dia trabalho com atendimento e suporte, o que me ensinou a ouvir o usuário antes de propor uma solução. Procuro um estágio em desenvolvimento ou suporte de sistemas onde eu possa aprender com um time experiente e contribuir com organização, vontade de aprender e responsabilidade com prazos.",
+    "habilidades": [
+        "PHP",
+        "JavaScript",
+        "HTML e CSS",
+        "SQL (MySQL)",
+        "Git e GitHub",
+        "Python (básico)",
+        "Excel avançado",
+        "Power BI (básico)",
+        "Suporte técnico",
+        "Comunicação",
+        "Trabalho em equipe",
+        "Organização"
+    ],
+    "experiencias": [
+        {
+            "cargo": "Assistente de Suporte de TI (meio período)",
+            "empresa": "Papelaria e Informática Bom Preço",
+            "cidade": "Santo André, SP",
+            "inicio": "2025-03-01",
+            "fim": "",
+            "atual": "1",
+            "descricao": "Atendo clientes e funcionários com problemas em computadores, impressoras e rede. Formato e configuro máquinas, instalo programas e faço backup. Criei uma planilha de controle de estoque com fórmulas e macros que reduziu o tempo do inventário mensal de dois dias para meio dia."
+        },
+        {
+            "cargo": "Desenvolvedor voluntário (projeto acadêmico)",
+            "empresa": "ONG Mãos que Ajudam",
+            "cidade": "Santo André, SP",
+            "inicio": "2026-03-01",
+            "fim": "2026-06-01",
+            "atual": "",
+            "descricao": "Em grupo de 4 alunos, desenvolvi um sistema web em PHP e MySQL para cadastro de famílias atendidas e controle de doações de cestas básicas. Fui responsável pelo banco de dados e pelas telas de relatório. O sistema substituiu cadernos de papel e hoje é usado pelos voluntários."
+        },
+        {
+            "cargo": "Atendente",
+            "empresa": "Mercado Vila Assunção",
+            "cidade": "Santo André, SP",
+            "inicio": "2023-06-01",
+            "fim": "2025-02-01",
+            "atual": "",
+            "descricao": "Atendimento ao cliente no caixa e na reposição. Fechamento de caixa diário sem divergências e treinamento de novos colegas no sistema de vendas."
+        }
+    ],
+    "formacoes": [
+        {
+            "curso": "Análise e Desenvolvimento de Sistemas",
+            "instituicao": "Fundação Santo André",
+            "tipo": "Graduacao",
+            "inicio": "2025-08-01",
+            "fim": "2027-12-01",
+            "atual": "1"
+        },
+        {
+            "curso": "Técnico em Informática",
+            "instituicao": "ETEC Júlio de Mesquita",
+            "tipo": "Tecnico",
+            "inicio": "2021-02-01",
+            "fim": "2022-12-01",
+            "atual": ""
+        }
+    ],
+    "idiomas": [
+        {
+            "idioma": "Português",
+            "nivel": "Nativo"
+        },
+        {
+            "idioma": "Inglês",
+            "nivel": "Intermediario"
+        },
+        {
+            "idioma": "Espanhol",
+            "nivel": "Basico"
+        }
+    ],
+    "layout": "moderno",
+    "corTema": "azul-cinza",
+    "idiomaCV": "pt",
+    "exibirFoto": false,
+    "fotoCV": null
+}

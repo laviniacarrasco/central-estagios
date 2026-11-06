@@ -3,7 +3,7 @@
     "email": "laviniacarrasco29@gmail.com",
     "telefone": "(11) 97057-4757",
     "cidade": "Santo André, SP",
-    "resumo": "",
+    "resumo": "Oi gosto de TI",
     "habilidades": [
         "Proatividade",
         "Trabalho em Equipe",
@@ -51,6 +51,6 @@
     "layout": "moderno",
     "corTema": "azul-cinza",
     "idiomaCV": "pt",
-    "exibirFoto": true,
+    "exibirFoto": false,
     "fotoCV": null
 }

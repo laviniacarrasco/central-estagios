@@ -850,7 +850,7 @@ include 'includes/header.php';
                 <a href="admin-paineis.php" class="hover:text-[#4A9FCA]">Painéis</a>
                 <i class="fas fa-chevron-right text-[10px] mx-1"></i><a href="admin-paineis.php?pasta=alunos" class="hover:text-[#4A9FCA]">Alunos</a>
             </p>
-            <h2 class="text-3xl font-bold text-gray-900">Visão geral dos alunos</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900">Visão geral dos alunos</h2>
             <p class="text-gray-500">Visão geral do desempenho e empregabilidade dos alunos</p>
             <p class="text-xs text-gray-400 mt-1"><i class="fas fa-mouse-pointer mr-1"></i>Clique com o botão direito em qualquer bloco para exportar os dados para o Excel. Use "Editar painel" para arrumar os blocos e adicionar visuais.</p>
         </div>

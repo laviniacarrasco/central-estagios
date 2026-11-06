@@ -34,31 +34,41 @@ function avisosContagens(): array {
         'admin_egressos'    => 0,
         'aluno_assinaturas' => 0,
         'mentoria'          => 0,
+        'denuncias'         => 0,   // canal de denúncias: resposta nova (quem abriu) ou novidade (admin)
     ];
     $isAdmin   = !empty($_SESSION['is_admin']);
     $isEgresso = !empty($_SESSION['is_egresso']);
     $userId    = (int) ($_SESSION['user_id'] ?? 0);
 
     try {
-        if ($isAdmin) {
+        if ($isAdmin && empty($_SESSION['is_admin_egressos'])) {   // Coordenação de Estágios
             foreach (loadData('job_requests') as $r) {
                 if (($r['status'] ?? '') === 'pendente') $c['admin_jobs']++;
             }
             foreach (loadData('assinaturas') as $s) {
                 if (($s['status'] ?? '') === 'solicitado') $c['admin_assinaturas']++;
             }
-            if (!empty($_SESSION['is_admin_egressos'])) {
+        }
+        if ($isAdmin && !empty($_SESSION['is_admin_egressos'])) {  // Coordenação de Egressos
+            {
                 foreach (loadData('egresso_jobs') as $v) {
                     if (($v['status'] ?? 'pendente') === 'pendente') $c['admin_egressos']++;
                 }
             }
-        } elseif (!$isEgresso) {
+        } elseif (!$isAdmin && !$isEgresso) {
             foreach (loadData('assinaturas') as $s) {
                 if ((int) ($s['userId'] ?? 0) === $userId && !empty($s['avisoAluno'])) $c['aluno_assinaturas']++;
             }
         }
     } catch (Throwable $e) {
         error_log('avisosContagens: ' . $e->getMessage());
+    }
+
+    try {
+        require_once __DIR__ . '/denuncias.php';
+        $c['denuncias'] = (int) denunciaContagemParaMim();
+    } catch (Throwable $e) {
+        error_log('avisosContagens (denuncias): ' . $e->getMessage());
     }
 
     try {
@@ -98,7 +108,7 @@ function avisosAssinaturaLabel(array $sol): string {
 function avisosAdmins(): array {
     $out = [];
     foreach (loadData('usuarios') as $u) {
-        if (empty($u['is_admin'])) continue;
+        if (empty($u['is_admin']) || perfilDoUsuario($u) !== 'admin') continue;   // só a Coordenação de Estágios
         $email = trim((string) ($u['email'] ?? ''));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) continue;
         $out[$email] = [$email, (string) ($u['nome'] ?? '')];

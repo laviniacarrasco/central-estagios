@@ -5,15 +5,16 @@
         "tipo": "contrato_estagio",
         "area": "dentro",
         "arquivos": [
-            "uploads\/assinaturas\/1\/1_6ad53956a4ddf.pdf"
+            "uploads\/assinaturas\/1\/1_6aecab5fb766f.pdf"
         ],
         "arquivoAssinado": [
-            "uploads\/assinaturas\/1\/assinado\/1_assinado_6ad5397d90c36.pdf"
+            "uploads\/assinaturas\/1\/assinado\/1_assinado_6aecaf824dc2e.pdf"
         ],
         "status": "assinado",
         "mensagemErro": null,
-        "dataSolicitacao": "2026-10-18 21:25:42",
+        "dataSolicitacao": "2026-11-05 13:14:23",
         "dataAnalise": null,
-        "dataAssinatura": "2026-10-18 21:26:21"
+        "dataAssinatura": "2026-11-05 13:32:02",
+        "avisoAluno": false
     }
 ]

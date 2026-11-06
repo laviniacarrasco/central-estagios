@@ -9,7 +9,7 @@
  *   POST acao=denunciar                -> denuncia uma mensagem (campo mensagem) ou a conversa
  *                                         (campos: pedido, categoria, descricao)
  *
- * Quem pode abrir: aluno e egresso (lista em includes/perfis.php).
+ * Quem pode abrir: aluno e professor (lista em includes/perfis.php).
  * Dentro de cada conversa, só o aluno e o mentor daquele pedido.
  * =============================================================================
  */

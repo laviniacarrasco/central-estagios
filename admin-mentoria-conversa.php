@@ -1,7 +1,7 @@
 <?php
 /**
  * =============================================================================
- * CONVERSAS DA MENTORIA: consulta e download (só Coordenação de Egressos)
+ * CONVERSAS DA MENTORIA: consulta e download (só quem administra a mentoria)
  * -----------------------------------------------------------------------------
  *   GET ?pedido=ID                         -> JSON, usado pela janela "Ver log" (admin-mentoria.php)
  *   GET ?pedido=ID&baixar=txt | csv        -> uma conversa
@@ -19,7 +19,7 @@ require_once 'includes/mentoria.php';
 require_once 'includes/melhorias.php';
 checkAuth();
 
-if (!isAdminEgressos()) {
+if (!perfilPode('gestao_denuncias')) {
     http_response_code(403);
     exit('Sem permissão.');
 }

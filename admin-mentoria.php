@@ -1,6 +1,6 @@
 <?php
 /**
- * Painel de MENTORIA para o admin de egressos.
+ * Painel de MENTORIA (Coordenação de Estágios): professores mentores e alunos.
  * Abas: Mentores (aprovar, recusar, suspender) | Pedidos (acompanhamento)
  * Recusar e suspender exigem justificativa (vai no e-mail para o egresso).
  * Em cada mentor: "Conversas e log" (ver e baixar em TXT, por conversa, por mentor ou por aluno).
@@ -13,25 +13,28 @@ require_once 'includes/mentoria.php';
 require_once 'includes/melhorias.php';
 checkAuth();
 
-if (!isAdminEgressos()) {
-    header('Location: admin-dashboard.php');
+if (!perfilPode('gestao_mentoria') && !perfilPode('gestao_denuncias')) {
+    header('Location: ' . perfilHome());
     exit;
 }
 
-$pageTitle = 'Admin Mentoria';
-
-$aba = in_array($_GET['tab'] ?? '', ['pedidos', 'denuncias'], true) ? $_GET['tab'] : 'mentores';
+$podeMentores  = perfilPode('gestao_mentoria');    // Coordenação de Estágios: aprovar mentores
+$podeDenuncias = perfilPode('gestao_denuncias');   // Admin de Denúncias: chats e denúncias
+$pageTitle = $podeMentores ? 'Admin Mentoria' : 'Chats da Mentoria';
+$abasOk = array_merge($podeMentores ? ['mentores'] : [], ['pedidos'], $podeDenuncias ? ['denuncias'] : []);
+$aba = in_array($_GET['tab'] ?? '', $abasOk, true) ? $_GET['tab'] : $abasOk[0];
 
 $mensagens = [
     'aprovado'  => 'Mentor aprovado. Ele já aparece para os alunos e foi avisado por e-mail.',
-    'recusado'  => 'Cadastro recusado. O egresso foi avisado e pode corrigir e enviar de novo.',
+    'recusado'  => 'Cadastro recusado. O professor foi avisado e pode corrigir e enviar de novo.',
     'suspenso'  => 'Mentor suspenso. Os pedidos que aguardavam resposta foram cancelados.',
     'reativado' => 'Mentor reativado.',
     'den_analise'   => 'Denúncia marcada como em análise.',
     'den_concluida' => 'Denúncia concluída. Quem denunciou foi avisado por e-mail com a sua resposta.',
 ];
 $erros = [
-    'egresso' => 'Egresso não encontrado.',
+    'egresso' => 'Professor não encontrado.',
+    'sem_permissao' => 'Seu perfil não pode fazer essa ação.',
     'motivo'  => 'A justificativa é obrigatória (pelo menos 10 caracteres). Nada foi alterado.',
     'denuncia' => 'Denúncia não encontrada.',
 ];
@@ -46,6 +49,8 @@ function mentoriaAdminVoltar(string $tab, string $chave, bool $erro = false): vo
  * ========================================================================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao   = (string) ($_POST['acao'] ?? '');
+    if (in_array($acao, ['denuncia_analisar', 'denuncia_resolver', 'denuncia_arquivar'], true) && !$podeDenuncias) mentoriaAdminVoltar('pedidos', 'sem_permissao', true);
+    if (in_array($acao, ['aprovar', 'recusar', 'reativar'], true) && !$podeMentores) mentoriaAdminVoltar($abasOk[0], 'sem_permissao', true);
     $uid    = (int) ($_POST['user_id'] ?? 0);
     $motivo = mb_substr(trim((string) ($_POST['motivo'] ?? '')), 0, 300);
 
@@ -81,7 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $alvo = egressoCarregarUsuario($uid);
-    if (!$alvo || ($alvo['tipo'] ?? '') !== 'egresso') mentoriaAdminVoltar('mentores', 'egresso', true);
+    $ehMentorDePedido = false;
+    foreach (mentoriaPedidos() as $pp) if ((int) ($pp['mentorId'] ?? 0) === $uid) { $ehMentorDePedido = true; break; }
+    if (!$alvo || (($alvo['tipo'] ?? '') !== MENTORIA_TIPO_MENTOR && !$ehMentorDePedido)) mentoriaAdminVoltar('mentores', 'egresso', true);
+    $voltarAba = (string) ($_POST['voltar'] ?? '') === 'pedidos' ? 'pedidos' : 'mentores';
 
     // Recusar e suspender: justificativa obrigatória
     if (in_array($acao, ['recusar', 'suspender'], true)) {
@@ -104,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         egressoAtualizarUsuario($uid, ['mentoriaStatus' => 'suspenso', 'mentoriaMotivo' => $motivo]);
         mentoriaCancelarPendentesDoMentor($uid, $motivo);
         mentoriaEmailMentorStatus($alvo, 'suspenso', $motivo);
-        mentoriaAdminVoltar('mentores', 'suspenso');
+        mentoriaAdminVoltar($voltarAba, 'suspenso');
     }
     if ($acao === 'reativar') {
         egressoAtualizarUsuario($uid, ['mentoriaStatus' => 'aprovado', 'mentoriaMotivo' => '']);
@@ -139,8 +147,13 @@ $denPessoa       = (int) ($_GET['pessoa'] ?? 0);
 
 $mentoresCad = [];
 foreach (loadData('usuarios') as $u) {
-    if (($u['tipo'] ?? '') !== 'egresso') continue;
-    if (($u['mentoriaStatus'] ?? '') === '') continue;
+    $temPedidos = !empty($pedidosPorMentor[(int) ($u['id'] ?? 0)]);
+    // Mentor = professor com cadastro de mentoria OU qualquer pessoa que já é mentor em algum pedido
+    if (($u['tipo'] ?? '') !== MENTORIA_TIPO_MENTOR && !$temPedidos) continue;
+    if (($u['mentoriaStatus'] ?? '') === '') {
+        if (!$temPedidos) continue;
+        $u['mentoriaStatus'] = 'aprovado';   // cadastro antigo sem status: trata como ativo
+    }
     $u['_aceitos'] = mentoriaAceitosDoMentor((int) ($u['id'] ?? 0), $todosPedidos);
     $mentoresCad[] = $u;
 }
@@ -169,13 +182,16 @@ usort($pedidosLista, function ($a, $b) {
 
 include 'includes/header.php';
 ?>
+<?php if (!$podeDenuncias): /* as conversas são do Admin de Denúncias */ ?>
+<style>[onclick^="convAbrir"], a[href^="admin-mentoria-conversa.php"]{ display:none !important; }</style>
+<?php endif; ?>
 
 <main class="ml-16 pt-16">
     <div class="p-8 max-w-7xl mx-auto">
 
         <div class="mb-8 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Mentoria</h2>
-            <p class="text-slate-500 font-medium">Aprove os egressos que querem ser mentores e acompanhe os pedidos dos alunos.</p>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Mentoria</h2>
+            <p class="text-slate-500 font-medium">Aprove os professores que querem ser mentores e acompanhe os pedidos dos alunos.</p>
         </div>
 
         <?php if (isset($_GET['msg']) && isset($mensagens[$_GET['msg']])): ?>
@@ -190,7 +206,7 @@ include 'includes/header.php';
         <?php endif; ?>
 
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div class="p-5 bg-[#58A1D4] text-white rounded-2xl">
+            <div class="p-5 bg-[#4A9FCA] text-white rounded-2xl">
                 <p class="text-white/90 text-xs font-medium mb-1">Mentores ativos</p>
                 <p class="text-3xl font-bold"><?= $nAtivos ?></p>
             </div>
@@ -213,21 +229,21 @@ include 'includes/header.php';
         </div>
 
         <div class="flex flex-wrap gap-2 mb-8">
-            <a href="admin-mentoria.php?tab=mentores" class="px-5 py-2.5 rounded-xl text-sm font-semibold <?= $aba === 'mentores' ? 'bg-[#4A9FCA] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
+            <?php if ($podeMentores): ?><a href="admin-mentoria.php?tab=mentores" class="px-5 py-2.5 rounded-xl text-sm font-semibold <?= $aba === 'mentores' ? 'bg-[#4A9FCA] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
                 <i class="fas fa-user-check mr-1"></i> Mentores
                 <?php if ($nPendentes > 0): ?>
                     <span class="ml-1 px-2 py-0.5 rounded-full text-xs font-bold <?= $aba === 'mentores' ? 'bg-white text-[#4A9FCA]' : 'bg-red-500 text-white' ?>"><?= $nPendentes ?></span>
                 <?php endif; ?>
-            </a>
+            </a><?php endif; ?>
             <a href="admin-mentoria.php?tab=pedidos" class="px-5 py-2.5 rounded-xl text-sm font-semibold <?= $aba === 'pedidos' ? 'bg-[#4A9FCA] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
                 <i class="fas fa-clipboard-list mr-1"></i> Pedidos (<?= count($todosPedidos) ?>)
             </a>
-            <a href="admin-mentoria.php?tab=denuncias" class="px-5 py-2.5 rounded-xl text-sm font-semibold <?= $aba === 'denuncias' ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
+            <?php if ($podeDenuncias): ?><a href="admin-mentoria.php?tab=denuncias" class="px-5 py-2.5 rounded-xl text-sm font-semibold <?= $aba === 'denuncias' ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>">
                 <i class="fas fa-flag mr-1"></i> Denúncias
                 <?php if ($nDenNovas > 0): ?>
                     <span class="ml-1 px-2 py-0.5 rounded-full text-xs font-bold <?= $aba === 'denuncias' ? 'bg-white text-red-500' : 'bg-red-500 text-white' ?>"><?= $nDenNovas ?></span>
                 <?php endif; ?>
-            </a>
+            </a><?php endif; ?>
         </div>
 
 <?php if ($aba === 'mentores'): ?>
@@ -236,7 +252,7 @@ include 'includes/header.php';
             <div class="p-16 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-white">
                 <i class="fas fa-user-check text-6xl text-gray-200 mb-4"></i>
                 <h3 class="text-xl font-bold text-slate-900 mb-2">Nenhum cadastro ainda</h3>
-                <p class="text-slate-500">Quando um egresso pedir para ser mentor, ele aparece aqui para você aprovar.</p>
+                <p class="text-slate-500">Quando um professor pedir para ser mentor, ele aparece aqui para você aprovar.</p>
             </div>
         <?php else: ?>
             <div class="space-y-4">
@@ -278,7 +294,7 @@ include 'includes/header.php';
                         <?php if (!empty($areas)): ?>
                             <div class="flex flex-wrap gap-2 mb-3">
                                 <?php foreach ($areas as $a): ?>
-                                    <span class="px-3 py-1 bg-[#eaf4fa] text-[#2B7FA6] rounded-full text-xs font-semibold"><?= egh($a) ?></span>
+                                    <span class="px-3 py-1 bg-[#e8f3fa] text-[#2B7FA6] rounded-full text-xs font-semibold"><?= egh($a) ?></span>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
@@ -290,7 +306,7 @@ include 'includes/header.php';
                         <?php if ($st === 'aprovado'): ?>
                             <p class="text-xs text-gray-500 mb-3">
                                 Vagas: <strong><?= (int) $u['_aceitos'] ?> de <?= mentoriaMax($u) ?></strong> ocupadas
-                                &bull; <?= !empty($u['aceitaMentoria']) ? 'visível para os alunos' : 'pausado pelo egresso' ?>
+                                &bull; <?= !empty($u['aceitaMentoria']) ? 'visível para os alunos' : 'pausado pelo professor' ?>
                             </p>
                         <?php endif; ?>
                         <?php if (($st === 'recusado' || $st === 'suspenso') && !empty($u['mentoriaMotivo'])): ?>
@@ -352,7 +368,7 @@ include 'includes/header.php';
                                       data-confirm-tipo="aviso" data-confirm-icone="fa-check">
                                     <input type="hidden" name="acao" value="aprovar">
                                     <input type="hidden" name="user_id" value="<?= $uidAtual ?>">
-                                    <button type="submit" class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all">
+                                    <button type="submit" class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all">
                                         <i class="fas fa-check mr-1"></i> Aprovar
                                     </button>
                                 </form>
@@ -360,7 +376,7 @@ include 'includes/header.php';
 
                             <?php if ($st === 'pendente'): ?>
                                 <form method="POST" action="admin-mentoria.php" class="flex flex-wrap items-center gap-2"
-                                      data-confirm="O egresso recebe um e-mail com a justificativa e pode corrigir o cadastro e enviar de novo."
+                                      data-confirm="O professor recebe um e-mail com a justificativa e pode corrigir o cadastro e enviar de novo."
                                       data-justificativa="motivo" data-justificativa-max="300"
                                       data-justificativa-dica="Ex.: faltou descrever as áreas em que você pode ajudar."
                                       data-confirm-titulo="Recusar este cadastro?" data-confirm-botao="Recusar"
@@ -395,7 +411,7 @@ include 'includes/header.php';
                                       data-confirm-tipo="aviso" data-confirm-icone="fa-play">
                                     <input type="hidden" name="acao" value="reativar">
                                     <input type="hidden" name="user_id" value="<?= $uidAtual ?>">
-                                    <button type="submit" class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all">
+                                    <button type="submit" class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all">
                                         <i class="fas fa-play mr-1"></i> Reativar
                                     </button>
                                 </form>
@@ -410,7 +426,7 @@ include 'includes/header.php';
 
         <form method="GET" action="admin-mentoria.php" class="mb-6 flex flex-wrap items-center gap-3">
             <input type="hidden" name="tab" value="pedidos">
-            <select name="status" class="h-11 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.submit()">
+            <select name="status" class="h-11 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.requestSubmit()">
                 <option value="">Todos os status</option>
                 <?php foreach (['pendente', 'aceito', 'concluido', 'recusado', 'cancelado'] as $opt):
                     [$oTxt] = mentoriaPedidoStatusInfo($opt);
@@ -473,6 +489,24 @@ include 'includes/header.php';
                                        class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50" title="Baixar em texto"><i class="fas fa-download mr-1"></i>TXT</a>
                                     <a href="admin-mentoria-conversa.php?pedido=<?= $pidConv ?>&amp;baixar=csv"
                                        class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50" title="Baixar em planilha"><i class="fas fa-file-csv mr-1"></i>CSV</a>
+                                    <?php
+                                    $mIdP = (int) ($p['mentorId'] ?? 0);
+                                    $mUsrP = $podeMentores && $mIdP ? egressoCarregarUsuario($mIdP) : null;
+                                    if ($mUsrP && in_array(($mUsrP['mentoriaStatus'] ?? 'aprovado'), ['aprovado', ''], true)): ?>
+                                        <form method="POST" action="admin-mentoria.php" class="inline"
+                                              data-confirm="O mentor deixa de aparecer para os alunos e os pedidos que aguardavam resposta são cancelados. A justificativa vai no e-mail para ele."
+                                              data-justificativa="motivo" data-justificativa-max="300"
+                                              data-justificativa-dica="Ex.: denúncia de um aluno em análise pela coordenação."
+                                              data-confirm-titulo="Suspender este mentor?" data-confirm-botao="Suspender"
+                                              data-confirm-tipo="perigo" data-confirm-icone="fa-pause">
+                                            <input type="hidden" name="acao" value="suspender">
+                                            <input type="hidden" name="user_id" value="<?= $mIdP ?>">
+                                            <input type="hidden" name="voltar" value="pedidos">
+                                            <button type="submit" class="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs hover:bg-red-50"><i class="fas fa-pause mr-1"></i>Suspender mentor</button>
+                                        </form>
+                                    <?php elseif ($mUsrP && ($mUsrP['mentoriaStatus'] ?? '') === 'suspenso'): ?>
+                                        <span class="text-xs text-gray-500"><i class="fas fa-pause-circle mr-1"></i>Mentor suspenso</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -495,7 +529,7 @@ include 'includes/header.php';
         <form method="GET" action="admin-mentoria.php" class="mb-4 flex flex-wrap items-center gap-3">
             <input type="hidden" name="tab" value="denuncias">
             <?php if ($denPessoa): ?><input type="hidden" name="pessoa" value="<?= $denPessoa ?>"><?php endif; ?>
-            <select name="dstatus" class="h-11 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.submit()">
+            <select name="dstatus" class="h-11 px-4 bg-white border border-gray-200 rounded-xl" onchange="this.form.requestSubmit()">
                 <?php foreach (['ativas' => 'Novas e em análise', 'aberta' => 'Só as novas', 'em_analise' => 'Em análise', 'resolvida' => 'Resolvidas', 'arquivada' => 'Arquivadas', 'todas' => 'Todas'] as $k => $rot): ?>
                     <option value="<?= egh($k) ?>" <?= $denStatusFiltro === $k ? 'selected' : '' ?>><?= egh($rot) ?></option>
                 <?php endforeach; ?>
@@ -599,7 +633,7 @@ include 'includes/header.php';
                                     </form>
                                 <?php endif; endif; ?>
                             <?php elseif (!empty($d['resposta'])): ?>
-                                <p class="text-sm text-slate-700 bg-[#eaf4fa] p-3 rounded-xl w-full mt-2"><strong>Resposta enviada:</strong> <?= egh($d['resposta']) ?>
+                                <p class="text-sm text-slate-700 bg-[#e8f3fa] p-3 rounded-xl w-full mt-2"><strong>Resposta enviada:</strong> <?= egh($d['resposta']) ?>
                                     <span class="text-xs text-gray-400">(<?= egh($d['atualizadoPor'] ?? '') ?>)</span></p>
                             <?php endif; ?>
                         </div>

@@ -54,7 +54,7 @@ include 'includes/header.php';
     <div class="p-8 max-w-5xl mx-auto">
 
         <div class="mb-8 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Alertas e E-mails</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Alertas e E-mails</h2>
             <p class="text-slate-500 font-medium">Fila de envio, resumo semanal e agendamento.</p>
         </div>
 
@@ -70,7 +70,7 @@ include 'includes/header.php';
         <?php endif; ?>
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="p-5 bg-[#58A1D4] text-white rounded-2xl"><p class="text-white/90 text-sm">Na fila</p><p class="text-4xl font-bold"><?= $total ?></p></div>
+            <div class="p-5 bg-[#4A9FCA] text-white rounded-2xl"><p class="text-white/90 text-sm">Na fila</p><p class="text-4xl font-bold"><?= $total ?></p></div>
             <div class="p-5 bg-[#27AE60] text-white rounded-2xl"><p class="text-white/90 text-sm">Com resumo semanal</p><p class="text-4xl font-bold"><?= $optResumo ?></p></div>
             <div class="p-5 bg-purple-500 text-white rounded-2xl"><p class="text-white/90 text-sm">Com aviso na hora</p><p class="text-4xl font-bold"><?= $optNova ?></p></div>
             <div class="p-5 bg-[#E35444] text-white rounded-2xl"><p class="text-white/90 text-sm">Ativaram sem e-mail</p><p class="text-4xl font-bold"><?= $semEmail ?></p></div>

@@ -1,0 +1,27 @@
+{
+    "hash": "0c614a2156f3f7cfff509342496cfeda",
+    "quando": "2026-11-04 15:32:42",
+    "modelo": "gemini-3.8-flash",
+    "lista": [
+        {
+            "id": "e:1792374920068",
+            "nota": 92,
+            "motivo": "Você cursa a graduação aceita, mora na região e já possui experiência prática no setor automotivo."
+        },
+        {
+            "id": "f:3",
+            "nota": 88,
+            "motivo": "Você atende ao curso exigido e possui habilidades em análise de dados e idiomas ideais para a vaga."
+        },
+        {
+            "id": "e:1792415928983",
+            "nota": 85,
+            "motivo": "Você estuda o curso solicitado e mora perto do local da vaga, encaixando-se no perfil do programa."
+        },
+        {
+            "id": "f:2",
+            "nota": 35,
+            "motivo": "Você é da área de TI, mas não possui o curso requisitado nem as habilidades em React e Front-End."
+        }
+    ]
+}

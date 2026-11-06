@@ -366,7 +366,7 @@ function biFonteCriada(string $id): array {
     foreach (biFontesCriadas() as $f) {
         if ((string) $f['id'] !== $id) continue;
         $linhas = $f['tipo'] === 'sql'
-            ? bancoSelecionar('BI_SQL', (string) $f['sql'], BI_MAX_LINHAS)   // roda a consulta na hora
+            ? bancoSelecionarComReserva('BI_SQL', (string) $f['sql'], BI_MAX_LINHAS, 'bi_sql_' . $f['id'], 'O banco / data lake')   // roda na hora; se falhar, usa a cópia
             : (array) ($f['linhas'] ?? []);                                   // planilha guardada
         return ['nome' => $f['nome'], 'campos' => biCamposDe($linhas), 'linhas' => $linhas];
     }
@@ -393,7 +393,8 @@ function biCarregarFonte(string $fonte): array {
 
     $campos = [];
     foreach ($d['campos'] as $k => [$rot, $tipo]) $campos[$k] = ['rotulo' => $rot, 'tipo' => $tipo];
-    return ['nome' => $d['nome'], 'campos' => $campos, 'linhas' => array_slice($d['linhas'], 0, 50000)];
+    return ['nome' => $d['nome'], 'campos' => $campos, 'linhas' => array_slice($d['linhas'], 0, 50000),
+            'aviso' => implode(' ', reservaAvisos())];   // preenchido quando a fonte veio da cópia de reserva
 }
 
 /* ===================== PAINEL PADRÃO ===================== */
@@ -605,7 +606,7 @@ const BI_REL_OPERADORES = [
 
 /** Alunos do TOTVS, já traduzidos para os nomes da Central (sem CPF) */
 function biFonteTotvs(): array {
-    $r = totvsBuscarAlunos();
+    $r = totvsBuscarAlunosComReserva();   // se o TOTVS não responder, usa a cópia de reserva
     if (empty($r['ok'])) throw new RuntimeException('TOTVS: ' . ($r['erro'] ?? 'não foi possível ler os dados.'));
     $naCentral = [];
     foreach (loadData('usuarios') as $u) {
@@ -719,7 +720,7 @@ function biRodarRelatorio(array $def, int $limite = 50000): array {
         foreach ($cols as $c) $n[$c] = $l[$c] ?? '';
         $saida[] = $n;
     }
-    return ['nome' => (string) ($def['nome'] ?? 'Relatório'), 'campos' => $campos, 'linhas' => $saida, 'total' => $total, 'origemNome' => $base['nome']];
+    return ['nome' => (string) ($def['nome'] ?? 'Relatório'), 'campos' => $campos, 'linhas' => $saida, 'total' => $total, 'origemNome' => $base['nome'], 'aviso' => (string) ($base['aviso'] ?? '')];
 }
 
 /** Relatório salvo usado como fonte de painel */

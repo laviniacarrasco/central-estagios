@@ -97,7 +97,7 @@ include 'includes/header.php';
 
         <!-- Título -->
         <div class="mb-8">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Cadastro de Alunos</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Cadastro de Alunos</h2>
             <p class="text-slate-500">O cadastro em massa é feito direto do sistema acadêmico (TOTVS), pela API ou pelo banco de dados. Cria os alunos novos e atualiza RA, curso, período, turno e situação. Não usa planilha.</p>
         </div>
 
@@ -145,7 +145,7 @@ include 'includes/header.php';
                       data-confirm-icone="fa-sync-alt">
                     <input type="hidden" name="action" value="sincronizar">
                     <button type="submit" <?= $podeRodar ? '' : 'disabled' ?>
-                        class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+                        class="px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
                         <i class="fas fa-sync-alt mr-1"></i> Sincronizar agora
                     </button>
                 </form>

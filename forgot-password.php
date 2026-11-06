@@ -123,27 +123,28 @@ if (isset($_GET['cancelar'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; }
+        body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
         .fp-card { box-shadow: 0 10px 40px rgba(0,0,0,.08); }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen bg-gradient-to-br from-[#4A9FCA] via-[#3A8FB0] to-[#2B7FA6] flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
         <div class="text-center mb-6">
-            <div class="w-16 h-16 bg-[#4A9FCA] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-white/15 border border-white/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-key text-white text-2xl"></i>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900">Recuperar Senha</h1>
-            <p class="text-gray-500 text-sm mt-1">
+            <h1 class="text-2xl font-extrabold text-white">Recuperar Senha</h1>
+            <p class="text-white/85 text-sm mt-1">
                 <?php echo $etapa === 1
                     ? 'Informe seu e-mail e CPF cadastrados para continuar'
                     : 'Defina sua nova senha de acesso'; ?>
             </p>
         </div>
 
-        <div class="bg-white fp-card rounded-2xl p-8">
+        <div class="bg-white fp-card rounded-3xl p-8">
 
             <?php if ($erro): ?>
                 <div class="mb-5 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl flex items-start gap-2">
@@ -178,7 +179,7 @@ if (isset($_GET['cancelar'])) {
                     </div>
 
                     <button type="submit"
-                        class="w-full h-11 bg-[#4A9FCA] text-white font-semibold rounded-xl hover:bg-[#3A8FB0] transition-colors flex items-center justify-center gap-2">
+                        class="w-full h-11 bg-[#4A9FCA] text-white font-semibold rounded-xl hover:bg-[#2B7FA6] transition-colors flex items-center justify-center gap-2">
                         <i class="fas fa-search"></i> Verificar Dados
                     </button>
                 </form>
@@ -222,7 +223,7 @@ if (isset($_GET['cancelar'])) {
                     </div>
 
                     <button type="submit"
-                        class="w-full h-11 bg-[#4A9FCA] text-white font-semibold rounded-xl hover:bg-[#3A8FB0] transition-colors flex items-center justify-center gap-2">
+                        class="w-full h-11 bg-[#4A9FCA] text-white font-semibold rounded-xl hover:bg-[#2B7FA6] transition-colors flex items-center justify-center gap-2">
                         <i class="fas fa-save"></i> Redefinir Senha
                     </button>
 

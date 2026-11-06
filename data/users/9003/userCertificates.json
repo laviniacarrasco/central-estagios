@@ -1,0 +1,56 @@
+[
+    {
+        "id": 1,
+        "title": "Lógica de Programação",
+        "category": "Curso Complementar",
+        "institution": "Fundação Bradesco (Escola Virtual)",
+        "hours": "20h",
+        "date": "15/04/2025",
+        "status": "approved"
+    },
+    {
+        "id": 2,
+        "title": "PHP e MySQL: do zero ao primeiro sistema",
+        "category": "Curso Complementar",
+        "institution": "Alura",
+        "hours": "40h",
+        "date": "28/08/2025",
+        "status": "approved"
+    },
+    {
+        "id": 3,
+        "title": "Git e GitHub para iniciantes",
+        "category": "Curso Complementar",
+        "institution": "DIO",
+        "hours": "8h",
+        "date": "10/11/2025",
+        "status": "approved"
+    },
+    {
+        "id": 4,
+        "title": "Inglês Técnico para TI",
+        "category": "Curso Complementar",
+        "institution": "SENAI-SP",
+        "hours": "30h",
+        "date": "20/03/2026",
+        "status": "approved"
+    },
+    {
+        "id": 5,
+        "title": "Fundamentos de Power BI",
+        "category": "Curso Complementar",
+        "institution": "Microsoft Learn",
+        "hours": "12h",
+        "date": "05/07/2026",
+        "status": "approved"
+    },
+    {
+        "id": 6,
+        "title": "Semana de Tecnologia FSA 2026",
+        "category": "Evento / Palestra",
+        "institution": "Fundação Santo André",
+        "hours": "10h",
+        "date": "18/09/2026",
+        "status": "approved"
+    }
+]

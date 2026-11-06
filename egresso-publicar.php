@@ -190,7 +190,7 @@ include 'includes/header.php';
     <div class="p-8 max-w-7xl mx-auto">
 
         <div class="mb-8 animate-fade-in">
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">Divulgar uma vaga</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Divulgar uma vaga</h2>
             <p class="text-slate-500 font-medium">Sua vaga é analisada pela coordenação e, depois de aprovada, aparece para todos os alunos.</p>
         </div>
 
@@ -305,7 +305,7 @@ include 'includes/header.php';
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold">
+                        <button type="submit" class="px-8 h-12 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold">
                             <i class="fas fa-paper-plane mr-1"></i> <?= $form['edit_id'] ? 'Reenviar para análise' : 'Enviar para análise' ?>
                         </button>
                         <?php if ($form['edit_id']): ?>

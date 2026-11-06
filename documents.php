@@ -359,7 +359,7 @@ include 'includes/header.php';
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
                                     <button type="button" onclick="restaurarCertificado(<?php echo $doc['id']; ?>)"
-                                        class="px-3 py-2 bg-[#4A9FCA] text-white text-xs font-semibold rounded-lg hover:bg-[#3A8FB0] transition-all flex items-center gap-1">
+                                        class="px-3 py-2 bg-[#4A9FCA] text-white text-xs font-semibold rounded-lg hover:bg-[#2B7FA6] transition-all flex items-center gap-1">
                                         <i class="fas fa-undo"></i> Restaurar
                                     </button>
                                     <button type="button" onclick="abrirModalExcluirDefinitivo(<?php echo $doc['id']; ?>, '<?php echo htmlspecialchars($doc['title'], ENT_QUOTES); ?>')"

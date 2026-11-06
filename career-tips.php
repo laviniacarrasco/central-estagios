@@ -66,7 +66,7 @@ $plano = [
 ];
 if (!$restrito) {
     array_splice($plano, 2, 0, [['perfil', 'Currículo', 'Responda o teste de Perfil por Competências', (bool) $resultadoPerfil, $urlFormPerfil ?: 'profile.php', true]]);
-    $plano[] = ['alertas', 'Candidaturas', 'Ative os alertas de vagas do seu curso', !empty($usuario['alertas']['vagaNova']) || !empty($usuario['alertas']['resumoSemanal']), 'profile.php?config=alertas', true];
+    $plano[] = ['alertas', 'Candidaturas', 'Ative os alertas de vagas do seu curso', !empty($usuario['alertas']['vagaNova']) || !empty($usuario['alertas']['resumoSemanal']), '#configuracoes-alertas', true];
     $plano[] = ['mentor',  'Entrevista',   'Converse com um mentor egresso', !empty($progresso['mentor']), 'mentoria.php', false];
 }
 
@@ -102,6 +102,48 @@ $resources = [
     ['Behance', 'Portfólio para design e arquitetura', 'https://www.behance.net/', 'fa-palette'],
     ['Duolingo', 'Pratique inglês todo dia', 'https://www.duolingo.com/', 'fa-language'],
 ];
+
+/** Parecer da IA (markdown simples) em HTML: títulos, negrito, listas e parágrafos */
+function dicasParecerHtml(string $t): string {
+    $inline = function (string $s): string {
+        $s = htmlspecialchars($s);
+        $s = preg_replace('/\*\*(.+?)\*\*/u', '<strong class="text-slate-900">$1</strong>', $s);
+        return preg_replace('/(?<![\*\w])\*(?!\s)(.+?)(?<!\s)\*(?!\*)/u', '<em>$1</em>', $s);
+    };
+    $html = ''; $lista = null; $par = [];
+    $fecharPar = function () use (&$par, &$html, $inline) { if ($par) { $html .= '<p class="mb-3">' . $inline(implode(' ', $par)) . '</p>'; $par = []; } };
+    $fecharLista = function () use (&$lista, &$html) { if ($lista !== null) { $html .= '</' . $lista . '>'; $lista = null; } };
+    foreach (preg_split('/\r?\n/', trim($t)) as $l) {
+        $l = trim($l);
+        if ($l === '' || preg_match('/^(-{3,}|\*{3,})$/', $l)) { $fecharPar(); $fecharLista(); continue; }
+        if (preg_match('/^#{1,6}\s*(.+)$/u', $l, $m)) { $fecharPar(); $fecharLista(); $html .= '<h4 class="font-bold text-slate-900 mt-5 mb-2">' . $inline(trim($m[1], '#* ')) . '</h4>'; continue; }
+        if (preg_match('/^[-*•]\s+(.+)$/u', $l, $m) || preg_match('/^\d+[.)]\s+(.+)$/u', $l, $m)) {
+            $tipo = preg_match('/^\d/', $l) ? 'ol' : 'ul';
+            $fecharPar();
+            if ($lista !== $tipo) { $fecharLista(); $html .= '<' . $tipo . ' class="' . ($tipo === 'ol' ? 'list-decimal' : 'list-disc') . ' pl-5 space-y-1 mb-3">'; $lista = $tipo; }
+            $html .= '<li>' . $inline($m[1]) . '</li>';
+            continue;
+        }
+        $fecharLista();
+        $par[] = $l;
+    }
+    $fecharPar(); $fecharLista();
+    return $html;
+}
+$parecerTexto  = trim((string) ($resultadoPerfil['parecer'] ?? ''));
+/* Resumo = primeira parte do parecer (até o 2º título "###"). O resto fica em "Ler o parecer completo". */
+$parecerResumo = $parecerTexto;
+$parecerResto  = '';
+if (preg_match_all('/^#{1,6}\s/m', $parecerTexto, $mTit, PREG_OFFSET_CAPTURE)) {
+    $inicios = array_column($mTit[0], 1);
+    $corte = null;
+    if ($inicios[0] > 50) $corte = $inicios[0];              // texto antes do primeiro título
+    elseif (isset($inicios[1])) $corte = $inicios[1];        // primeira seção inteira
+    if ($corte !== null) {
+        $parecerResumo = trim(substr($parecerTexto, 0, $corte));
+        $parecerResto  = trim(substr($parecerTexto, $corte));
+    }
+}
 
 $abas = $ehAluno ? ['plano' => ['Meu plano', 'fa-list-check']] : [];
 if (!$restrito) $abas['perfil'] = ['Meu perfil', 'fa-chart-pie'];
@@ -219,10 +261,10 @@ include 'includes/header.php';
                                 <?php endforeach; ?>
                             </ul>
                         <?php endif; ?>
-                        <a href="curriculum.php" class="block text-center px-4 py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold">Editar currículo</a>
+                        <a href="curriculum.php" class="block text-center px-4 py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold">Editar currículo</a>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="p-5 bg-[#58A1D4] text-white rounded-2xl"><p class="text-white/90 text-xs">Candidaturas</p><p class="text-3xl font-bold"><?= $nCands ?></p></div>
+                        <div class="p-5 bg-[#4A9FCA] text-white rounded-2xl"><p class="text-white/90 text-xs">Candidaturas</p><p class="text-3xl font-bold"><?= $nCands ?></p></div>
                         <div class="p-5 bg-[#27AE60] text-white rounded-2xl"><p class="text-white/90 text-xs">Entrevistas</p><p class="text-3xl font-bold"><?= $entrevist ?></p></div>
                     </div>
                 </div>
@@ -254,20 +296,77 @@ include 'includes/header.php';
                     <i class="fas fa-clock mr-1"></i>
                     Baseado na sua resposta de <?php echo htmlspecialchars($resultadoPerfil['data_formatada'] ?? '—'); ?>
                 </p>
-                <div class="flex justify-center bg-gray-50 rounded-2xl p-4">
-                    <img src="<?php echo htmlspecialchars(urlRadarPerfil($resultadoPerfil)); ?>"
-                         alt="Gráfico de radar do perfil por competências"
-                         class="max-w-full rounded-xl"
-                         onerror="this.parentElement.innerHTML='<p class=&quot;text-sm text-gray-400 py-8&quot;>Não foi possível carregar o gráfico no momento.</p>'">
+                <!-- Gráfico de aranha: desenhado aqui com os percentuais do app de Perfil
+                     (antes era uma imagem do app, que não aparecia quando o app estava fora do ar) -->
+                <?php $radarPerc = (array) ($resultadoPerfil['percentuais'] ?? []); ?>
+                <?php if (!empty($radarPerc['foco_resultado']) || !empty($radarPerc['foco_relacionamento'])): ?>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <?php foreach (['foco_resultado' => ['Foco Resultado', '#4A9FCA'], 'foco_relacionamento' => ['Foco Relacionamento', '#9B59B6']] as $chaveRadar => [$tituloRadar, $corRadar]):
+                            if (empty($radarPerc[$chaveRadar])) continue; ?>
+                            <div class="bg-slate-50 rounded-2xl p-4">
+                                <p class="text-sm font-bold text-slate-700 text-center mb-2"><?= egh($tituloRadar) ?></p>
+                                <div class="relative mx-auto" style="max-width: 420px; aspect-ratio: 1 / 1;">
+                                    <canvas class="radar-perfil" data-cor="<?= $corRadar ?>" data-titulo="<?= egh($tituloRadar) ?>"
+                                            data-valores='<?= egh(json_encode($radarPerc[$chaveRadar], JSON_UNESCAPED_UNICODE)) ?>'></canvas>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+                    <script>
+                    document.querySelectorAll('canvas.radar-perfil').forEach(function (cv) {
+                        var dados = JSON.parse(cv.getAttribute('data-valores') || '{}');
+                        var cor = cv.getAttribute('data-cor');
+                        new Chart(cv, {
+                            type: 'radar',
+                            data: { labels: Object.keys(dados), datasets: [{ label: cv.getAttribute('data-titulo'), data: Object.values(dados),
+                                backgroundColor: cor + '33', borderColor: cor, borderWidth: 2, pointBackgroundColor: cor, pointRadius: 3 }] },
+                            options: { responsive: true, maintainAspectRatio: true,
+                                plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return ' ' + c.formattedValue + '%'; } } } },
+                                scales: { r: { beginAtZero: true, ticks: { display: false }, pointLabels: { font: { size: 11, family: 'Inter' }, color: '#334155' }, grid: { color: '#e2e8f0' }, angleLines: { color: '#e2e8f0' } } } }
+                        });
+                    });
+                    </script>
+                <?php else: ?>
+                    <div class="flex justify-center bg-slate-50 rounded-2xl p-4">
+                        <img src="<?php echo htmlspecialchars(urlRadarPerfil($resultadoPerfil)); ?>" alt="Gráfico de radar do perfil por competências" class="w-full max-w-xl rounded-xl"
+                             onerror="this.parentElement.innerHTML='<p class=&quot;text-sm text-gray-400 py-8&quot;>Não foi possível carregar o gráfico no momento.</p>'">
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($parecerTexto !== ''): ?>
+                <!-- Parecer da IA, logo abaixo do gráfico -->
+                <div class="mt-6 rounded-2xl border border-slate-200 overflow-hidden">
+                    <div class="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-[#eef7fc] to-white border-b border-slate-100">
+                        <span class="w-9 h-9 rounded-xl bg-[#4A9FCA] text-white flex items-center justify-center"><i class="fas fa-robot text-sm"></i></span>
+                        <div>
+                            <h4 class="font-bold text-slate-900">Resumo do seu perfil</h4>
+                            <p class="text-xs text-slate-500">Parecer gerado por IA a partir das suas respostas</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-5 text-[15px] text-slate-700 leading-relaxed">
+                        <?= dicasParecerHtml($parecerResumo) ?>
+                        <?php if ($parecerResto !== ''): ?>
+                            <details class="group mt-2">
+                                <summary class="cursor-pointer list-none inline-flex items-center gap-2 text-sm font-semibold text-[#2B7FA6] hover:underline">
+                                    <i class="fas fa-chevron-down text-xs transition group-open:rotate-180"></i>
+                                    <span class="group-open:hidden">Ler o parecer completo</span><span class="hidden group-open:inline">Esconder o parecer completo</span>
+                                </summary>
+                                <div class="mt-4 pt-4 border-t border-slate-100"><?= dicasParecerHtml($parecerResto) ?></div>
+                            </details>
+                        <?php endif; ?>
+                    </div>
                 </div>
+                <?php endif; ?>
+
                 <div class="flex flex-wrap gap-3 mt-5">
                     <a href="<?php echo htmlspecialchars(urlPdfPerfil($resultadoPerfil)); ?>" target="_blank"
-                       class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all">
+                       class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all">
                         <i class="fas fa-file-pdf"></i> Baixar relatório em PDF
                     </a>
-                    <a href="profile.php"
+                    <a href="<?php echo htmlspecialchars($urlFormPerfil); ?>" target="_blank" rel="noopener"
                        class="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
-                        <i class="fas fa-user"></i> Ver parecer completo no Perfil
+                        <i class="fas fa-redo"></i> Refazer avaliação
                     </a>
                 </div>
             <?php else: ?>
@@ -276,7 +375,7 @@ include 'includes/header.php';
                     <p class="text-gray-700 font-semibold mb-1">Você ainda não respondeu o teste de Perfil por Competências.</p>
                     <p class="text-sm text-gray-500 mb-5">Responda o formulário para desbloquear seu gráfico de radar aqui.</p>
                     <a href="<?php echo htmlspecialchars($urlFormPerfil); ?>" target="_blank"
-                       class="inline-flex items-center gap-2 px-6 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-bold transition-all">
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-bold transition-all">
                         <i class="fas fa-play"></i> Responder formulário
                     </a>
                 </div>

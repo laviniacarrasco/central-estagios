@@ -3,5 +3,6 @@ services:
     name: central-estagios
     env: php
     buildCommand: ""
+    # router.php protege data/, .env e docs/ (sem ele, os JSON poderiam ser baixados)
     startCommand: php -S 0.0.0.0:$PORT router.php
     plan: free

@@ -1,0 +1,87 @@
+[
+    {
+        "id": 1896218780,
+        "protocolo": "DEN-261105-23AB",
+        "autorId": 1,
+        "autorNome": "Lavinia",
+        "autorEmail": "lavinia.760876@graduacao.fsa.br",
+        "autorPerfil": "Aluno",
+        "anonimo": false,
+        "categoria": "vaga",
+        "assunto": "golpe",
+        "status": "em_analise",
+        "criadoEm": "05\/11\/2026 13:30",
+        "criadoTs": 1793896218,
+        "atualizadoTs": 1793897388,
+        "mensagens": [
+            {
+                "id": "45a586aaff50",
+                "de": "autor",
+                "nome": "Lavinia",
+                "texto": "vcs são burros ou se fazem? Meu Deus",
+                "anexos": [],
+                "ts": 1793896218
+            },
+            {
+                "id": "0531634f9882",
+                "de": "autor",
+                "nome": "Lavinia",
+                "texto": "",
+                "anexos": [
+                    {
+                        "arquivo": "41788d74224bd1e4.png",
+                        "nome": "imagem-colada-1793896248393.png",
+                        "mime": "image\/png",
+                        "tamanho": 1881870
+                    }
+                ],
+                "ts": 1793896250
+            },
+            {
+                "id": "59c0128f20f1",
+                "de": "admin",
+                "nome": "Equipe de Denúncias",
+                "texto": "TESTE",
+                "anexos": [],
+                "ts": 1793897388
+            }
+        ],
+        "naoLidoAutor": true,
+        "naoLidoAdmin": false
+    },
+    {
+        "id": 1896193313,
+        "protocolo": "DEN-261105-12B5",
+        "autorId": 1,
+        "autorNome": "Lavinia",
+        "autorEmail": "lavinia.760876@graduacao.fsa.br",
+        "autorPerfil": "Aluno",
+        "anonimo": true,
+        "categoria": "assedio",
+        "assunto": "professor doido",
+        "status": "arquivada",
+        "criadoEm": "05\/11\/2026 13:29",
+        "criadoTs": 1793896193,
+        "atualizadoTs": 1793897419,
+        "mensagens": [
+            {
+                "id": "0c2fbcf781d5",
+                "de": "autor",
+                "nome": "Anônimo",
+                "texto": "ele canta dança, obriga os outros a dançarem, se não ele te bate",
+                "anexos": [],
+                "ts": 1793896193
+            },
+            {
+                "id": "ed8446d38863",
+                "de": "admin",
+                "nome": "Equipe de Denúncias",
+                "texto": "TESTE",
+                "anexos": [],
+                "ts": 1793897419
+            }
+        ],
+        "naoLidoAutor": true,
+        "naoLidoAdmin": false
+    }
+]

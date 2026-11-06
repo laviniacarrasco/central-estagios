@@ -5,10 +5,12 @@ FROM php:8.2-cli
 #   pdo_mysql   -> banco MySQL (dados da Central, TOTVS, Painéis BI)
 #   pdo_pgsql   -> banco PostgreSQL
 #   zip         -> ler planilhas .xlsx nos Painéis BI e gerar Excel nos relatórios
+#   gd          -> imagens (foto) no currículo em PDF (Dompdf)
 #   (pdo_sqlite já vem no PHP)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libcurl4-openssl-dev libpq-dev libzip-dev unzip git \
-    && docker-php-ext-install curl pdo_mysql pdo_pgsql zip \
+    && apt-get install -y --no-install-recommends libcurl4-openssl-dev libpq-dev libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev unzip git \
+    && docker-php-ext-configure gd --with-jpeg --with-freetype \
+    && docker-php-ext-install curl pdo_mysql pdo_pgsql zip gd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

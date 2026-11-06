@@ -39,9 +39,11 @@ function getCorMap() {
 
 function getLayoutMap() {
     return [
-        'classico'    => ['label' => 'Cl&aacute;ssico',   'desc' => 'Cabe&ccedil;alho preenchido, visual institucional'],
-        'moderno'     => ['label' => 'Moderno',            'desc' => 'Sidebar lateral s&oacute;lida, estilo corporativo'],
-        'minimalista' => ['label' => 'Minimalista',        'desc' => 'S&oacute;brio, sem cores fortes no fundo'],
+        // Os três modelos são de UMA coluna, com títulos padrão: é o formato que os
+        // sistemas de recrutamento (ATS) e as IAs de triagem leem sem erro.
+        'classico'    => ['label' => 'Cl&aacute;ssico',   'desc' => 'Nome em destaque e linha na cor do tema'],
+        'moderno'     => ['label' => 'Moderno',            'desc' => 'Faixa lateral fina e habilidades em etiquetas'],
+        'minimalista' => ['label' => 'Minimalista',        'desc' => 'Tons de cinza, visual s&oacute;brio'],
     ];
 }
 
@@ -96,11 +98,11 @@ function getTextosCV($idioma) {
     $textos = [
         'pt' => [
             'titulo_resumo'        => 'Resumo Profissional',
-            'titulo_experiencia'   => 'Hist&oacute;rico Profissional',
+            'titulo_experiencia'   => 'Experi&ecirc;ncia Profissional',
             'titulo_formacao'      => 'Forma&ccedil;&atilde;o Acad&ecirc;mica',
-            'titulo_habilidades'   => 'Habilidades e Compet&ecirc;ncias',
+            'titulo_habilidades'   => 'Habilidades',
             'titulo_idiomas'       => 'Idiomas',
-            'titulo_certificados'  => 'Cursos Complementares',
+            'titulo_certificados'  => 'Cursos e Certifica&ccedil;&otilde;es',
             'subtitulo_cv'         => 'Curriculo Profissional',
             'placeholder_nome'     => 'Seu nome completo',
             'placeholder_email'    => 'seuemail@exemplo.com',
@@ -153,7 +155,7 @@ function getTextosCV($idioma) {
             'titulo_formacao'      => 'Education',
             'titulo_habilidades'   => 'Skills',
             'titulo_idiomas'       => 'Languages',
-            'titulo_certificados'  => 'Additional Courses',
+            'titulo_certificados'  => 'Courses and Certifications',
             'subtitulo_cv'         => 'Professional Resume',
             'placeholder_nome'     => 'Your full name',
             'placeholder_email'    => 'youremail@example.com',
@@ -202,11 +204,11 @@ function getTextosCV($idioma) {
         ],
         'es' => [
             'titulo_resumo'        => 'Resumen Profesional',
-            'titulo_experiencia'   => 'Historial Profesional',
+            'titulo_experiencia'   => 'Experiencia Profesional',
             'titulo_formacao'      => 'Formaci&oacute;n Acad&eacute;mica',
-            'titulo_habilidades'   => 'Habilidades y Competencias',
+            'titulo_habilidades'   => 'Habilidades',
             'titulo_idiomas'       => 'Idiomas',
-            'titulo_certificados'  => 'Cursos Complementarios',
+            'titulo_certificados'  => 'Cursos y Certificaciones',
             'subtitulo_cv'         => 'Curriculum Profesional',
             'placeholder_nome'     => 'Tu nombre completo',
             'placeholder_email'    => 'tuemail@ejemplo.com',
@@ -487,6 +489,7 @@ if (!empty($userData['fotoCV'])) {
     $fotoUrl = 'data/' . $userData['fotoCV'];
 }
 
+if (defined('CV_SOMENTE_DADOS')) return;   // curriculo-pdf.php só precisa dos dados
 include 'includes/header.php';
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -589,21 +592,9 @@ include 'includes/header.php';
 .cv-shell, .cv-shell *{ font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; }
 
 .cv-shell{display:grid;gap:20px;}
-.cv-shell[data-layout="classico"],
-.cv-shell[data-layout="minimalista"]{
+.cv-shell{
     grid-template-columns:1fr;
     grid-template-areas:"hero" "resumo" "exp" "form" "skills" "certs";
-}
-.cv-shell[data-layout="moderno"]{
-    grid-template-columns:280px 1fr;
-    grid-template-areas:
-        "hero resumo"
-        "skills exp"
-        "skills form"
-        "skills certs";
-}
-@media (max-width: 768px){
-    .cv-shell[data-layout="moderno"]{grid-template-columns:1fr;grid-template-areas:"hero" "resumo" "skills" "exp" "form" "certs";}
 }
 [data-area="hero"]{grid-area:hero;}
 [data-area="resumo"]{grid-area:resumo;}
@@ -641,49 +632,44 @@ include 'includes/header.php';
 .cv-idioma-nome{color:#1a1a1a;font-weight:700;font-size:13px;}
 .cv-idioma-nivel{font-size:11px;color:var(--cv-secondary);opacity:1;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
 
-[data-layout="classico"] .cv-hero{ background:var(--cv-primary); border:none; color:#fff; }
-[data-layout="classico"] .cv-hero input,
-[data-layout="classico"] .cv-hero p{ color:#fff !important; }
-[data-layout="classico"] .cv-hero input::placeholder{ color:rgba(255,255,255,.65) !important; }
-[data-layout="classico"] .cv-hero .cv-avatar{ background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.55);color:#fff; }
-[data-layout="classico"] .cv-hero .cv-contact-pill{ color:#fff; }
-[data-layout="classico"] .cv-hero .cv-contact-pill svg{ color:rgba(255,255,255,.9); }
+/* =====================================================================
+   MODELOS NA TELA: iguais ao PDF (uma coluna, sem fundos chapados).
+   Espaçamentos padronizados: 16px entre blocos, 28px dentro de cada bloco.
+   ===================================================================== */
+.cv-shell{ gap:16px; }
+.cv-shell .cv-section{ border-radius:10px; }
+.cv-shell .cv-section.p-8{ padding:28px 32px; }
+.cv-section-title{ font-size:12px; letter-spacing:1.6px; margin-bottom:18px; }
+.cv-timeline-item{ padding-bottom:16px; margin-bottom:16px; }
+.cv-skill-pill{ border-radius:6px; }
+.cv-hero{ border-radius:10px; padding:28px 32px; }
+@media (max-width: 640px){ .cv-shell .cv-section.p-8, .cv-hero{ padding:20px; } }
 
-[data-layout="minimalista"] .cv-hero{ background:#fff;border:1px solid #e5e7eb; }
-[data-layout="minimalista"] .cv-hero .cv-avatar{ background:#f0f1f3;border:2px solid var(--cv-primary);color:var(--cv-primary); }
+/* Clássico: nome na cor do tema e linha forte no topo */
+[data-layout="classico"] .cv-hero{ background:#fff; border:1px solid #e9e9ea; border-top:5px solid var(--cv-primary); }
+[data-layout="classico"] .cv-hero input[name="nome"]{ color:var(--cv-primary) !important; }
+[data-layout="classico"] .cv-hero .cv-avatar{ background:#f1f3f5; border:2px solid var(--cv-primary); color:var(--cv-primary); }
+[data-layout="classico"] .cv-hero .cv-contact-pill{ color:#4b5563; }
+[data-layout="classico"] .cv-hero .cv-contact-pill svg{ color:var(--cv-primary); }
+
+/* Moderno: faixa lateral fina, títulos com marcador e habilidades em etiquetas */
+[data-layout="moderno"] .cv-hero{ background:#f7f9fb; border:1px solid #e9e9ea; border-left:6px solid var(--cv-primary); }
+[data-layout="moderno"] .cv-hero input[name="nome"]{ color:#111 !important; }
+[data-layout="moderno"] .cv-hero .cv-avatar{ background:#fff; border:2px solid var(--cv-primary); color:var(--cv-primary); }
+[data-layout="moderno"] .cv-hero .cv-contact-pill{ color:#4b5563; }
+[data-layout="moderno"] .cv-hero .cv-contact-pill svg{ color:var(--cv-primary); }
+[data-layout="moderno"] .cv-section-title{ border-bottom:none; border-left:3px solid var(--cv-primary); padding:0 0 0 10px; }
+[data-layout="moderno"] .cv-skill-pill{ border-color:#cfd6de; color:#333; background:#f7f9fb; }
+
+/* Minimalista: tons de cinza */
+[data-layout="minimalista"] .cv-hero{ background:#fff; border:1px solid #e5e7eb; }
+[data-layout="minimalista"] .cv-hero input[name="nome"]{ color:#111 !important; }
+[data-layout="minimalista"] .cv-hero .cv-avatar{ background:#f0f1f3; border:2px solid #9ca3af; color:#374151; }
 [data-layout="minimalista"] .cv-hero .cv-contact-pill{ color:#4b5563; }
-[data-layout="minimalista"] .cv-hero .cv-contact-pill svg{ color:var(--cv-primary); }
-[data-layout="minimalista"] .cv-section{box-shadow:none;border:1px solid #ececec;}
-
-[data-layout="moderno"] [data-area="hero"].cv-hero{
-    display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:flex-start;gap:10px;
-    border-radius:8px 8px 0 0;border:none;
-    background:var(--cv-secondary);color:#fff;padding:34px 22px 24px;
-    margin-bottom:0;
-}
-[data-layout="moderno"] [data-area="hero"].cv-hero .flex-1{width:100%;}
-[data-layout="moderno"] [data-area="hero"].cv-hero input[name="nome"]{
-    font-size:1.3rem;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    border-bottom:none;padding:0 4px;color:#fff !important;
-}
-[data-layout="moderno"] [data-area="hero"].cv-hero input,
-[data-layout="moderno"] [data-area="hero"].cv-hero p{ color:#fff !important; }
-[data-layout="moderno"] [data-area="hero"].cv-hero input::placeholder{ color:rgba(255,255,255,.6) !important; }
-[data-layout="moderno"] [data-area="hero"].cv-hero .cv-contact-pill{ color:#fff; }
-[data-layout="moderno"] [data-area="hero"].cv-hero .cv-contact-pill svg{ color:rgba(255,255,255,.85); }
-[data-layout="moderno"] [data-area="hero"].cv-hero .cv-avatar{ background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.5);color:#fff; }
-
-[data-layout="moderno"] [data-area="skills"].cv-section{
-    background:var(--cv-secondary);color:#fff;border:none;
-    border-radius:0 0 8px 8px;margin-top:-20px;padding-top:24px;height:calc(100% + 20px);
-}
-[data-layout="moderno"] [data-area="skills"] .cv-section-title{ color:#fff;border-bottom:2px solid rgba(255,255,255,.35); }
-[data-layout="moderno"] [data-area="skills"] .cv-skill-pill{ background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.5); }
-[data-layout="moderno"] [data-area="skills"] textarea{ background:rgba(255,255,255,.9); }
-[data-layout="moderno"] [data-area="skills"] .cv-idioma-item{ border-bottom:1px dashed rgba(255,255,255,.3); }
-[data-layout="moderno"] [data-area="skills"] .cv-idioma-nome{ color:#fff; }
-[data-layout="moderno"] [data-area="skills"] .cv-idioma-nivel{ color:rgba(255,255,255,.75); }
-[data-layout="moderno"] [data-area="skills"] p.text-gray-400{ color:rgba(255,255,255,.6) !important; }
+[data-layout="minimalista"] .cv-hero .cv-contact-pill svg{ color:#6b7280; }
+[data-layout="minimalista"] .cv-section{ border:1px solid #ececec; }
+[data-layout="minimalista"] .cv-section-title{ color:#374151; border-bottom:1px solid #9ca3af; letter-spacing:1.8px; }
+[data-layout="minimalista"] .cv-skill-pill{ border-color:#d1d5db; color:#374151; }
 
 #curriculumPDF{ position:absolute; left:-99999px; top:0; width:794px; background:#fff; }
 
@@ -694,16 +680,18 @@ include 'includes/header.php';
 
     <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
         <div>
-            <h2 class="text-3xl font-bold text-gray-900">Meu Curr&iacute;culo</h2>
-            <p class="text-gray-500">Mantenha suas informa&ccedil;&otilde;es atualizadas</p>
+            <h2 class="text-3xl font-bold text-slate-900">Meu Curr&iacute;culo</h2>
+            <p class="text-slate-500">Edite, escolha o modelo, pe&ccedil;a a avalia&ccedil;&atilde;o da IA e baixe em PDF.</p>
         </div>
-        <div class="flex gap-3">
-            <button id="btnEditar"   onclick="toggleEdit()"      class="flex items-center gap-2 px-4 py-2 bg-[var(--cv-primary)] text-white rounded-lg hover:opacity-90 transition-colors shadow-sm"><i class="fas fa-edit"></i> Editar</button>
-            <button id="btnSalvar"   onclick="salvarCurriculo()" class="hidden flex items-center gap-2 px-4 py-2 bg-[var(--cv-primary)] text-white rounded-lg hover:opacity-90 transition-colors shadow-sm"><i class="fas fa-save"></i> Salvar</button>
-            <button id="btnCancelar" onclick="cancelarEdicao()"  class="hidden flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors shadow-sm"><i class="fas fa-times"></i> Cancelar</button>
-            <button id="btnPDF"      onclick="baixarPDF()"       class="flex items-center gap-2 px-4 py-2 bg-[#8B1E2D] text-white rounded-lg hover:opacity-90 transition-colors shadow-sm"><i class="fas fa-file-pdf"></i> Baixar PDF</button>
+        <div class="flex flex-wrap gap-3">
+            <button id="btnEditar"   onclick="toggleEdit()"      class="flex items-center gap-2 px-4 py-2 bg-[var(--cv-primary)] text-white rounded-xl h-11 font-semibold hover:opacity-90 transition-colors shadow-sm"><i class="fas fa-edit"></i> Editar</button>
+            <button id="btnSalvar"   onclick="salvarCurriculo()" class="hidden flex items-center gap-2 px-4 py-2 bg-[var(--cv-primary)] text-white rounded-xl h-11 font-semibold hover:opacity-90 transition-colors shadow-sm"><i class="fas fa-save"></i> Salvar</button>
+            <button id="btnCancelar" onclick="cancelarEdicao()"  class="hidden flex items-center gap-2 px-4 py-2 bg-white text-slate-600 border border-slate-200 rounded-xl h-11 font-semibold hover:bg-slate-50 transition-colors"><i class="fas fa-times"></i> Cancelar</button>
+            <button id="btnPDF"      onclick="baixarPDF()"       class="flex items-center gap-2 px-4 py-2 bg-[#8B1E2D] text-white rounded-xl h-11 font-semibold hover:opacity-90 transition-colors shadow-sm"><i class="fas fa-file-pdf"></i> Baixar PDF</button>
         </div>
     </div>
+
+    <?php include 'includes/curriculo-ia.php'; /* porcentagem + avaliação da IA */ ?>
 
     <div id="autosaveToast" class="hidden fixed bottom-6 right-6 z-[999] bg-gray-900 text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-lg items-center gap-2 flex">
         <i class="fas fa-check-circle text-green-400"></i> <span id="autosaveToastText">Salvo automaticamente</span>
@@ -734,30 +722,38 @@ include 'includes/header.php';
 </div>
 
 
-    <div class="cv-section p-6 mb-6" style="height:auto;">
+    <div class="cv-section p-6 mb-6" style="height:auto;" id="cvOpcoes">
+        <button type="button" class="w-full flex items-center justify-between gap-3 text-left" data-recolher="cvOpcoes" aria-controls="cvOpcoesCorpo" data-padrao="aberto"
+                data-txt-aberto="Recolher" data-txt-fechado="Personalizar">
+            <span class="min-w-0">
+                <span class="block text-sm font-bold text-gray-800 uppercase tracking-widest">Modelo, cor, idioma e foto</span>
+                <span class="block text-xs text-gray-500 mt-1" data-resumo-de="cvOpcoesCorpo">
+                    <?php echo $layoutMap[$layoutAtual]['label'] ?? ''; ?> &middot; <?php echo $corAtual['label']; ?> &middot; <?php echo $idiomasCVMap[$idiomaCVAtual]['label'] ?? ''; ?> &middot; <?php echo !empty($userData['exibirFoto']) ? 'com foto' : 'sem foto'; ?>
+                </span>
+            </span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-[var(--cv-primary)] flex-shrink-0"><span data-rotulo>Recolher</span> <i class="fas fa-chevron-down"></i></span>
+        </button>
+        <div id="cvOpcoesCorpo" class="mt-5">
         <h3 class="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4">Modelo do Curr&iacute;culo</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <?php foreach ($layoutMap as $key => $info): ?>
                 <div class="selector-card <?php echo $layoutAtual === $key ? 'active' : ''; ?>" data-layout-option="<?php echo $key; ?>" onclick="selecionarLayout('<?php echo $key; ?>')">
                     <div class="selector-preview">
                         <?php if ($key === 'classico'): ?>
-                            <div style="width:88%;height:80%;background:<?php echo $corAtual['primary']; ?>;border-radius:4px;display:flex;flex-direction:column;gap:4px;justify-content:center;padding:6px 8px;box-sizing:border-box;">
-                                <div style="height:6px;background:rgba(255,255,255,.9);border-radius:2px;width:55%;"></div>
-                                <div style="height:4px;background:rgba(255,255,255,.6);border-radius:2px;width:80%;"></div>
-                                <div style="height:4px;background:rgba(255,255,255,.6);border-radius:2px;width:65%;"></div>
+                            <div style="width:88%;height:80%;background:#fff;border:1px solid #e5e7eb;border-top:4px solid <?php echo $corAtual['primary']; ?>;border-radius:4px;display:flex;flex-direction:column;gap:4px;justify-content:center;padding:6px 8px;box-sizing:border-box;">
+                                <div style="height:6px;background:<?php echo $corAtual['primary']; ?>;border-radius:2px;width:55%;"></div>
+                                <div style="height:3px;background:#d1d5db;border-radius:2px;width:85%;"></div>
+                                <div style="height:3px;background:#e5e7eb;border-radius:2px;width:70%;"></div>
                             </div>
                         <?php elseif ($key === 'moderno'): ?>
-                            <div style="width:88%;height:80%;display:flex;gap:4px;">
-                                <div style="width:32%;background:<?php echo $corAtual['secondary']; ?>;border-radius:3px;"></div>
-                                <div style="flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:3px;display:flex;flex-direction:column;gap:4px;justify-content:center;padding:0 6px;box-sizing:border-box;">
-                                    <div style="height:4px;background:#bbb;border-radius:2px;width:90%;"></div>
-                                    <div style="height:4px;background:#bbb;border-radius:2px;width:70%;"></div>
-                                </div>
+                            <div style="width:88%;height:80%;background:#f7f9fb;border:1px solid #e5e7eb;border-left:4px solid <?php echo $corAtual['primary']; ?>;border-radius:4px;display:flex;flex-direction:column;gap:4px;justify-content:center;padding:0 8px;box-sizing:border-box;">
+                                <div style="height:6px;background:#374151;border-radius:2px;width:50%;"></div>
+                                <div style="display:flex;gap:3px;"><span style="width:16px;height:5px;border:1px solid #cbd5e1;border-radius:2px;"></span><span style="width:20px;height:5px;border:1px solid #cbd5e1;border-radius:2px;"></span><span style="width:14px;height:5px;border:1px solid #cbd5e1;border-radius:2px;"></span></div>
                             </div>
                         <?php else: ?>
-                            <div style="width:88%;height:80%;background:#fff;border:1px solid #eee;border-radius:4px;display:flex;flex-direction:column;gap:4px;justify-content:center;padding:6px 8px;box-sizing:border-box;">
-                                <div style="height:5px;background:#ccc;border-radius:2px;width:50%;"></div>
-                                <div style="height:3px;background:#e5e5e5;border-radius:2px;width:80%;"></div>
+                            <div style="width:88%;height:80%;background:#fff;border:1px solid #eee;border-radius:4px;display:flex;flex-direction:column;gap:4px;justify-content:center;align-items:center;padding:6px 8px;box-sizing:border-box;">
+                                <div style="height:5px;background:#9ca3af;border-radius:2px;width:50%;"></div>
+                                <div style="height:3px;background:#e5e5e5;border-radius:2px;width:75%;"></div>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -809,19 +805,20 @@ include 'includes/header.php';
                     <input type="hidden" name="action" value="upload_foto">
                     <label class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-semibold cursor-pointer text-gray-700">
                         <i class="fas fa-upload mr-1"></i> <?php echo $fotoUrl ? 'Trocar foto' : 'Escolher foto'; ?>
-                        <input type="file" name="foto_cv" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="this.form.submit()">
+                        <input type="file" name="foto_cv" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="cvEnviarForm(this.form)">
                     </label>
                 </form>
                 <?php if ($fotoUrl): ?>
                     <form method="POST" action="curriculum.php" accept-charset="UTF-8" id="formRemoverFoto">
                         <input type="hidden" name="action" value="remover_foto">
                         <button type="button"
-                            onclick="abrirModalConfirmacao('Remover foto do curr&iacute;culo', 'Tem certeza que deseja remover sua foto? Essa a&ccedil;&atilde;o n&atilde;o pode ser desfeita.', () => document.getElementById('formRemoverFoto').submit())"
+                            onclick="abrirModalConfirmacao('Remover foto do curr&iacute;culo', 'Tem certeza que deseja remover sua foto? Essa a&ccedil;&atilde;o n&atilde;o pode ser desfeita.', () => cvEnviarForm(document.getElementById('formRemoverFoto')))"
                             class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg text-xs font-semibold"><i class="fas fa-trash-alt mr-1"></i> Remover</button>
                     </form>
                 <?php endif; ?>
             </div>
         </div>
+            </div>
     </div>
     <form id="curriculumForm" method="POST" action="curriculum.php" accept-charset="UTF-8">
         <input type="hidden" name="action"      value="save">
@@ -916,7 +913,11 @@ include 'includes/header.php';
                     <?php else: foreach ($userData['formacoes'] as $form):
                         $ini       = fmtData($form['inicio']);
                         $fim       = fmtData($form['fim']);
-                        $periodo   = $ini . ($fim ? ' - ' . $fim : '');
+                        $cursandoF = ($form['atual'] ?? '0') === '1' || (!empty($form['fim']) && substr((string) $form['fim'], 0, 7) >= date('Y-m'));
+                        $periodo   = $ini . ($cursandoF
+                            ? ' - ' . ($fim ? html_entity_decode($textos['label_previsao_fim'], ENT_QUOTES, 'UTF-8') . ' ' . $fim : '…')
+                            : ($fim ? ' - ' . $fim : ''));
+                        $periodo   = htmlspecialchars($periodo);
                         $tipoLabel = $tiposFormacaoLabels[$form['tipo']] ?? $form['tipo'];
                     ?>
                     <div class="cv-timeline-item">
@@ -1134,8 +1135,7 @@ function selecionarLayout(layout){
     fd.append('action', 'set_layout');
     fd.append('layout', layout);
     fetch('curriculum.php', {method:'POST', body:fd}).then(() => {
-        mostrarToast('Modelo alterado -- atualizando...');
-        setTimeout(() => location.reload(), 400);
+        cvAtualizar('Modelo alterado');
     });
 }
 
@@ -1147,8 +1147,7 @@ function selecionarCor(cor){
     fd.append('action', 'set_cor');
     fd.append('corTema', cor);
     fetch('curriculum.php', {method:'POST', body:fd}).then(() => {
-        mostrarToast('Cor alterada -- atualizando...');
-        setTimeout(() => location.reload(), 400);
+        cvAtualizar('Cor alterada');
     });
 }
 
@@ -1163,8 +1162,7 @@ function selecionarIdiomaCV(idioma){
     fd.append('action', 'set_idioma_cv');
     fd.append('idiomaCV', idioma);
     fetch('curriculum.php', {method:'POST', body:fd}).then(() => {
-        mostrarToast('Idioma do curr\u00edculo alterado -- atualizando...');
-        setTimeout(() => location.reload(), 400);
+        cvAtualizar('Idioma do curr\u00edculo alterado');
     });
 }
 
@@ -1174,8 +1172,7 @@ function toggleFoto(marcado){
     fd.append('action', 'toggle_foto');
     fd.append('exibirFoto', marcado ? '1' : '0');
     fetch('curriculum.php', {method:'POST', body:fd}).then(() => {
-        mostrarToast(marcado ? 'Foto ativada' : 'Foto desativada');
-        setTimeout(() => location.reload(), 400);
+        cvAtualizar(marcado ? 'Foto ativada' : 'Foto desativada');
     });
 }
 
@@ -1573,55 +1570,71 @@ function toggleEdit(){
     bindAutosaveListeners();
 }
 
+/* =====================================================================
+   ATUALIZA O CURRÍCULO SEM RECARREGAR A PÁGINA
+   Troca só o currículo, o painel de opções e o quadro da IA, e mantém a
+   rolagem. Também atualiza curriculumData e as cores do tema.
+   ===================================================================== */
+function cvSairDaEdicao(){
+    modoEdicao = false;
+    clearTimeout(autosaveTimer);
+    document.getElementById('btnEditar').classList.remove('hidden');
+    document.getElementById('btnSalvar').classList.add('hidden');
+    document.getElementById('btnCancelar').classList.add('hidden');
+}
+function cvAtualizar(msg){
+    return fsaTrocarPartes(['#cvOpcoes', '#cvIaBloco', '#cvShell']).then(function (r) {
+        const m = r.html.match(/const curriculumData = (.*?);\n/);
+        if (m) {
+            try {
+                const novo = JSON.parse(m[1]);
+                Object.keys(curriculumData).forEach(k => delete curriculumData[k]);
+                Object.assign(curriculumData, novo);
+            } catch (e) {}
+        }
+        const p = r.html.match(/--cv-primary:\s*(#[0-9A-Fa-f]{3,8})/), s = r.html.match(/--cv-secondary:\s*(#[0-9A-Fa-f]{3,8})/);
+        if (p) document.documentElement.style.setProperty('--cv-primary', p[1]);
+        if (s) document.documentElement.style.setProperty('--cv-secondary', s[1]);
+        Object.keys(dpRegistry).forEach(k => delete dpRegistry[k]);
+        bindPhoneMask(document.getElementById('telefoneInput'));
+        if (msg) mostrarToast(msg);
+    }).catch(() => location.reload());
+}
+/* Envia um formulário (foto) por trás e atualiza a tela */
+function cvEnviarForm(form){
+    fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin' })
+        .then(() => cvAtualizar('Foto atualizada'))
+        .catch(() => form.submit());
+}
+
 function cancelarEdicao(){
-    location.reload();
+    cvSairDaEdicao();
+    cvAtualizar('Altera\u00e7\u00f5es descartadas');
 }
 
 function salvarCurriculo(){
-    document.getElementById('curriculumForm').submit();
+    const fd = new FormData(document.getElementById('curriculumForm'));
+    fd.set('action', 'autosave');                       // salva e responde em JSON (não recarrega)
+    const btn = document.getElementById('btnSalvar');
+    btn.disabled = true;
+    fetch('curriculum.php', { method: 'POST', body: fd, credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(() => { cvSairDaEdicao(); return cvAtualizar('Curr\u00edculo salvo!'); })
+        .catch(() => { fsaAviso('N\u00e3o foi poss\u00edvel salvar agora. Confira sua conex\u00e3o e tente de novo.', 'N\u00e3o salvou'); })
+        .then(() => { btn.disabled = false; });
 }
 
+/* PDF com texto de verdade (legível por ATS e IAs de triagem), gerado por curriculo-pdf.php.
+   Com a biblioteca Dompdf instalada, baixa o .pdf direto; sem ela, abre a versão para
+   impressão e o navegador oferece "Salvar como PDF". */
+const CV_PDF_DIRETO = <?php echo class_exists('Dompdf\\Dompdf') ? 'true' : 'false'; ?>;
 function baixarPDF(){
-    const el = document.getElementById('curriculumPDF');
-
-    html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        windowWidth: el.scrollWidth,
-        windowHeight: el.scrollHeight
-    }).then(canvas => {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = 210;
-        const pageHeight = 297;
-        const imgWidth = pageWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        let heightLeft = imgHeight;
-        let position = 0;
-        const imgData = canvas.toDataURL('image/png');
-
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-        }
-
-        const nomeArquivo = (curriculumData.nome || 'curriculo')
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-zA-Z0-9]+/g, '_')
-            .replace(/^_+|_+$/g, '') || 'curriculo';
-
-        pdf.save(`Curriculo_${nomeArquivo}.pdf`);
-    }).catch(err => {
-        console.error('Erro ao gerar PDF:', err);
-        fsaAviso('Não foi possível gerar o PDF. Tente novamente.', 'Não foi possível gerar');
-    });
+    if (typeof modoEdicao !== 'undefined' && modoEdicao) {
+        fsaAviso('Salve o currículo antes de baixar o PDF, para ele sair com as últimas mudanças.', 'Currículo em edição');
+        return;
+    }
+    if (CV_PDF_DIRETO) window.location.href = 'curriculo-pdf.php';
+    else window.open('curriculo-pdf.php', '_blank');
 }
 
 document.addEventListener('DOMContentLoaded', () => {

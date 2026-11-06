@@ -4,7 +4,7 @@ require_once 'includes/avisos.php';
 checkAuth();
 
 header('Content-Type: text/html; charset=UTF-8');
-$pageTitle = 'Solicitar Vaga de Estágio';
+$pageTitle = perfilPode('publicar_vaga') ? 'Publicar Vaga' : 'Solicitar Vaga de Estágio';   // professor publica (com aprovação)
 
 $usuarios = loadData('usuarios');
 $usuarioLogado = null;
@@ -86,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'solic
             'studentId'       => $usuarioLogado['id'],
             'studentName'     => $usuarioLogado['nome'] ?? '',
             'studentEmail'    => $usuarioLogado['email'] ?? '',
+            'autorPerfil'     => perfilAtual(),   // aluno | professor (para a coordenação saber quem pediu)
             'status'          => 'pendente', // pendente | aprovada | rejeitada
             'motivoRejeicao'  => '',
             'createdAt'       => date('d/m/Y H:i'),
@@ -196,7 +197,7 @@ function renderJobCard(array $req, array $fsaCourses): string {
             </div>
 
             <button type="button" onclick="toggleReenvio(<?php echo (int) $req['id']; ?>)"
-                class="px-4 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white text-sm font-semibold rounded-xl transition-all">
+                class="px-4 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white text-sm font-semibold rounded-xl transition-all">
                 <i class="fas fa-redo mr-1.5"></i> Editar e reenviar
             </button>
 
@@ -283,7 +284,7 @@ function renderJobCard(array $req, array $fsaCourses): string {
 
                     <div class="flex items-center gap-3 pt-1">
                         <button type="submit"
-                            class="px-4 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white text-sm font-semibold rounded-xl transition-all">
+                            class="px-4 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white text-sm font-semibold rounded-xl transition-all">
                             <i class="fas fa-paper-plane mr-1.5"></i> Reenviar solicitação
                         </button>
                         <button type="button" onclick="toggleReenvio(<?php echo (int) $req['id']; ?>)"
@@ -648,7 +649,7 @@ include 'includes/header.php';
             </div>
 
             <div class="pt-2">
-                <button type="submit" class="w-full py-3 bg-[#4A9FCA] text-white rounded-xl font-semibold hover:bg-[#3A8FB0] transition-all shadow-sm">
+                <button type="submit" class="w-full py-3 bg-[#4A9FCA] text-white rounded-xl font-semibold hover:bg-[#2B7FA6] transition-all shadow-sm">
                     <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitação para Aprovação
                 </button>
             </div>

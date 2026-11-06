@@ -12,7 +12,7 @@ if (!empty($_SESSION['is_admin']) || !empty($_SESSION['is_egresso'])) {
     exit;
 }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: profile.php#alertas');
+    header('Location: profile.php#configuracoes-alertas');
     exit;
 }
 
@@ -21,7 +21,7 @@ $usuario = egressoCarregarUsuario($userId);
 if (!$usuario) { header('Location: index.php?logout=1'); exit; }
 
 function alertasVoltar(string $msg): void {
-    header('Location: profile.php?alertas=' . urlencode($msg) . '#alertas');
+    header('Location: profile.php#configuracoes-alertas');   // abre a caixa de Configurações
     exit;
 }
 

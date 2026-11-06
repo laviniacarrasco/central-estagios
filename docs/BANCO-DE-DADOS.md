@@ -99,6 +99,7 @@ Todas as tabelas têm **o mesmo formato**:
 | `paineis` | Painéis e Relatórios (pastas, painéis, relatórios, planilhas e consultas) | `bi/*` | `central_paineis` | `DADOS_TABELA_PAINEIS` |
 | `log_admin` | Ações dos funcionários (justificativas, downloads de conversas...) | `admin_log` | `central_log_admin` | `DADOS_TABELA_LOG_ADMIN` |
 | `log_acessos` | Logins (engajamento) | `acessos_log` | `central_log_acessos` | `DADOS_TABELA_LOG_ACESSOS` |
+| `reservas` | Reserva das integrações (cópia do TOTVS e do banco / data lake) | `reserva/*` | `central_reservas` | `DADOS_TABELA_RESERVAS` |
 | `totvs` | Integração TOTVS (última sincronização e arquivo de teste) | `totvs_ultima_sincronizacao`, `totvs_exemplo` | `central_totvs` | `DADOS_TABELA_TOTVS` |
 | `geral` | Qualquer dado que não está nos grupos acima (e o controle interno da migração) | (qualquer outro dado) | `central_dados` | `DADOS_TABELA_GERAL` |
 
@@ -257,6 +258,7 @@ Com o banco ligado, o Render lê do banco, então os JSON velhos do deploy **nã
 | `DADOS_CRIAR_TABELAS` | `1` | Cria as tabelas que faltam (`0` = só usa as existentes) |
 | `DADOS_ESPELHO_JSON` | `1` | Grava também nos JSON |
 | `DADOS_MIGRAR_AUTO` | `1` | Migração inicial automática |
+| `RESERVA_INTERVALO` | `600` | Segundos entre as atualizações da cópia de reserva do TOTVS e do banco / data lake |
 | `TOTVS_DB_DSN`, `TOTVS_DB_USUARIO`, `TOTVS_DB_SENHA` | — | Banco do TOTVS (`TOTVS_MODO=banco`) |
 | `TOTVS_DB_TABELA` | — | Tabela ou view de alunos do TOTVS |
 | `TOTVS_DB_CONSULTA` | — | SELECT pronto (tem prioridade sobre a tabela) |
@@ -291,3 +293,44 @@ Com o banco ligado, o Render lê do banco, então os JSON velhos do deploy **nã
 | Pendentes não somem | O banco ainda falha ao gravar | **Sincronizar pendentes** e veja o erro no log do servidor |
 | Arquivos em `data/_sistema/conflitos/` | Mesma chave mudou nos dois lados | Abra o arquivo, compare com o que está no banco e, se precisar, corrija pela tela da aba |
 | `data/usuarios.json` abre no navegador | O servidor não está usando o `router.php` | No Render, confira o `CMD` do `Dockerfile`; no computador, rode `php -S localhost:8000 router.php` |
+
+---
+
+## 11. Reserva das integrações (TOTVS e banco / data lake)
+
+Os JSON são a **reserva de tudo**:
+
+| O que não conecta | Reserva | O que acontece |
+| --- | --- | --- |
+| **Banco da Central** | `data/*.json` (espelho) | A Central lê e grava nos JSON e sincroniza quando o banco volta (seção 2) |
+| **TOTVS** (modo `real` ou `banco`) | `data/reserva/totvs_alunos.json` | A tabela "TOTVS: alunos" dos Painéis e os relatórios com origem TOTVS usam a cópia |
+| **Banco / data lake** (`BI_SQL`) | `data/reserva/bi_sql_<id>.json` (uma por consulta) | Os Painéis e Relatórios dessa consulta usam a cópia |
+
+### Como funciona
+1. Toda leitura que dá certo guarda uma cópia, no máximo a cada `RESERVA_INTERVALO` segundos (padrão 600, ou seja, 10 minutos).
+2. Com o banco da Central ligado, a cópia vai também para a tabela `central_reservas` e sobrevive aos deploys do Render.
+3. Se a origem não responder, a tela usa a cópia e mostra um **aviso amarelo**, por exemplo: "O TOTVS não respondeu. Mostrando a cópia de reserva de 28/10/2026 às 14:10."
+4. Se a consulta SQL for alterada, a cópia antiga deixa de valer, para não mostrar dados de outra consulta.
+5. Se ainda não existir cópia, aparece o erro normal.
+
+### O que NÃO usa a reserva (de propósito)
+- **A sincronização de alunos** (Cadastro de Alunos / TOTVS): ela grava no cadastro, e gravar dados velhos por cima dos atuais é pior do que esperar o TOTVS voltar.
+- O teste de uma consulta SQL nova.
+- O modo `teste` do TOTVS (ele já lê de um JSON).
+
+### Privacidade
+Colunas com **"cpf"** no nome **não** são guardadas na cópia. Um painel que mostra CPF de uma consulta SQL fica sem essa coluna enquanto estiver usando a reserva.
+
+### Onde ver
+Menu **Banco de dados > Reserva das integrações**: cada cópia, a origem, a data e o número de linhas.
+
+### Arquivos
+| Arquivo | Papel |
+| --- | --- |
+| `includes/reserva-externa.php` | Guardar, ler e usar as cópias |
+| `includes/integracoes/totvs-cliente.php` | `totvsBuscarAlunosComReserva()` (usado pelos Painéis) |
+| `includes/bi.php` | Consultas SQL com `bancoSelecionarComReserva()` e o aviso na resposta |
+| `admin-paineis.php`, `includes/painel-editavel.php` | Aviso amarelo na tela |
+
+### Git e Render
+Todos os `data/**/*.json` vão para o git, inclusive `data/reserva/`. A cada deploy, o Render sobe com a reserva mais recente do seu computador. Só `data/_sistema/` fica de fora (controle interno, vale só para a máquina onde foi gerado).

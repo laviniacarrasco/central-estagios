@@ -15,6 +15,7 @@
 
 require_once __DIR__ . '/totvs-config.php';
 require_once __DIR__ . '/banco-conexao.php';
+require_once __DIR__ . '/../reserva-externa.php';
 
 /** Monta a resposta padrão de erro (para não repetir o array toda hora). */
 function totvsErro(string $mensagem): array {
@@ -158,4 +159,27 @@ function totvsBuscarAlunosBanco(): array {
         return totvsErro($e->getMessage());
     }
     return ['ok' => true, 'linhas' => $linhas, 'erro' => ''];
+}
+
+/**
+ * Igual ao totvsBuscarAlunos(), mas com RESERVA (includes/reserva-externa.php):
+ * guarda uma cópia quando dá certo e usa a cópia quando o TOTVS não responde.
+ * Usado SÓ para consulta (Painéis e Relatórios). A sincronização de alunos
+ * continua usando totvsBuscarAlunos(), para nunca gravar dados velhos.
+ */
+function totvsBuscarAlunosComReserva(): array {
+    $modo = totvsModo();
+    $r = totvsBuscarAlunos();
+    if (!in_array($modo, ['real', 'banco'], true)) return $r;     // teste/desligado: sem reserva
+
+    if (!empty($r['ok'])) {
+        reservaGuardar('totvs_alunos', 'TOTVS', (array) $r['linhas'], $modo);
+        return $r + ['reserva' => false];
+    }
+    try {
+        $linhas = reservaUsar('totvs_alunos', 'O TOTVS', (string) ($r['erro'] ?? ''), $modo);
+        return ['ok' => true, 'linhas' => $linhas, 'erro' => '', 'reserva' => true];
+    } catch (Throwable $e) {
+        return totvsErro($e->getMessage());
+    }
 }

@@ -254,7 +254,21 @@ $painelEditavelId = $painelEditavelId ?? 'alunos';
     secao.append(tit, grade);
     raiz.appendChild(secao);
 
-    function fonte(id) { if (!cache[id]) cache[id] = get('bi-dados.php?fonte=' + encodeURIComponent(id)); return cache[id]; }
+    function fonte(id) {
+        if (!cache[id]) cache[id] = get('bi-dados.php?fonte=' + encodeURIComponent(id)).then(function (f) { if (f && f.aviso) avisoReserva(f.aviso); return f; });
+        return cache[id];
+    }
+    // Aviso amarelo quando a fonte veio da cópia de reserva (TOTVS ou banco externo fora do ar)
+    function avisoReserva(texto) {
+        var box = document.getElementById('peAvisoReserva');
+        if (!box) {
+            box = el('div', 'fixed bottom-4 right-4 z-50 max-w-md p-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl text-xs shadow-lg cursor-pointer');
+            box.id = 'peAvisoReserva'; box.title = 'Clique para fechar';
+            box.onclick = function () { box.remove(); };
+            document.body.appendChild(box);
+        }
+        if (box.textContent.indexOf(texto) === -1) box.appendChild(el('p', 'mb-1', '⚠ ' + texto));
+    }
     function lista(t) { return String(t || '').split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean); }
     function medir(linhas, w) {
         var nums = function () { return linhas.map(function (l) { return parseFloat(l[w.campo]); }).filter(function (n) { return !isNaN(n); }); };

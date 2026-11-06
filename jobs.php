@@ -179,7 +179,7 @@ function jobsCartao(array $v, bool $podeCandidatar): void {
                 <!-- Local, carga horária, bolsa, data -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 mt-3 text-sm font-medium">
                     <div class="flex items-center gap-2 text-slate-500"><i class="fas fa-map-marker-alt text-[#E35444]"></i><?= egh($v['location'] ?? '') ?: '—' ?></div>
-                    <div class="flex items-center gap-2 text-slate-500"><i class="fas fa-clock text-[#58A1D4]"></i><?= egh($v['hours'] ?? '') ?: '—' ?></div>
+                    <div class="flex items-center gap-2 text-slate-500"><i class="fas fa-clock text-[#2B7FA6]"></i><?= egh($v['hours'] ?? '') ?: '—' ?></div>
                     <div class="flex items-center gap-2 font-bold text-[#27AE60]"><i class="fas fa-dollar-sign"></i><?= egh($v['salary'] ?? '') ?: 'A combinar' ?></div>
                     <div class="text-slate-400"><?= egh($v['createdAt'] ?? '') ?><?= vagaValidadeHtml($v) ?></div>
                 </div>
@@ -214,7 +214,7 @@ function jobsCartao(array $v, bool $podeCandidatar): void {
                 <div class="flex flex-wrap items-center gap-2">
                     <?php if ($hrefCandidatar !== ''): ?>
                         <a href="<?= egh($hrefCandidatar) ?>" target="_blank" rel="noopener"
-                           class="px-5 py-2 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl text-sm font-semibold transition-all">
+                           class="px-5 py-2 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl text-sm font-semibold transition-all">
                             <i class="fas fa-paper-plane mr-1"></i> <?= $podeCandidatar ? 'Candidatar-se' : 'Abrir vaga' ?>
                         </a>
                     <?php else: ?>
@@ -243,10 +243,10 @@ include 'includes/header.php';
             </div>
             <div class="flex flex-wrap gap-2">
                 <?php if (perfilPode('divulgar_vaga')): ?>
-                    <a href="egresso-publicar.php" class="px-6 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold text-sm"><i class="fas fa-plus-circle mr-1"></i> Divulgar uma vaga</a>
+                    <a href="egresso-publicar.php" class="px-6 py-3 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold text-sm"><i class="fas fa-plus-circle mr-1"></i> Divulgar uma vaga</a>
                 <?php endif; ?>
                 <?php if (perfilPode('gestao')): ?>
-                    <a href="admin-jobs.php" class="px-6 py-3 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold text-sm"><i class="fas fa-cog mr-1"></i> Gerenciar vagas</a>
+                    <a href="admin-jobs.php" class="px-6 py-3 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold text-sm"><i class="fas fa-cog mr-1"></i> Gerenciar vagas</a>
                 <?php endif; ?>
                 <?php if (perfilPode('gestao_egressos')): ?>
                     <a href="admin-egressos.php" class="px-6 py-3 border border-[#4A9FCA] text-[#2B7FA6] rounded-xl font-semibold text-sm hover:bg-blue-50"><i class="fas fa-user-graduate mr-1"></i> Painel de Egressos</a>
@@ -262,7 +262,7 @@ include 'includes/header.php';
                     <input type="text" name="search" value="<?= egh($busca) ?>" placeholder="Buscar por vaga, empresa, local ou curso..."
                            class="w-full h-12 pl-12 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4A9FCA]">
                 </div>
-                <button type="submit" class="h-12 bg-[#4A9FCA] hover:bg-[#3A8FB0] text-white rounded-xl font-semibold"><i class="fas fa-search mr-1"></i> Buscar</button>
+                <button type="submit" class="h-12 bg-[#4A9FCA] hover:bg-[#2B7FA6] text-white rounded-xl font-semibold"><i class="fas fa-search mr-1"></i> Buscar</button>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
                 <?php
@@ -275,7 +275,7 @@ include 'includes/header.php';
                     ['ordem', $ordens, $ordemSel],
                 ];
                 foreach ($selects as [$nome, $opcoes, $valor]): ?>
-                    <select name="<?= $nome ?>" onchange="this.form.submit()" class="h-11 px-3 bg-white border border-gray-200 rounded-xl text-sm">
+                    <select name="<?= $nome ?>" onchange="this.form.requestSubmit()" class="h-11 px-3 bg-white border border-gray-200 rounded-xl text-sm">
                         <?php foreach ($opcoes as $k => $rot): ?>
                             <option value="<?= egh((string) $k) ?>" <?= (string) $k === $valor ? 'selected' : '' ?>><?= egh($rot) ?></option>
                         <?php endforeach; ?>
@@ -289,7 +289,7 @@ include 'includes/header.php';
 
         <!-- Números -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="p-6 bg-[#58A1D4] text-white rounded-2xl h-28 relative overflow-hidden">
+            <div class="p-6 bg-[#4A9FCA] text-white rounded-2xl h-28 relative overflow-hidden">
                 <p class="text-white/90 text-sm font-medium mb-1"><?= $filtrosAtivos ? 'Resultado da busca' : 'Total de vagas' ?></p>
                 <p class="text-4xl font-bold"><?= count($filtradas) ?></p>
                 <i class="fas fa-briefcase absolute -right-3 -bottom-3 text-6xl text-white/10"></i>
